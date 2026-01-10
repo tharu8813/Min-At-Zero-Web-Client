@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="icon.png" alt="Min. At. Zero Logo" width="120">
+</p>
 # Min. At. Zero Web Client
 
 본 프로젝트는 기존 데스크톱 프로그램에서 처리하던 기능을  
