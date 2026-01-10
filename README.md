@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.png" alt="Min. At. Zero Logo" width="200">
+  <img src="icon.png" alt="Min. At. Zero Logo" width="180">
 </p>
 
 # Min. At. Zero Web Client
