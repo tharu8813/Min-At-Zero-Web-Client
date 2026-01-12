@@ -423,6 +423,39 @@
             background: rgba(34, 197, 94, 0.5);
         }
 
+        /* 클라이언트 패치 노트 스타일 (작게) */
+        .client-patch-notes-content {
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(148, 163, 184, 0.08);
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .client-patch-notes-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .client-patch-notes-content::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 3px;
+        }
+
+        .client-patch-notes-content::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 3px;
+        }
+
+        .client-patch-notes-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.5);
+        }
+
+        /* 게임 패치 노트 리스트 */
+        .game-patch-notes-list {
+            margin-top: 20px;
+        }
+
         @media (max-width: 768px) {
             .content-grid {
                 grid-template-columns: 1fr;
@@ -447,5 +480,9 @@
             
             .patch-notes-content {
                 max-height: 300px;
+            }
+            
+            .client-patch-notes-content {
+                max-height: 150px;
             }
         }
