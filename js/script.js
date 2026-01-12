@@ -24,13 +24,13 @@ function updateClientInfo(releaseData) {
     if (!releaseData) return;
     
     // 버전 정보 업데이트
-    const versionElement = document.querySelector('.info-value');
+    const versionElement = document.getElementById('client-version');
     if (versionElement && releaseData.tag_name) {
         versionElement.textContent = `1.20.1 (v${releaseData.tag_name})`;
     }
     
     // 다운로드 링크 업데이트
-    const downloadBtn = document.querySelector('.download-btn');
+    const downloadBtn = document.getElementById('download-btn');
     if (downloadBtn && releaseData.assets && releaseData.assets.length > 0) {
         // .exe 파일 찾기
         const exeAsset = releaseData.assets.find(asset => 
@@ -42,7 +42,7 @@ function updateClientInfo(releaseData) {
             
             // 파일 크기 표시 (MB로 변환)
             const fileSizeMB = (exeAsset.size / (1024 * 1024)).toFixed(1);
-            const sizeInfo = document.querySelector('.download-btn + p');
+            const sizeInfo = document.getElementById('download-info');
             if (sizeInfo) {
                 sizeInfo.innerHTML = `최신 버전: v${releaseData.tag_name} • Windows 10/11 지원 • 약 ${fileSizeMB}MB`;
             }
@@ -133,8 +133,8 @@ function formatPatchNotes(markdown) {
 
 // 로딩 상태 표시
 function showLoadingState() {
-    const downloadBtn = document.querySelector('.download-btn');
-    const sizeInfo = document.querySelector('.download-btn + p');
+    const downloadBtn = document.getElementById('download-btn');
+    const sizeInfo = document.getElementById('download-info');
     
     if (downloadBtn) {
         downloadBtn.style.opacity = '0.6';
@@ -148,7 +148,14 @@ function showLoadingState() {
 
 // 에러 상태 표시
 function showErrorState() {
-    const sizeInfo = document.querySelector('.download-btn + p');
+    const downloadBtn = document.getElementById('download-btn');
+    const sizeInfo = document.getElementById('download-info');
+    
+    if (downloadBtn) {
+        downloadBtn.style.opacity = '1';
+        downloadBtn.style.pointerEvents = 'auto';
+    }
+    
     if (sizeInfo) {
         sizeInfo.innerHTML = '⚠️ 릴리즈 정보를 불러올 수 없습니다. 기본 다운로드 링크를 사용하세요.';
         sizeInfo.style.color = '#f59e0b';
