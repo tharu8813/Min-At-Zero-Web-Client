@@ -1,4 +1,4 @@
-        * {
+* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -126,6 +126,10 @@
 
         .card:nth-child(3) {
             animation-delay: 0.3s;
+        }
+
+        .card:nth-child(4) {
+            animation-delay: 0.4s;
         }
 
         @keyframes fadeInUp {
@@ -391,6 +395,34 @@
             }
         }
 
+        /* 패치 노트 스타일 */
+        .patch-notes-content {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .patch-notes-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .patch-notes-content::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 4px;
+        }
+
+        .patch-notes-content::-webkit-scrollbar-thumb {
+            background: rgba(34, 197, 94, 0.3);
+            border-radius: 4px;
+        }
+
+        .patch-notes-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(34, 197, 94, 0.5);
+        }
+
         @media (max-width: 768px) {
             .content-grid {
                 grid-template-columns: 1fr;
@@ -411,5 +443,9 @@
 
             .video-container {
                 grid-column: 1;
+            }
+            
+            .patch-notes-content {
+                max-height: 300px;
             }
         }
