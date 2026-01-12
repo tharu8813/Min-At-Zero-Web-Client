@@ -1,33 +1,52 @@
-// GitHub API 설정
-const GITHUB_REPO = 'tharu8813/Min-At-Zero-Clinet';
-const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
+// GitHub API 설정 (클라이언트)
+const GITHUB_CLIENT_REPO = 'tharu8813/Min-At-Zero-Clinet';
+const GITHUB_CLIENT_API_URL = `https://api.github.com/repos/${GITHUB_CLIENT_REPO}/releases/latest`;
 
-// Notion API 설정 (사용자가 설정해야 함)
-const NOTION_API_KEY = 'YOUR_NOTION_INTEGRATION_TOKEN'; // Notion Integration Token
-const NOTION_DATABASE_ID = 'YOUR_DATABASE_ID'; // Notion Database ID
+// GitHub API 설정 (게임) - 실제 저장소 이름으로 교체하세요 (예: 'tharu8813/Min-At-Zero-Game')
+const GITHUB_GAME_REPO = 'tharu8813/Min-At-Zero-Game'; // 게임 저장소 이름으로 변경
+const GITHUB_GAME_API_URL = `https://api.github.com/repos/${GITHUB_GAME_REPO}/releases/latest`;
 
-// 릴리즈 정보를 가져오는 함수
-async function fetchLatestRelease() {
+// Notion API 설정은 제거 (GitHub로 대체)
+
+// 릴리즈 정보를 가져오는 함수 (클라이언트)
+async function fetchLatestClientRelease() {
     try {
-        const response = await fetch(GITHUB_API_URL);
+        const response = await fetch(GITHUB_CLIENT_API_URL);
         
         if (!response.ok) {
-            throw new Error('릴리즈 정보를 가져올 수 없습니다.');
+            throw new Error('클라이언트 릴리즈 정보를 가져올 수 없습니다.');
         }
         
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('GitHub API 오류:', error);
+        console.error('GitHub 클라이언트 API 오류:', error);
         return null;
     }
 }
 
-// UI 업데이트 함수
+// 릴리즈 정보를 가져오는 함수 (게임)
+async function fetchLatestGameRelease() {
+    try {
+        const response = await fetch(GITHUB_GAME_API_URL);
+        
+        if (!response.ok) {
+            throw new Error('게임 릴리즈 정보를 가져올 수 없습니다.');
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('GitHub 게임 API 오류:', error);
+        return null;
+    }
+}
+
+// UI 업데이트 함수 (클라이언트)
 function updateClientInfo(releaseData) {
     if (!releaseData) return;
     
-    // 버전 정보 업데이트
+    // 클라이언트 버전 정보 업데이트
     const versionElement = document.getElementById('client-version');
     if (versionElement && releaseData.tag_name) {
         versionElement.textContent = `1.20.1 (v${releaseData.tag_name})`;
@@ -53,12 +72,12 @@ function updateClientInfo(releaseData) {
         }
     }
     
-    // 패치 노트 섹션 추가
-    addPatchNotes(releaseData);
+    // 클라이언트 패치 노트 섹션 추가
+    addClientPatchNotes(releaseData);
 }
 
-// 패치 노트 섹션 추가 함수 (클라이언트 패치노트)
-function addPatchNotes(releaseData) {
+// 클라이언트 패치 노트 섹션 추가 함수
+function addClientPatchNotes(releaseData) {
     if (!releaseData.body) return;
     
     // 클라이언트 다운로드 카드 찾기
@@ -113,7 +132,77 @@ function addPatchNotes(releaseData) {
     }
 }
 
-// Markdown 형식의 패치 노트를 HTML로 변환
+// UI 업데이트 함수 (게임)
+function updateGameInfo(releaseData) {
+    if (!releaseData) return;
+    
+    // 게임 버전 정보 업데이트
+    const versionElement = document.getElementById('game-version');
+    if (versionElement && releaseData.tag_name) {
+        versionElement.textContent = `1.20.1 (v${releaseData.tag_name})`;
+    }
+    
+    // 게임 패치 노트 섹션 추가
+    addGamePatchNotes(releaseData);
+}
+
+// 게임 패치 노트 섹션 추가 함수 (클라이언트와 유사하게 스타일링)
+function addGamePatchNotes(releaseData) {
+    if (!releaseData.body) return;
+    
+    const contentGrid = document.querySelector('.content-grid');
+    
+    // 기존 게임 패치 노트 제거 (중복 방지)
+    const existingGamePatchNotes = document.getElementById('game-patch-notes-card');
+    if (existingGamePatchNotes) {
+        existingGamePatchNotes.remove();
+    }
+    
+    // 발행일 포맷팅
+    const publishDate = new Date(releaseData.published_at).toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    // 게임 패치 노트 카드 생성
+    const gamePatchNotesCard = document.createElement('div');
+    gamePatchNotesCard.id = 'game-patch-notes-card';
+    gamePatchNotesCard.className = 'card';
+    gamePatchNotesCard.style.gridColumn = '1 / -1';
+    
+    gamePatchNotesCard.innerHTML = `
+        <h2>🎮 게임 패치 노트</h2>
+        <div class="game-patch-notes-list">
+            <div class="patch-note-item" style="padding: 20px 0;">
+                <h3 style="font-size: 18px; color: #e5e7eb; margin-bottom: 8px;">${releaseData.name || '최신 게임 업데이트 (v' + releaseData.tag_name + ')'}</h3>
+                <div style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">${publishDate}</div>
+                <div class="patch-notes-content">
+                    ${formatPatchNotes(releaseData.body)}
+                </div>
+                ${releaseData.html_url ? `
+                    <a href="${releaseData.html_url}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; color: #3b82f6; text-decoration: none; font-size: 13px; margin-top: 12px; transition: all 0.3s;">
+                        <span>GitHub에서 자세히 보기</span>
+                        <span>→</span>
+                    </a>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    // 클라이언트 다운로드 카드 바로 위에 삽입 (컨셉 유지)
+    const downloadCard = Array.from(document.querySelectorAll('.card')).find(card => 
+        card.querySelector('h2')?.textContent.includes('클라이언트 다운로드')
+    );
+    
+    if (downloadCard) {
+        contentGrid.insertBefore(gamePatchNotesCard, downloadCard);
+    } else {
+        contentGrid.appendChild(gamePatchNotesCard);
+    }
+}
+
+// Markdown 형식의 패치 노트를 HTML로 변환 (공통 함수)
 function formatPatchNotes(markdown) {
     if (!markdown) return '';
     
@@ -140,104 +229,6 @@ function formatPatchNotes(markdown) {
         '<ul style="margin: 8px 0; list-style-type: disc;">$1</ul>');
     
     return `<div style="color: #cbd5e1; line-height: 1.5; font-size: 13px;">${html}</div>`;
-}
-
-// Notion 데이터베이스에서 패치 노트 가져오기
-async function fetchNotionPatchNotes() {
-    // CORS 문제로 인해 브라우저에서 직접 호출 불가
-    // 백엔드 서버가 필요하거나, Notion API를 프록시하는 서버리스 함수 필요
-    // 여기서는 예시 코드만 제공
-    
-    try {
-        // 실제로는 백엔드 API 엔드포인트를 호출해야 함
-        // 예: const response = await fetch('/api/notion-patch-notes');
-        
-        const response = await fetch(`https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${NOTION_API_KEY}`,
-                'Notion-Version': '2022-06-28',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                sorts: [
-                    {
-                        property: '작성날짜', // Notion 데이터베이스의 날짜 속성 이름
-                        direction: 'descending'
-                    }
-                ],
-                page_size: 5 // 최근 5개만 가져오기
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Notion API 호출 실패');
-        }
-        
-        const data = await response.json();
-        return data.results;
-    } catch (error) {
-        console.error('Notion API 오류:', error);
-        return null;
-    }
-}
-
-// Notion 패치 노트를 UI에 표시
-function displayNotionPatchNotes(notionData) {
-    if (!notionData || notionData.length === 0) return;
-    
-    const contentGrid = document.querySelector('.content-grid');
-    
-    // 기존 게임 패치 노트 제거
-    const existingGamePatchNotes = document.getElementById('game-patch-notes-card');
-    if (existingGamePatchNotes) {
-        existingGamePatchNotes.remove();
-    }
-    
-    // 게임 패치 노트 카드 생성
-    const gamePatchNotesCard = document.createElement('div');
-    gamePatchNotesCard.id = 'game-patch-notes-card';
-    gamePatchNotesCard.className = 'card';
-    gamePatchNotesCard.style.gridColumn = '1 / -1';
-    
-    let patchNotesHTML = '<h2>🎮 게임 패치 노트</h2>';
-    patchNotesHTML += '<div class="game-patch-notes-list">';
-    
-    notionData.forEach((page, index) => {
-        // Notion 속성에서 데이터 추출
-        const title = page.properties['제목']?.title?.[0]?.plain_text || '제목 없음';
-        const content = page.properties['내용']?.rich_text?.[0]?.plain_text || '';
-        const date = page.properties['작성날짜']?.date?.start || '';
-        
-        const formattedDate = date ? new Date(date).toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        }) : '';
-        
-        patchNotesHTML += `
-            <div class="patch-note-item" style="border-bottom: ${index < notionData.length - 1 ? '1px solid rgba(148, 163, 184, 0.1)' : 'none'}; padding: 20px 0;">
-                <h3 style="font-size: 18px; color: #e5e7eb; margin-bottom: 8px;">${title}</h3>
-                <div style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">${formattedDate}</div>
-                <div style="color: #cbd5e1; line-height: 1.6; font-size: 14px; white-space: pre-wrap;">${content}</div>
-            </div>
-        `;
-    });
-    
-    patchNotesHTML += '</div>';
-    
-    gamePatchNotesCard.innerHTML = patchNotesHTML;
-    
-    // 클라이언트 다운로드 카드 바로 위에 삽입
-    const downloadCard = Array.from(document.querySelectorAll('.card')).find(card => 
-        card.querySelector('h2')?.textContent.includes('클라이언트 다운로드')
-    );
-    
-    if (downloadCard) {
-        contentGrid.insertBefore(gamePatchNotesCard, downloadCard);
-    } else {
-        contentGrid.appendChild(gamePatchNotesCard);
-    }
 }
 
 // 로딩 상태 표시
@@ -292,22 +283,24 @@ window.addEventListener('load', async () => {
     // 로딩 상태 표시
     showLoadingState();
     
-    // GitHub에서 최신 릴리즈 정보 가져오기
-    const releaseData = await fetchLatestRelease();
+    // GitHub에서 클라이언트 릴리즈 정보 가져오기
+    const clientReleaseData = await fetchLatestClientRelease();
     
-    if (releaseData) {
-        updateClientInfo(releaseData);
-        console.log('릴리즈 정보 업데이트 완료:', releaseData.tag_name);
+    if (clientReleaseData) {
+        updateClientInfo(clientReleaseData);
+        console.log('클라이언트 릴리즈 정보 업데이트 완료:', clientReleaseData.tag_name);
     } else {
         showErrorState();
-        console.warn('릴리즈 정보를 가져올 수 없습니다. 기본 값을 사용합니다.');
+        console.warn('클라이언트 릴리즈 정보를 가져올 수 없습니다. 기본 값을 사용합니다.');
     }
     
-    // Notion에서 게임 패치 노트 가져오기 (선택적)
-    // CORS 문제로 백엔드 API가 필요함
-    // const notionData = await fetchNotionPatchNotes();
-    // if (notionData) {
-    //     displayNotionPatchNotes(notionData);
-    //     console.log('Notion 패치 노트 업데이트 완료');
-    // }
+    // GitHub에서 게임 릴리즈 정보 가져오기
+    const gameReleaseData = await fetchLatestGameRelease();
+    
+    if (gameReleaseData) {
+        updateGameInfo(gameReleaseData);
+        console.log('게임 릴리즈 정보 업데이트 완료:', gameReleaseData.tag_name);
+    } else {
+        console.warn('게임 릴리즈 정보를 가져올 수 없습니다. 기본 값을 사용합니다.');
+    }
 });
