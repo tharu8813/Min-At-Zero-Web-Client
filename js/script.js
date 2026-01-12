@@ -49,7 +49,7 @@ function updateClientInfo(releaseData) {
     // 클라이언트 버전 정보 업데이트
     const versionElement = document.getElementById('client-version');
     if (versionElement && releaseData.tag_name) {
-        versionElement.textContent = `1.20.1 (v${releaseData.tag_name})`;
+        versionElement.textContent = `v${releaseData.tag_name}`;
     }
     
     // 다운로드 링크 업데이트
