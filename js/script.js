@@ -3,7 +3,7 @@ const GITHUB_CLIENT_REPO = 'tharu8813/Min-At-Zero-Clinet';
 const GITHUB_CLIENT_API_URL = `https://api.github.com/repos/${GITHUB_CLIENT_REPO}/releases/latest`;
 
 // GitHub API 설정 (게임) - 실제 저장소 이름으로 교체하세요 (예: 'tharu8813/Min-At-Zero-Game')
-const GITHUB_GAME_REPO = 'tharu8813/Min-At-Zero-Game'; // 게임 저장소 이름으로 변경
+const GITHUB_GAME_REPO = 'tharu8813/Min-At-Zero'; // 게임 저장소 이름으로 변경
 const GITHUB_GAME_API_URL = `https://api.github.com/repos/${GITHUB_GAME_REPO}/releases/latest`;
 
 // Notion API 설정은 제거 (GitHub로 대체)
