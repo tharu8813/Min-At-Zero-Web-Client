@@ -1,7 +1,24 @@
-Copyright (c) 2026 Min. At. Zero
+LICENSE
+
+Copyright (c) 2026 tharu(Ji Baek Min)
 
 All rights reserved.
 
-본 프로젝트의 모든 소스 코드, 리소스 및 결과물에 대한 저작권은
-제작자에게 있으며, 제작자의 사전 허가 없이
-사용, 수정, 복제, 배포를 금합니다.
+This repository and all associated source code, binaries, documentation, and other materials
+(the "Software") are the exclusive property of the copyright holder.
+
+Permission is granted to view the Software for personal reference purposes only.
+
+The following actions are strictly prohibited without prior written permission from the copyright holder:
+
+1. Copying, modifying, adapting, or creating derivative works of the Software
+2. Redistributing, publishing, sublicensing, selling, or sharing the Software, in whole or in part
+3. Using the Software for commercial or non-commercial purposes
+4. Incorporating the Software into other projects, products, or services
+5. Reverse engineering, decompiling, or disassembling the Software
+
+Any unauthorized use of the Software constitutes a violation of applicable copyright laws.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+AND NONINFRINGEMENT.
