@@ -18,6 +18,3 @@
 
 본 프로젝트와 관련된 소스 코드, 리소스 및 결과물에 대한  
 무단 수정, 재배포, 2차 가공은 허용되지 않습니다.
-
-## License
-This project is licensed under a custom proprietary license.
