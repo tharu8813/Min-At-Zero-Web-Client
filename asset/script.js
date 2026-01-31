@@ -248,15 +248,15 @@ function handleClientAction(url, button, confirmMessage = null) {
 }
 
 function startGame(button) {
-    handleClientAction("matz-clinet://start", button);
+    handleClientAction("matz-client://start", button);
 }
 
 function openLoginInfo(button) {
-    handleClientAction("matz-clinet://login-info", button);
+    handleClientAction("matz-client://login-info", button);
 }
 
 function reset(button) {
-    handleClientAction("matz-clinet://reset", button, '클라이언트를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.');
+    handleClientAction("matz-client://reset", button, '클라이언트를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.');
 }
 
 // 페이지 로드 시 실행
