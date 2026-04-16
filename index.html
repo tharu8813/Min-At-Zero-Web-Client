@@ -2,116 +2,92 @@
 <html lang="ko">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Min. At. Zero</title>
-    <link rel="icon" type="image/png" href="asset/image/96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="asset/image/icon.svg" />
-    <link rel="shortcut icon" href="asset/image/icon.ico" />
-    <link rel="stylesheet" href="asset/style.css">
+  <meta charset="UTF-8">
+  <title>Min. At. Zero</title>
+  <link rel="stylesheet" href="asset/style.css">
 </head>
 
 <body>
-    <div class="main-container">
-        <div class="header">
-            <div class="logo">
-                <img src="asset/image/icon.png" alt="Min. At. Zero Logo">
-            </div>
-            <h1>Min. At. Zero</h1>
-            <p>기존 Timeless and Classics Guns(1.16.5) 모다 더욱 좋아진 Timeless and Classics Zero(1.20.1) 모드 기반으로 제작된 마인크래프트
-                FPS게임 서버입니다. 맵과 무기를 선택하고 여러가지 맵을 선택해 유저들과 싸워보세요!</p>
+
+  <div class="bg-grid"></div>
+  <div class="bg-radial"></div>
+  <div class="wrap">
+    <header class="header">
+      <div class="logo-box"> <img src="asset/image/icon.png" alt="Min. At. Zero 로고"
+          onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:Rajdhani,sans-serif;font-size:28px;font-weight:700;color:white\'>M</div>'">
+      </div>
+      <div class="header-text">
+        <h1 class="site-title">Min. At. <span>Zero</span></h1>
+        <p class="site-desc">기존 Timeless and Classics Guns(1.16.5) 모드보다 향상된 Timeless and Classics Zero(1.20.1) 기반 마인크래프트
+          FPS 서버. 맵과 무기를 선택하고 유저들과 전투를 펼치세요.</p>
+      </div>
+    </header>
+    <div class="divider"></div>
+    <div class="grid"> <!-- 트레일러 -->
+      <div class="card span-full">
+        <div class="card-accent"></div>
+        <div class="card-label">Official Trailer</div>
+        <div class="video-wrap"> <iframe src="https://www.youtube.com/embed/qqqMY-6juJo?rel=0&modestbranding=1"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe> </div>
+      </div> <!-- 게임 패치 노트 (동적) -->
+      <div class="card span-full" id="game-patch-notes-card" style="display:none">
+        <div class="card-accent"></div>
+        <div class="card-label">Game Patch Notes</div>
+        <div id="game-patch-header" style="margin-bottom:14px">
+          <div id="game-patch-title"
+            style="font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:4px">
+          </div>
+          <div id="game-patch-date" style="font-size:12px;color:var(--text-muted)"></div>
         </div>
-
-        <div class="content-grid">
-            <!-- 공식 트레일러 -->
-            <div class="card" style="grid-column: 1 / -1;">
-                <h2>🎬 공식 트레일러</h2>
-                <div class="video-container">
-                    <iframe src="https://www.youtube.com/embed/qqqMY-6juJo?rel=0&modestbranding=1"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen>
-                    </iframe>
-                </div>
-            </div>
-
-            <!-- 서버 정보 -->
-            <div class="card">
-                <h2>📊 서버 정보</h2>
-                <ul class="info-list">
-                    <li>
-                        <span class="info-label">클라이언트 버전</span>
-                        <span class="info-value" id="client-version"></span>
-                    </li>
-                    <li>
-                        <span class="info-label">게임 버전</span>
-                        <span class="info-value" id="game-version">1.20.1</span>
-                    </li>
-                    <li>
-                        <span class="info-label">모드로더</span>
-                        <span class="info-value">Forge 47.4.10</span>
-                    </li>
-                    <li>
-                        <span class="info-label">개발자</span>
-                        <span class="info-value">Tharu_81 / Cryptic_MC, Gam_bler등…</span>
-                    </li>
-                    <li>
-                        <span class="info-label">장르</span>
-                        <span class="info-value">서바이벌 / PvP / FPS</span>
-                    </li>
-                    <li>
-                        <span class="info-label">출시일</span>
-                        <span class="info-value">2024년 6월 5일</span>
-                    </li>
-                </ul>
-                <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
-                    target="_blank" class="notion-link">
-                    📝 자세한 정보 보기 →
-                </a>
-            </div>
-
-            <!-- 런처 -->
-            <div class="card launcher-card">
-                <h2>🚀 게임 시작</h2>
-                <div class="button-group">
-                    <button class="primary" onclick="startGame(this)">
-                        🎮 게임 시작
-                    </button>
-
-                    <button class="secondary" onclick="openLoginInfo(this)">
-                        👤 계정 관리자
-                    </button>
-
-                    <button class="danger" onclick="reset(this)">
-                        🗑️ 클라이언트 초기화
-                    </button>
-                </div>
-
-                <p class="hint">
-                    ※ 전용 클라이언트가 설치되어 있어야 합니다.<br>
-                    버튼 클릭 시 자동으로 프로그램이 실행됩니다.
-                </p>
-            </div>
-
-            <!-- 클라이언트 다운로드 -->
-            <div class="card" style="grid-column: 1 / -1; text-align: center;">
-                <h2>💾 클라이언트 다운로드</h2>
-                <p style="color: #94a3b8; margin-bottom: 20px; line-height: 1.6;">
-                    Min. At. Zero 서버에 접속하려면 전용 클라이언트가 필요합니다.<br>
-                    아래 버튼을 클릭하여 최신 버전을 다운로드하세요.
-                </p>
-                <a href=""
-                    class="download-btn download" download id="download-btn">
-                    ⬇️ Windows용 클라이언트 다운로드
-                </a>
-                <p style="color: #64748b; margin-top: 15px; font-size: 12px;" id="download-info">
-                    최신 버전 • Windows 10/11 지원 • 약 0MB
-                </p>
-            </div>
-        </div>
+        <div class="patch-box" id="game-patch-body"></div> <a id="game-patch-link" href="#" target="_blank"
+          style="display:inline-flex;align-items:center;gap:6px;color:var(--green);font-size:12px;text-decoration:none;margin-top:12px;">
+          GitHub에서 보기 → </a>
+      </div> <!-- 서버 정보 -->
+      <div class="card">
+        <div class="card-accent"></div>
+        <div class="card-label">Server Info</div>
+        <div class="info-rows">
+          <div class="info-row"> <span class="info-key">클라이언트 버전</span> <span class="info-val" id="client-version"><span
+                class="badge badge-green"><span class="pulse"></span> 로딩중</span></span> </div>
+          <div class="info-row"> <span class="info-key">게임 버전</span> <span class="info-val"
+              id="game-version">1.20.1</span> </div>
+          <div class="info-row"> <span class="info-key">모드로더</span> <span class="info-val"><span
+                class="badge badge-blue">Forge 47.4.10</span></span> </div>
+          <div class="info-row"> <span class="info-key">개발자</span> <span class="info-val"
+              style="font-size:12px;color:var(--text-muted)">Tharu_81 / Cryptic_MC, Gam_bler…</span> </div>
+          <div class="info-row"> <span class="info-key">장르</span> <span class="info-val" style="font-size:12px">서바이벌 /
+              PvP / FPS</span> </div>
+          <div class="info-row"> <span class="info-key">출시일</span> <span class="info-val">2024년 6월 5일</span> </div>
+        </div> <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
+          target="_blank" class="notion-btn"> <span>📝 자세한 정보 보기</span> <span class="notion-btn-arrow">→</span> </a>
+      </div> <!-- 런처 -->
+      <div class="card">
+        <div class="card-accent blue"></div>
+        <div class="card-label blue">Launcher</div>
+        <div class="btn-stack"> <button class="btn btn-primary" onclick="startGame(this)"> <span
+              class="btn-icon">🎮</span> <span class="btn-text">게임 시작</span> <span class="btn-tag">PLAY</span> </button>
+          <button class="btn btn-secondary" onclick="openLoginInfo(this)"> <span class="btn-icon">👤</span> <span
+              class="btn-text">계정 관리자</span> <span class="btn-tag">ACCOUNT</span> </button> <button
+            class="btn btn-danger" onclick="reset(this)"> <span class="btn-icon">🗑️</span> <span class="btn-text">클라이언트
+              초기화</span> <span class="btn-tag">RESET</span> </button> </div>
+        <div class="hint-box"> ※ 전용 클라이언트가 설치되어 있어야 합니다.<br> 버튼 클릭 시 자동으로 프로그램이 실행됩니다. </div>
+      </div> <!-- 다운로드 -->
+      <div class="card span-full" style="text-align:center">
+        <div class="card-accent blue"></div>
+        <div class="card-label blue" style="justify-content:center">Download</div>
+        <p class="dl-desc"> Min. At. Zero 서버에 접속하려면 전용 클라이언트가 필요합니다.<br> 아래 버튼을 클릭하여 최신 버전을 다운로드하세요. </p> <a href=""
+          class="dl-btn" id="download-btn" download> <span class="dl-icon">⬇️</span> <span>Windows용 클라이언트 다운로드</span>
+        </a>
+        <div class="dl-meta" id="download-info"> <span class="dl-meta-item">최신 버전</span> <span class="dot-sep"></span>
+          <span class="dl-meta-item">Windows 10/11 지원</span> <span class="dot-sep"></span> <span class="dl-meta-item"
+            id="file-size">약 0MB</span> </div>
+        <div id="client-patch-notes"></div>
+      </div>
     </div>
+  </div>
 
-    <script src="asset/script.js"></script>
+  <script src="asset/script.js"></script>
 </body>
 
 </html>
-
