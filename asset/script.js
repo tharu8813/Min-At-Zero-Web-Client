@@ -82,6 +82,7 @@ function handleAction(url, btn, msg) {
 function startGame(b) { handleAction('matz-client://start', b); }
 function openLoginInfo(b) { handleAction('matz-client://login-info', b); }
 function reset(b) { handleAction('matz-client://reset', b, '클라이언트를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'); }
+function uninstall(b) { handleAction('matz-client://uninstall', b, '클라이언트를 삭제하시겠습니까?\n모든 데이터가 영구적으로 삭제됩니다.'); }
 
 (async () => {
   const [client, game] = await Promise.all([fetchRelease('client'), fetchRelease('game')]);
