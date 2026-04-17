@@ -104,8 +104,35 @@ function updateGameInfo(data) {
 async function fetchServerStatus() {
   const dot = document.getElementById('status-dot');
   const txt = document.getElementById('server-status-text');
-  if (dot) dot.style.background = '#22c55e';
-  if (txt) txt.textContent = '온라인';
+  const players = document.getElementById('server-players');
+  const serverIp = 'tharu81.kro.kr';
+
+  try {
+    const res = await fetch('https://api.mcsrvstat.us/3/' + serverIp);
+    if (!res.ok) throw new Error('Network response was not ok');
+    const data = await res.json();
+
+    if (data.online) {
+      if (dot) {
+        dot.style.background = '#22c55e';
+        dot.style.boxShadow = '0 0 8px #22c55e';
+      }
+      if (txt) txt.textContent = '온라인';
+      if (players && data.players) {
+        players.textContent = data.players.online + ' / ' + data.players.max;
+      }
+    } else {
+      if (dot) {
+        dot.style.background = '#ef4444';
+        dot.style.boxShadow = '0 0 8px #ef4444';
+      }
+      if (txt) txt.textContent = '오프라인';
+      if (players) players.textContent = '— / —';
+    }
+  } catch (e) {
+    if (txt) txt.textContent = '확인 불가';
+    console.error('Server status fetch failed:', e);
+  }
 }
 
 // ── SLIDER ──
@@ -267,31 +294,41 @@ function setBtnLoading(btn, msg, duration = 2000) {
 // 실행 방식 확정 후 TODO 부분만 교체하세요.
 // 예: matz-client:// 프로토콜 / Electron IPC / WebSocket 등
 
-window.startGame = window.startGame || function(btn) {
+window.startGame = function(btn) {
   setBtnLoading(btn, '⏳ 실행 준비 중...');
-  window.location.href = "matz-client://start";
+  setTimeout(() => {
+    window.location.href = "matz-client://start";
+  }, 100);
 };
 
-window.openLoginInfo = window.openLoginInfo || function(btn) {
-  setBtnLoading(btn, '⏳ 열는 중...');
-  window.location.href = "matz-client://login-info";
+window.openLoginInfo = function(btn) {
+  setBtnLoading(btn, '⏳ 여는 중...');
+  setTimeout(() => {
+    window.location.href = "matz-client://login-info";
+  }, 100);
 };
 
-window.openReplayFolder = window.openReplayFolder || function(btn) {
-  setBtnLoading(btn, '⏳ 폴더 열기...');
-  window.location.href = "matz-client://replay";
+window.openReplayFolder = function(btn) {
+  setBtnLoading(btn, '⏳ 폴더 여는 중...');
+  setTimeout(() => {
+    window.location.href = "matz-client://replay";
+  }, 100);
 };
 
-window.reset = window.reset || function(btn) {
+window.reset = function(btn) {
   if (!confirm('클라이언트를 초기화하시겠습니까?')) return;
   setBtnLoading(btn, '⏳ 초기화 중...');
-  window.location.href = "matz-client://reset";
+  setTimeout(() => {
+    window.location.href = "matz-client://reset";
+  }, 100);
 };
 
-window.uninstall = window.uninstall || function(btn) {
+window.uninstall = function(btn) {
   if (!confirm('클라이언트를 정말 삭제하시겠습니까?')) return;
   setBtnLoading(btn, '⏳ 삭제 중...');
-  window.location.href = "matz-client://uninstall";
+  setTimeout(() => {
+    window.location.href = "matz-client://uninstall";
+  }, 100);
 };
 
 // ── INIT ──
