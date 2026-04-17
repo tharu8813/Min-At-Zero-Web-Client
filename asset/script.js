@@ -1,23 +1,33 @@
-const REPOS = { client: 'tharu8813/Min-At-Zero-Clinet', game: 'tharu8813/Min-At-Zero' };
+// ── REPOS ──
+const REPOS = {
+  client: 'tharu8813/Min-At-Zero-Clinet',
+  game:   'tharu8813/Min-At-Zero'
+};
 
+// ── API ──
 async function fetchRelease(type) {
   try {
     const r = await fetch(`https://api.github.com/repos/${REPOS[type]}/releases/latest`);
     if (!r.ok) return null;
     return await r.json();
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
+// ── UTIL ──
 function fmtDate(d) {
-  return new Date(d).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+  return new Date(d).toLocaleDateString('ko-KR', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
 }
 
 function fmtMd(md) {
   if (!md) return '';
   return md
     .replace(/^### (.+)$/gm, '<h4 style="color:var(--green);font-size:13px;font-weight:600;margin:14px 0 6px">$1</h4>')
-    .replace(/^## (.+)$/gm, '<h3 style="color:var(--green);font-size:14px;font-weight:600;margin:14px 0 6px">$1</h3>')
-    .replace(/^# (.+)$/gm, '<h2 style="color:var(--green);font-size:15px;font-weight:700;margin:14px 0 6px">$1</h2>')
+    .replace(/^## (.+)$/gm,  '<h3 style="color:var(--green);font-size:14px;font-weight:600;margin:14px 0 6px">$1</h3>')
+    .replace(/^# (.+)$/gm,   '<h2 style="color:var(--green);font-size:15px;font-weight:700;margin:14px 0 6px">$1</h2>')
     .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text-primary);font-weight:600">$1</strong>')
     .replace(/`([^`]+)`/g, '<code style="background:rgba(59,130,246,0.12);padding:1px 6px;border-radius:4px;font-family:monospace;color:#60a5fa;font-size:12px">$1</code>')
     .replace(/^[\*\-] (.+)$/gm, '<li style="margin:4px 0 4px 16px;color:var(--text-muted)">$1</li>')
@@ -26,67 +36,289 @@ function fmtMd(md) {
     .replace(/\n/g, '<br>');
 }
 
+// ── UI 업데이트 ──
 function updateClientInfo(data) {
-  const ver = document.getElementById('client-version');
-  if (ver && data.tag_name) {
-    ver.innerHTML = `<span class="badge badge-green"><span class="pulse"></span> v${data.tag_name}</span>`;
-  }
+  const tag = data.tag_name || '1.0.0';
+
+  const bar = document.getElementById('client-version-bar');
+  if (bar) bar.textContent = `v${tag}`;
+
+  const dlVer = document.getElementById('dl-version-text');
+  if (dlVer) dlVer.textContent = `v${tag}`;
+
+  const dlSub = document.getElementById('dl-sub-ver');
+  if (dlSub) dlSub.textContent = `Client v${tag}`;
+
   const exe = data.assets?.find(a => a.name.toLowerCase().endsWith('.exe'));
   if (exe) {
     const btn = document.getElementById('download-btn');
     if (btn) btn.href = exe.browser_download_url;
+
     const sz = document.getElementById('file-size');
-    if (sz) sz.textContent = `약 ${(exe.size/1048576).toFixed(1)}MB`;
-    const di = document.getElementById('download-info');
-    if (di) {
-      di.querySelector('span:first-child').textContent = `최신 버전: v${data.tag_name}`;
-    }
+    if (sz) sz.textContent = `약 ${(exe.size / 1048576).toFixed(1)}MB`;
   }
+
   if (data.body) {
     const wrap = document.getElementById('client-patch-notes');
     if (wrap) {
       wrap.innerHTML = `
-        <div style="margin-top:28px;padding-top:24px;border-top:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-            <span style="font-size:12px;font-weight:700;letter-spacing:2px;color:var(--blue);text-transform:uppercase">Client Update</span>
-            <span style="font-size:12px;color:var(--text-dim)">v${data.tag_name} · ${fmtDate(data.published_at)}</span>
+        <div class="client-update-box">
+          <div class="client-update-header">
+            <span style="font-family:var(--mono);font-size:10px;font-weight:400;letter-spacing:2px;color:var(--blue);text-transform:uppercase">Client Update</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">v${tag} · ${fmtDate(data.published_at)}</span>
           </div>
-          <div class="patch-box" style="border-color:rgba(59,130,246,0.1)">${fmtMd(data.body)}</div>
-          ${data.html_url ? `<a href="${data.html_url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:var(--blue);font-size:12px;text-decoration:none;margin-top:10px">GitHub에서 보기 →</a>` : ''}
+          <div class="patch-body" style="border-color:rgba(59,130,246,0.1)">
+            ${fmtMd(data.body)}
+          </div>
+          ${data.html_url ? `<a href="${data.html_url}" target="_blank" class="patch-link" style="color:var(--blue)">GitHub에서 보기 →</a>` : ''}
         </div>`;
     }
   }
 }
 
 function updateGameInfo(data) {
-  const ver = document.getElementById('game-version');
-  if (ver && data.tag_name) ver.textContent = `1.20.1 (v${data.tag_name})`;
+  const tag = data.tag_name || '';
+
   if (data.body) {
     const card = document.getElementById('game-patch-notes-card');
-    card.style.display = '';
-    document.getElementById('game-patch-title').textContent = data.name || `최신 게임 업데이트 (v${data.tag_name})`;
-    document.getElementById('game-patch-date').textContent = fmtDate(data.published_at);
-    document.getElementById('game-patch-body').innerHTML = fmtMd(data.body);
+    if (card) card.style.display = '';
+
+    const title = document.getElementById('game-patch-title');
+    if (title) title.textContent = data.name || `최신 게임 업데이트 (v${tag})`;
+
+    const date = document.getElementById('game-patch-date');
+    if (date) date.textContent = fmtDate(data.published_at);
+
+    const body = document.getElementById('game-patch-body');
+    if (body) body.innerHTML = fmtMd(data.body);
+
     const lnk = document.getElementById('game-patch-link');
-    if (data.html_url) lnk.href = data.html_url; else lnk.style.display = 'none';
-    const trailer = document.querySelector('.card.span-full');
-    trailer?.after(card);
+    if (lnk) {
+      if (data.html_url) lnk.href = data.html_url;
+      else lnk.style.display = 'none';
+    }
   }
 }
 
-function handleAction(url, btn, msg) {
-  if (msg && !confirm(msg)) return;
-  btn.disabled = true; btn.style.opacity = '0.5';
-  setTimeout(() => { window.location.href = url; btn.disabled = false; btn.style.opacity = ''; }, 300);
+// ── 서버 상태 ──
+async function fetchServerStatus() {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('server-status-text');
+  if (dot) dot.style.background = '#22c55e';
+  if (txt) txt.textContent = '온라인';
 }
-function startGame(b) { handleAction('matz-client://start', b); }
-function openLoginInfo(b) { handleAction('matz-client://login-info', b); }
-function reset(b) { handleAction('matz-client://reset', b, '클라이언트를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'); }
-function uninstall(b) { handleAction('matz-client://uninstall', b, '클라이언트를 삭제하시겠습니까?\n모든 데이터가 영구적으로 삭제됩니다.'); }
 
+// ── SLIDER ──
+let currentSlide = 0;
+let sliderTimer = null;
+
+function updateDots() {
+  document.querySelectorAll('.dot').forEach((d, i) =>
+    d.classList.toggle('active', i === currentSlide)
+  );
+}
+
+function goSlide(n) {
+  const wrapper = document.getElementById('showcase-slider');
+  if (!wrapper) return;
+  const total = wrapper.querySelectorAll('img').length;
+  currentSlide = (n + total) % total;
+  wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+  updateDots();
+}
+
+function moveSlider(dir) {
+  goSlide(currentSlide + dir);
+  playSound('click');
+}
+
+function startSliderAuto() {
+  if (sliderTimer) clearInterval(sliderTimer);
+  sliderTimer = setInterval(() => goSlide(currentSlide + 1), 5000);
+}
+
+// ── SOUND ──
+const sounds = {};
+['hover', 'click'].forEach(type => {
+  const audio = new Audio();
+  audio.src = `asset/audio/${type}.mp3`;
+  audio.preload = 'auto';
+  sounds[type] = audio;
+});
+
+function playSound(type) {
+  const s = sounds[type];
+  if (!s) return;
+  try {
+    s.currentTime = 0;
+    s.play().catch(() => {});
+  } catch {
+    // 오디오 파일 없으면 무시
+  }
+}
+
+// ── 버튼 애니메이션 CSS 주입 ──
+(function injectStyles() {
+  if (document.getElementById('btn-anim-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'btn-anim-styles';
+  style.textContent = `
+    /* shimmer 엘리먼트 */
+    .btn-shimmer {
+      position: absolute;
+      top: 0; left: -80%;
+      width: 55%;
+      height: 100%;
+      background: linear-gradient(
+        105deg,
+        transparent 15%,
+        rgba(255,255,255,0.20) 50%,
+        transparent 85%
+      );
+      pointer-events: none;
+      z-index: 10;
+    }
+    /* 호버 시 shimmer 슬라이드 */
+    .btn:hover .btn-shimmer,
+    .comm-btn:hover .btn-shimmer,
+    .slider-btn:hover .btn-shimmer {
+      animation: shimmerSlide 0.5s ease forwards;
+    }
+    @keyframes shimmerSlide {
+      from { left: -80%; }
+      to   { left: 130%; }
+    }
+
+    /* flash 엘리먼트 */
+    .btn-flash {
+      position: absolute;
+      inset: 0;
+      background: transparent;
+      pointer-events: none;
+      z-index: 11;
+      border-radius: inherit;
+    }
+    .btn-flash.active {
+      animation: flashBurst 0.28s ease-out forwards;
+    }
+    @keyframes flashBurst {
+      0%   { background: rgba(255,255,255,0.32); }
+      100% { background: rgba(255,255,255,0); }
+    }
+
+    /* 클릭 시 살짝 눌림 */
+    .btn:active,
+    .comm-btn:active,
+    .slider-btn:active {
+      transform: scale(0.96) translateY(1px) !important;
+      transition: transform 0.07s ease !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+// shimmer + flash 엘리먼트를 버튼에 주입
+function attachButtonEffects() {
+  const targets = document.querySelectorAll('.btn, .comm-btn, .slider-btn');
+  targets.forEach(btn => {
+    if (btn.querySelector('.btn-shimmer')) return;
+
+    const shimmer = document.createElement('span');
+    shimmer.className = 'btn-shimmer';
+    btn.appendChild(shimmer);
+
+    const flash = document.createElement('span');
+    flash.className = 'btn-flash';
+    btn.appendChild(flash);
+
+    btn.addEventListener('mouseenter', () => {
+      // CSS hover가 처리하지만, 재진입 시 animation 재시작 보장
+      shimmer.style.animation = 'none';
+      void shimmer.offsetWidth;
+      shimmer.style.animation = '';
+      playSound('hover');
+    });
+
+    btn.addEventListener('click', () => {
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+      playSound('click');
+    });
+  });
+}
+
+// ── 런처 버튼 로딩 피드백 헬퍼 ──
+function setBtnLoading(btn, msg, duration = 2000) {
+  const textEl = btn.querySelector('.btn-text');
+  if (!textEl) return;
+  const original = textEl.textContent;
+  textEl.textContent = msg;
+  btn.disabled = true;
+  btn.style.opacity = '0.65';
+  setTimeout(() => {
+    textEl.textContent = original;
+    btn.disabled = false;
+    btn.style.opacity = '';
+  }, duration);
+}
+
+// ── 런처 버튼 (웹 환경 폴백) ──
+// 실행 방식 확정 후 TODO 부분만 교체하세요.
+// 예: matz-client:// 프로토콜 / Electron IPC / WebSocket 등
+
+window.startGame = window.startGame || function(btn) {
+  setBtnLoading(btn, '⏳ 실행 준비 중...');
+  window.location.href = "matz-client://start";
+};
+
+window.openLoginInfo = window.openLoginInfo || function(btn) {
+  setBtnLoading(btn, '⏳ 열는 중...');
+  window.location.href = "matz-client://login-info";
+};
+
+window.openReplayFolder = window.openReplayFolder || function(btn) {
+  setBtnLoading(btn, '⏳ 폴더 열기...');
+  window.location.href = "matz-client://replay";
+};
+
+window.reset = window.reset || function(btn) {
+  if (!confirm('클라이언트를 초기화하시겠습니까?')) return;
+  setBtnLoading(btn, '⏳ 초기화 중...');
+  window.location.href = "matz-client://reset";
+};
+
+window.uninstall = window.uninstall || function(btn) {
+  if (!confirm('클라이언트를 정말 삭제하시겠습니까?')) return;
+  setBtnLoading(btn, '⏳ 삭제 중...');
+  window.location.href = "matz-client://uninstall";
+};
+
+// ── INIT ──
 (async () => {
-  const [client, game] = await Promise.all([fetchRelease('client'), fetchRelease('game')]);
-  if (client) updateClientInfo(client);
-  else { const v = document.getElementById('client-version'); if(v) v.innerHTML = '<span style="color:var(--text-dim);font-size:12px">불러오기 실패</span>'; }
+  const [client, game] = await Promise.all([
+    fetchRelease('client'),
+    fetchRelease('game')
+  ]);
+
+  if (client) {
+    updateClientInfo(client);
+  } else {
+    const bar = document.getElementById('client-version-bar');
+    if (bar) bar.textContent = '불러오기 실패';
+
+    const dlBtn = document.getElementById('download-btn');
+    if (dlBtn && !dlBtn.getAttribute('href')) {
+      dlBtn.style.opacity = '0.5';
+      dlBtn.style.pointerEvents = 'none';
+    }
+  }
+
   if (game) updateGameInfo(game);
+
+  fetchServerStatus();
+  setInterval(fetchServerStatus, 60000);
+
+  startSliderAuto();
+  attachButtonEffects();
 })();

@@ -1,94 +1,825 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Min. At. Zero</title>
-  <link rel="stylesheet" href="asset/style.css">
-</head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    /* ── RESET & ROOT ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+    :root {
+      --green:         #22c55e;
+      --green-dim:     #16a34a;
+      --green-glow:    rgba(34,197,94,0.15);
+      --green-border:  rgba(34,197,94,0.25);
+      --blue:          #3b82f6;
+      --blue-glow:     rgba(59,130,246,0.15);
+      --blue-border:   rgba(59,130,246,0.25);
+      --red:           #ef4444;
+      --red-glow:      rgba(239,68,68,0.12);
+      --bg-deep:       #04080e;
+      --bg-card:       rgba(11,18,32,0.9);
+      --bg-card-hover: rgba(14,23,42,0.95);
+      --border:        rgba(255,255,255,0.06);
+      --text-primary:  #e8f0ff;
+      --text-muted:    #5a7090;
+      --text-dim:      #2d4060;
+      --mono:          'Share Tech Mono', monospace;
+    }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      font-family: 'Noto Sans KR', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* CRT 스캔라인 오버레이 */
+    body::after {
+      content: "";
+      position: fixed; inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    /* ── BACKGROUND ── */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(34,197,94,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+    }
+
+    .bg-radial {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 40% at 50% -5%, rgba(34,197,94,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 80% 80%, rgba(59,130,246,0.05) 0%, transparent 60%);
+    }
+
+    /* 왼쪽 세로 라인 장식 */
+    .bg-lines {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 3px; z-index: 0; pointer-events: none;
+      background: linear-gradient(180deg, transparent 0%, var(--green) 30%, var(--green) 70%, transparent 100%);
+      opacity: 0.15;
+      animation: lineFlicker 4s ease-in-out infinite;
+    }
+    @keyframes lineFlicker { 0%,100%{opacity:0.15} 50%{opacity:0.25} }
+
+    /* ── WRAP ── */
+    .wrap {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 28px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ══════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════ */
+    .header {
+      padding: 36px 0 28px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, var(--green) 0%, rgba(34,197,94,0.3) 40%, transparent 100%);
+    }
+
+    .logo-box {
+      width: 54px; height: 54px;
+      background: linear-gradient(135deg, var(--green), var(--green-dim));
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px var(--green-border), 0 0 20px var(--green-glow), 0 8px 24px rgba(0,0,0,0.4);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .logo-box::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+    }
+    .logo-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .header-text { flex: 1; }
+
+    .site-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 34px; font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+      letter-spacing: 1px;
+      display: inline-block;
+    }
+    .site-title:hover { animation: glitch 0.3s both infinite; }
+    @keyframes glitch {
+      0%  { transform: translate(0); text-shadow: none; }
+      20% { transform: translate(-2px,1px); text-shadow: 2px 0 var(--green); }
+      40% { transform: translate(2px,-1px); text-shadow: -2px 0 var(--blue); }
+      60% { transform: translate(-1px,2px); text-shadow: 2px 0 var(--green); }
+      80% { transform: translate(1px,-2px); text-shadow: -2px 0 var(--blue); }
+      100%{ transform: translate(0); text-shadow: none; }
+    }
+    .site-title span { color: var(--green); }
+
+    .site-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .meta-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.03);
+      letter-spacing: 1px;
+    }
+    .site-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.65;
+      max-width: 560px;
+      margin-top: 8px;
+    }
+
+    /* 헤더 우측: 빠른 링크 */
+    .header-links {
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .hdr-link {
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-muted);
+      font-size: 16px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .hdr-link:hover { border-color: var(--green-border); color: var(--green); background: var(--green-glow); transform: translateY(-2px); }
+
+    /* ══════════════════════════════════════
+       STATUS BAR (서버 상태 띠)
+    ══════════════════════════════════════ */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 14px 20px;
+      margin: 20px 0 28px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .status-bar::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+    .status-item {
+      display: flex; align-items: center; gap: 8px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .status-item .label { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .status-item .value { color: var(--text-primary); }
+    .status-sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+
+    .pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulseDot 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.8)} }
+
+    .badge {
+      padding: 3px 9px; border-radius: 5px;
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .badge-green { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+    .badge-dim   { background: rgba(255,255,255,0.04); color: var(--text-dim); border: 1px solid var(--border); }
+    .badge-red   { background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
+
+    /* ══════════════════════════════════════
+       MAIN LAYOUT
+    ══════════════════════════════════════ */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      grid-template-rows: auto;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* 왼쪽 사이드바: 런처 + 커뮤니티 + 사양 */
+    .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+    /* 오른쪽: 트레일러 + 패치노트 */
+    .main-content { display: flex; flex-direction: column; gap: 20px; }
+
+    /* 전체 폭 */
+    .full-row {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ══════════════════════════════════════
+       CARDS
+    ══════════════════════════════════════ */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+      animation: revealUp 0.5s backwards;
+      backdrop-filter: blur(8px);
+    }
+    @keyframes revealUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .card:hover {
+      border-color: var(--green-border);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--green-border), inset 0 1px 0 rgba(34,197,94,0.05);
+      transform: translateY(-4px);
+    }
+    .card.blue-accent:hover {
+      border-color: var(--blue-border);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--blue-border), inset 0 1px 0 rgba(59,130,246,0.05);
+    }
+
+    /* 상단 액센트 바 */
+    .card-top-bar {
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--green) 0%, rgba(34,197,94,0.3) 60%, transparent 100%);
+    }
+    .card-top-bar.blue {
+      background: linear-gradient(90deg, var(--blue) 0%, rgba(59,130,246,0.3) 60%, transparent 100%);
+    }
+
+    /* 카드 레이블 */
+    .card-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 2.5px;
+      color: var(--green);
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-label::after { content:''; flex:1; height:1px; background:linear-gradient(90deg, var(--green-border), transparent); }
+    .card-label.blue { color: var(--blue); }
+    .card-label.blue::after { background: linear-gradient(90deg, var(--blue-border), transparent); }
+
+    /* 카드 내부 코너 장식 */
+    .card::before {
+      content: '';
+      position: absolute; bottom: 12px; right: 12px;
+      width: 16px; height: 16px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      border-radius: 0 0 4px 0;
+      transition: border-color 0.3s;
+    }
+    .card:hover::before { border-color: var(--green-border); }
+
+    /* ══════════════════════════════════════
+       런처 카드
+    ══════════════════════════════════════ */
+    .btn-stack { display: flex; flex-direction: column; gap: 8px; }
+    .btn {
+      width: 100%; padding: 12px 16px;
+      font-size: 13px; font-weight: 600;
+      border: none; border-radius: 10px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+      transition: all 0.2s;
+      position: relative; overflow: hidden;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .btn-icon { font-size: 15px; flex-shrink: 0; }
+    .btn-text { flex: 1; text-align: left; }
+    .btn-tag {
+      font-family: var(--mono);
+      font-size: 9px; letter-spacing: 1px;
+      padding: 2px 7px; border-radius: 3px;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(34,197,94,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(34,197,94,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-primary);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); border-color: rgba(255,255,255,0.14); }
+    .btn-danger {
+      background: var(--red-glow);
+      border: 1px solid rgba(239,68,68,0.15);
+      color: #fca5a5;
+    }
+    .btn-danger:hover { background: rgba(239,68,68,0.18); transform: translateY(-1px); }
+
+    .hint-text {
+      font-size: 10.5px; color: var(--text-dim);
+      text-align: center; margin-top: 12px;
+      font-family: var(--mono);
+      letter-spacing: 0.5px;
+    }
+
+    /* ══════════════════════════════════════
+       커뮤니티 카드
+    ══════════════════════════════════════ */
+    .community-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .comm-btn {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px;
+      padding: 12px 10px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 13px; font-weight: 600;
+      transition: all 0.25s;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .comm-btn.notion { background: rgba(255,255,255,0.04); color: #cdd5e0; }
+    .comm-btn.notion:hover { background: rgba(255,255,255,0.09); transform: translateY(-2px); border-color: rgba(255,255,255,0.12); }
+    .comm-btn.discord { background: rgba(88,101,242,0.08); color: #818cf8; border-color: rgba(88,101,242,0.15); }
+    .comm-btn.discord:hover { background: rgba(88,101,242,0.16); transform: translateY(-2px); border-color: rgba(88,101,242,0.3); }
+    .comm-icon { font-size: 16px; }
+
+    /* ══════════════════════════════════════
+       사양 카드
+    ══════════════════════════════════════ */
+    .req-list { display: flex; flex-direction: column; }
+    .req-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .req-item:last-child { border-bottom: none; }
+    .req-key { color: var(--text-muted); font-size: 11px; font-family: var(--mono); letter-spacing: 1px; }
+    .req-val { color: var(--text-primary); font-weight: 600; font-size: 13px; }
+
+    /* ══════════════════════════════════════
+       트레일러 카드
+    ══════════════════════════════════════ */
+    .video-wrap {
+      position: relative; padding-bottom: 56.25%;
+      border-radius: 10px; overflow: hidden;
+      background: #000;
+      box-shadow: 0 0 0 1px var(--border), 0 4px 24px rgba(0,0,0,0.5);
+    }
+    .video-wrap iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+
+    /* ══════════════════════════════════════
+       슬라이더 카드
+    ══════════════════════════════════════ */
+    .slider-outer {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 0 0 1px var(--border);
+      aspect-ratio: 16/9;
+    }
+    .slider-wrapper { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94); }
+    .slider-wrapper img { width: 100%; flex-shrink: 0; object-fit: cover; }
+
+    /* 슬라이더 오버레이 컨트롤 */
+    .slider-controls {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 10px 14px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .slider-dots { display: flex; gap: 6px; }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transition: all 0.2s; cursor: pointer;
+    }
+    .dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); width: 18px; border-radius: 3px; }
+    .slider-btns { display: flex; gap: 6px; }
+    .slider-btn {
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15);
+      color: #fff; font-size: 10px; font-weight: 700;
+      padding: 4px 10px; border-radius: 5px; cursor: pointer;
+      font-family: var(--mono); letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .slider-btn:hover { background: rgba(34,197,94,0.2); border-color: var(--green-border); }
+
+    /* ══════════════════════════════════════
+       패치 노트
+    ══════════════════════════════════════ */
+    .patch-header { margin-bottom: 14px; }
+    .patch-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 20px; font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .patch-date { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+    .patch-body {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      max-height: 360px;
+      overflow-y: auto;
+      font-size: 13.5px; line-height: 1.8;
+      color: var(--text-muted);
+    }
+    .patch-body::-webkit-scrollbar { width: 4px; }
+    .patch-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .patch-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--green); font-size: 12px; text-decoration: none;
+      margin-top: 14px; font-family: var(--mono); letter-spacing: 0.5px;
+      opacity: 0.8; transition: opacity 0.2s;
+    }
+    .patch-link:hover { opacity: 1; }
+
+    /* ══════════════════════════════════════
+       다운로드 섹션
+    ══════════════════════════════════════ */
+    .download-section {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 32px;
+    }
+    .dl-info-block { }
+    .dl-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 26px; font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .dl-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; }
+    .dl-meta-row {
+      display: flex; align-items: center; gap: 16px;
+      font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+    }
+    .dl-meta-item { display: flex; align-items: center; gap: 6px; }
+    .dl-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-dim); }
+
+    .dl-btn-wrap { flex-shrink: 0; }
+    .dl-btn {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 40px;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white; text-decoration: none;
+      border-radius: 14px;
+      position: relative; overflow: hidden;
+      transition: all 0.3s;
+      box-shadow: 0 8px 28px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+      min-width: 240px;
+    }
+    .dl-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(59,130,246,0.45), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .dl-btn::before {
+      content: '';
+      position: absolute; top: -50%; left: -60%;
+      width: 20%; height: 200%;
+      background: rgba(255,255,255,0.18);
+      transform: rotate(30deg);
+      transition: 0.5s;
+    }
+    .dl-btn:hover::before { left: 140%; }
+    .dl-icon { font-size: 26px; margin-bottom: 6px; animation: dlBounce 2s ease-in-out infinite; }
+    @keyframes dlBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+    .dl-text { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+    .dl-sub { font-size: 11px; opacity: 0.65; margin-top: 4px; font-family: var(--mono); }
+
+    /* 클라이언트 패치 노트 (다운로드 카드 하단) */
+    .client-update-box {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+    }
+    .client-update-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    /* ══════════════════════════════════════
+       INFO ROW (서버 정보 카드용)
+    ══════════════════════════════════════ */
+    .info-rows { display: flex; flex-direction: column; }
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-key { color: var(--text-muted); font-size: 11px; font-family: var(--mono); letter-spacing: 0.5px; }
+    .info-val { color: var(--text-primary); font-weight: 600; }
+
+    /* ══════════════════════════════════════
+       반응형
+    ══════════════════════════════════════ */
+    @media (max-width: 1080px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .sidebar { order: 2; }
+      .main-content { order: 1; }
+      .download-section { grid-template-columns: 1fr; text-align: center; }
+      .dl-btn { width: 100%; min-width: unset; }
+      .dl-meta-row { justify-content: center; }
+      .header-links { display: none; }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 0 14px 60px; }
+      .status-bar { gap: 12px; flex-wrap: wrap; }
+    }
+
+    /* 애니메이션 딜레이 */
+    .card:nth-child(1){animation-delay:0.05s}
+    .card:nth-child(2){animation-delay:0.10s}
+    .card:nth-child(3){animation-delay:0.15s}
+    .card:nth-child(4){animation-delay:0.20s}
+    .card:nth-child(5){animation-delay:0.25s}
+    .card:nth-child(6){animation-delay:0.30s}
+  </style>
+</head>
 <body>
 
-  <div class="bg-grid"></div>
-  <div class="bg-radial"></div>
-  <div class="wrap">
-    <header class="header">
-      <div class="logo-box"> <img src="asset/image/icon.png" alt="Min. At. Zero 로고"
-          onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:Rajdhani,sans-serif;font-size:28px;font-weight:700;color:white\'>M</div>'">
+<div class="bg-grid"></div>
+<div class="bg-radial"></div>
+<div class="bg-lines"></div>
+
+<div class="wrap">
+
+  <!-- ══ HEADER ══ -->
+  <header class="header">
+    <div class="logo-box">
+      <img src="asset/image/icon.png" alt="Min. At. Zero 로고"
+        onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:Rajdhani,sans-serif;font-size:28px;font-weight:700;color:white\'>M</div>'">
+    </div>
+    <div class="header-text">
+      <h1 class="site-title">Min. At. <span>Zero</span></h1>
+      <div class="site-meta">
+        <span class="meta-tag">1.20.1</span>
+        <span class="meta-tag">FPS / PVP</span>
+        <span class="meta-tag">TCZ</span>
       </div>
-      <div class="header-text">
-        <h1 class="site-title">Min. At. <span>Zero</span></h1>
-        <p class="site-desc">기존 Timeless and Classics Guns(1.16.5) 모드보다 향상된 Timeless and Classics Zero(1.20.1) 기반 마인크래프트
-          FPS 서버. 맵과 무기를 선택하고 유저들과 전투를 펼치세요.</p>
-      </div>
-    </header>
-    <div class="divider"></div>
-    <div class="grid"> <!-- 트레일러 -->
-      <div class="card span-full">
-        <div class="card-accent"></div>
-        <div class="card-label">Official Trailer</div>
-        <div class="video-wrap"> <iframe src="https://www.youtube.com/embed/qqqMY-6juJo?rel=0&modestbranding=1"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe> </div>
-      </div> <!-- 게임 패치 노트 (동적) -->
-      <div class="card span-full" id="game-patch-notes-card" style="display:none">
-        <div class="card-accent"></div>
-        <div class="card-label">Game Patch Notes</div>
-        <div id="game-patch-header" style="margin-bottom:14px">
-          <div id="game-patch-title"
-            style="font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:4px">
-          </div>
-          <div id="game-patch-date" style="font-size:12px;color:var(--text-muted)"></div>
-        </div>
-        <div class="patch-box" id="game-patch-body"></div> <a id="game-patch-link" href="#" target="_blank"
-          style="display:inline-flex;align-items:center;gap:6px;color:var(--green);font-size:12px;text-decoration:none;margin-top:12px;">
-          GitHub에서 보기 → </a>
-      </div> <!-- 서버 정보 -->
-      <div class="card">
-        <div class="card-accent"></div>
-        <div class="card-label">Server Info</div>
-        <div class="info-rows">
-          <div class="info-row"> <span class="info-key">클라이언트 버전</span> <span class="info-val" id="client-version"><span
-                class="badge badge-green"><span class="pulse"></span> 로딩중</span></span> </div>
-          <div class="info-row"> <span class="info-key">게임 버전</span> <span class="info-val"
-              id="game-version">1.20.1</span> </div>
-          <div class="info-row"> <span class="info-key">모드로더</span> <span class="info-val"><span
-                class="badge badge-blue">Forge 47.4.18</span></span> </div>
-          <div class="info-row"> <span class="info-key">개발자</span> <span class="info-val"
-              style="font-size:12px;color:var(--text-muted)">Tharu_81 / Cryptic_MC, Gam_bler…</span> </div>
-          <div class="info-row"> <span class="info-key">장르</span> <span class="info-val" style="font-size:12px">서바이벌 /
-              PvP / FPS</span> </div>
-          <div class="info-row"> <span class="info-key">출시일</span> <span class="info-val">2024년 6월 5일</span> </div>
-        </div> <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
-          target="_blank" class="notion-btn"> <span>📝 자세한 정보 보기</span> <span class="notion-btn-arrow">→</span> </a>
-      </div> <!-- 런처 -->
-      <div class="card">
-        <div class="card-accent blue"></div>
-        <div class="card-label blue">Launcher</div>
-        <div class="btn-stack"> <button class="btn btn-primary" onclick="startGame(this)"> <span
-              class="btn-icon">🎮</span> <span class="btn-text">게임 시작</span> <span class="btn-tag">PLAY</span> </button>
-          <button class="btn btn-secondary" onclick="openLoginInfo(this)"> <span class="btn-icon">👤</span> <span
-              class="btn-text">계정 관리자</span> <span class="btn-tag">ACCOUNT</span> </button>
-          <button class="btn btn-danger" onclick="reset(this)"> <span class="btn-icon">🗑️</span> <span class="btn-text">클라이언트 초기화</span> <span class="btn-tag">RESET</span> </button>
-          <button class="btn btn-danger" onclick="uninstall(this)"> <span class="btn-icon">❌</span> <span class="btn-text">클라이언트 삭제</span> <span class="btn-tag">UNINSTALL</span> </button>
-        </div>
-        <div class="hint-box"> ※ 전용 클라이언트가 설치되어 있어야 합니다.<br> 버튼 클릭 시 자동으로 프로그램이 실행됩니다. </div>
-      </div> <!-- 다운로드 -->
-      <div class="card span-full" style="text-align:center">
-        <div class="card-accent blue"></div>
-        <div class="card-label blue" style="justify-content:center">Download</div>
-        <p class="dl-desc"> Min. At. Zero 서버에 접속하려면 전용 클라이언트가 필요합니다.<br> 아래 버튼을 클릭하여 최신 버전을 다운로드하세요. </p> <a href=""
-          class="dl-btn" id="download-btn" download> <span class="dl-icon">⬇️</span> <span>Windows용 클라이언트 다운로드</span>
-        </a>
-        <div class="dl-meta" id="download-info"> <span class="dl-meta-item">최신 버전</span> <span class="dot-sep"></span>
-          <span class="dl-meta-item">Windows 10/11 지원</span> <span class="dot-sep"></span> <span class="dl-meta-item"
-            id="file-size">약 0MB</span> </div>
-        <div id="client-patch-notes"></div>
-      </div>
+      <p class="site-desc">Timeless and Classics Zero 기반 마인크래프트 FPS 서버. 맵과 무기를 선택하고 전투를 펼치세요.</p>
+    </div>
+    <div class="header-links">
+      <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016" target="_blank" class="hdr-link" title="가이드">📖</a>
+      <a href="https://discord.gg/xAPPegjYnN" target="_blank" class="hdr-link" title="디스코드">💬</a>
+    </div>
+  </header>
+
+  <!-- ══ STATUS BAR ══ -->
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="pulse-dot" id="status-dot"></div>
+      <span class="label">STATUS</span>
+      <span class="value" id="server-status-text">확인중...</span>
+    </div>
+    <div class="status-sep"></div>
+    <div class="status-item">
+      <span class="label">PLAYERS</span>
+      <span class="value" id="server-players">— / —</span>
+    </div>
+    <div class="status-sep"></div>
+    <div class="status-item">
+      <span class="label">VERSION</span>
+      <span class="value">1.20.1</span>
+    </div>
+    <div class="status-sep"></div>
+    <div class="status-item">
+      <span class="label">CLIENT</span>
+      <span class="value" id="client-version-bar">로딩중...</span>
+    </div>
+    <div class="status-sep"></div>
+    <div class="status-item">
+      <span class="label">GENRE</span>
+      <span class="value">PvP · FPS</span>
     </div>
   </div>
 
-  <script src="asset/script.js"></script>
-</body>
+  <!-- ══ MAIN GRID ══ -->
+  <div class="main-grid">
 
+    <!-- ◀ LEFT SIDEBAR ▶ -->
+    <div class="sidebar">
+
+      <!-- 런처 카드 -->
+      <div class="card blue-accent">
+        <div class="card-top-bar blue"></div>
+        <div class="card-label blue">Launcher</div>
+        <div class="btn-stack">
+          <button class="btn btn-primary" onclick="startGame(this)">
+            <span class="btn-icon">🎮</span>
+            <span class="btn-text">게임 시작</span>
+            <span class="btn-tag">PLAY</span>
+          </button>
+          <button class="btn btn-secondary" onclick="openLoginInfo(this)">
+            <span class="btn-icon">👤</span>
+            <span class="btn-text">계정 관리자</span>
+          </button>
+          <button class="btn btn-secondary" onclick="openReplayFolder(this)">
+            <span class="btn-icon">🎥</span>
+            <span class="btn-text">리플레이 폴더</span>
+          </button>
+          <button class="btn btn-danger" onclick="reset(this)">
+            <span class="btn-icon">🗑️</span>
+            <span class="btn-text">클라이언트 초기화</span>
+          </button>
+          <button class="btn btn-danger" onclick="uninstall(this)">
+            <span class="btn-icon">❌</span>
+            <span class="btn-text">클라이언트 삭제</span>
+          </button>
+        </div>
+        <div class="hint-text">※ 전용 클라이언트 필요</div>
+      </div>
+
+      <!-- 커뮤니티 카드 -->
+      <div class="card">
+        <div class="card-top-bar"></div>
+        <div class="card-label">Community</div>
+        <div class="community-links">
+          <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016" target="_blank" class="comm-btn notion">
+            <span class="comm-icon">📖</span> Guide
+          </a>
+          <a href="https://discord.gg/xAPPegjYnN" target="_blank" class="comm-btn discord">
+            <span class="comm-icon">💬</span> Discord
+          </a>
+        </div>
+      </div>
+
+      <!-- 권장 사양 카드 -->
+      <div class="card">
+        <div class="card-top-bar"></div>
+        <div class="card-label">Requirements</div>
+        <div class="req-list">
+          <div class="req-item"><span class="req-key">CPU</span><span class="req-val">i5 8세대 이상</span></div>
+          <div class="req-item"><span class="req-key">RAM</span><span class="req-val">8GB 할당 권장</span></div>
+          <div class="req-item"><span class="req-key">GPU</span><span class="req-val">GTX 1050Ti ↑</span></div>
+          <div class="req-item"><span class="req-key">JAVA</span><span class="req-val">Java 17 (x64)</span></div>
+        </div>
+      </div>
+
+    </div><!-- /sidebar -->
+
+    <!-- ◀ MAIN CONTENT ▶ -->
+    <div class="main-content">
+
+      <!-- 트레일러 카드 -->
+      <div class="card">
+        <div class="card-top-bar"></div>
+        <div class="card-label">Official Trailer</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/qqqMY-6juJo?rel=0&modestbranding=1" allowfullscreen></iframe>
+        </div>
+      </div>
+
+      <!-- 게임 패치 노트 카드 (동적으로 표시) -->
+      <div class="card" id="game-patch-notes-card" style="display:none">
+        <div class="card-top-bar"></div>
+        <div class="card-label">Game Patch Notes</div>
+        <div class="patch-header">
+          <div class="patch-title" id="game-patch-title"></div>
+          <div class="patch-date" id="game-patch-date"></div>
+        </div>
+        <div class="patch-body" id="game-patch-body"></div>
+        <a class="patch-link" id="game-patch-link" href="#" target="_blank">GitHub에서 보기 →</a>
+      </div>
+
+    </div><!-- /main-content -->
+
+    <!-- ◀ FULL WIDTH ROW ▶ -->
+    <div class="full-row">
+
+      <!-- 쇼케이스 슬라이더 카드 -->
+      <div class="card">
+        <div class="card-top-bar"></div>
+        <div class="card-label">Weapons &amp; Maps</div>
+        <div class="slider-outer">
+          <div class="slider-wrapper" id="showcase-slider">
+            <img src="image/1.png" alt="Showcase 1" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+1'">
+            <img src="image/2.png" alt="Showcase 2" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+2'">
+            <img src="image/3.png" alt="Showcase 3" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+3'">
+            <img src="image/4.png" alt="Showcase 4" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+4'">
+            <img src="image/5.png" alt="Showcase 5" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+5'">
+            <img src="image/6.png" alt="Showcase 6" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+6'">
+            <img src="image/7.png" alt="Showcase 7" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+7'">
+            <img src="image/8.png" alt="Showcase 8" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+8'">
+            <img src="image/9.png" alt="Showcase 9" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+9'">
+            <img src="image/10.png" alt="Showcase 10" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+10'">
+          </div>
+          <div class="slider-controls">
+            <div class="slider-dots" id="slider-dots">
+              <div class="dot active" onclick="goSlide(0)"></div>
+              <div class="dot" onclick="goSlide(1)"></div>
+              <div class="dot" onclick="goSlide(2)"></div>
+              <div class="dot" onclick="goSlide(3)"></div>
+              <div class="dot" onclick="goSlide(4)"></div>
+              <div class="dot" onclick="goSlide(5)"></div>
+              <div class="dot" onclick="goSlide(6)"></div>
+              <div class="dot" onclick="goSlide(7)"></div>
+              <div class="dot" onclick="goSlide(8)"></div>
+              <div class="dot" onclick="goSlide(9)"></div>
+            </div>
+            <div class="slider-btns">
+              <button class="slider-btn" onclick="moveSlider(-1)">◀ PREV</button>
+              <button class="slider-btn" onclick="moveSlider(1)">NEXT ▶</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 다운로드 카드 -->
+      <div class="card blue-accent" id="download-card">
+        <div class="card-top-bar blue"></div>
+        <div class="card-label blue">Download</div>
+        <div class="download-section">
+          <div class="dl-info-block">
+            <div class="dl-title">Min. At. Zero Client</div>
+            <div class="dl-desc">서버 전용 클라이언트를 다운로드하세요.<br>모드팩이 포함된 설치형 클라이언트입니다.</div>
+            <div class="dl-meta-row">
+              <div class="dl-meta-item">
+                <span>최신 버전</span>
+                <span id="dl-version-text">v1.0.0</span>
+              </div>
+              <div class="dl-meta-dot"></div>
+              <div class="dl-meta-item">
+                <span id="file-size">약 0MB</span>
+              </div>
+              <div class="dl-meta-dot"></div>
+              <div class="dl-meta-item">Windows 전용</div>
+            </div>
+          </div>
+          <div class="dl-btn-wrap">
+            <a href="" class="dl-btn" id="download-btn" download>
+              <span class="dl-icon">⬇️</span>
+              <span class="dl-text">Windows 클라이언트</span>
+              <span class="dl-sub" id="dl-sub-ver">Client v1.0.0</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 클라이언트 패치노트 -->
+        <div id="client-patch-notes"></div>
+      </div>
+
+    </div><!-- /full-row -->
+
+  </div><!-- /main-grid -->
+</div><!-- /wrap -->
+<script src="asset/script.js"></script>
+</body>
 </html>
