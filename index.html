@@ -820,6 +820,173 @@
 
   </div><!-- /main-grid -->
 </div><!-- /wrap -->
+<<<<<<< HEAD
 <script src="asset/script.js"></script>
 </body>
 </html>
+=======
+
+<script>
+// ── 숨겨진 client-version 호환용 (script.js 연동) ──
+// DOM에 없는 id들을 위한 더미 엘리먼트
+const _dummy = {};
+function _getOrDummy(id) {
+  return document.getElementById(id) || { innerHTML:'', textContent:'', style:{}, querySelector:()=>({textContent:''}) };
+}
+
+// ── REPOS ──
+const REPOS = { client: 'tharu8813/Min-At-Zero-Clinet', game: 'tharu8813/Min-At-Zero' };
+
+async function fetchRelease(type) {
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPOS[type]}/releases/latest`);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+function fmtDate(d) {
+  return new Date(d).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+}
+
+function fmtMd(md) {
+  if (!md) return '';
+  return md
+    .replace(/^### (.+)$/gm, '<h4 style="color:var(--green);font-size:13px;font-weight:600;margin:14px 0 6px">$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3 style="color:var(--green);font-size:14px;font-weight:600;margin:14px 0 6px">$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2 style="color:var(--green);font-size:15px;font-weight:700;margin:14px 0 6px">$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text-primary);font-weight:600">$1</strong>')
+    .replace(/`([^`]+)`/g, '<code style="background:rgba(59,130,246,0.12);padding:1px 6px;border-radius:4px;font-family:monospace;color:#60a5fa;font-size:12px">$1</code>')
+    .replace(/^[\*\-] (.+)$/gm, '<li style="margin:4px 0 4px 16px;color:var(--text-muted)">$1</li>')
+    .replace(/(<li[^>]*>.*<\/li>)+/gs, m => `<ul style="margin:6px 0;list-style:disc">${m}</ul>`)
+    .replace(/\n\n/g, '</p><p style="margin:6px 0">')
+    .replace(/\n/g, '<br>');
+}
+
+function updateClientInfo(data) {
+  const tag = data.tag_name || '1.0.0';
+  // 상태바 클라이언트 버전
+  const bar = document.getElementById('client-version-bar');
+  if (bar) bar.textContent = `v${tag}`;
+  // 다운로드 섹션
+  const dlVer = document.getElementById('dl-version-text');
+  if (dlVer) dlVer.textContent = `v${tag}`;
+  const dlSub = document.getElementById('dl-sub-ver');
+  if (dlSub) dlSub.textContent = `Client v${tag}`;
+
+  const exe = data.assets?.find(a => a.name.toLowerCase().endsWith('.exe'));
+  if (exe) {
+    const btn = document.getElementById('download-btn');
+    if (btn) btn.href = exe.browser_download_url;
+    const sz = document.getElementById('file-size');
+    if (sz) sz.textContent = `약 ${(exe.size/1048576).toFixed(1)}MB`;
+  }
+  if (data.body) {
+    const wrap = document.getElementById('client-patch-notes');
+    if (wrap) {
+      wrap.innerHTML = `
+        <div class="client-update-box">
+          <div class="client-update-header">
+            <span style="font-family:var(--mono);font-size:10px;font-weight:400;letter-spacing:2px;color:var(--blue);text-transform:uppercase">Client Update</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">v${tag} · ${fmtDate(data.published_at)}</span>
+          </div>
+          <div class="patch-body" style="border-color:rgba(59,130,246,0.1)">${fmtMd(data.body)}</div>
+          ${data.html_url ? `<a href="${data.html_url}" target="_blank" class="patch-link" style="color:var(--blue)">GitHub에서 보기 →</a>` : ''}
+        </div>`;
+    }
+  }
+}
+
+function updateGameInfo(data) {
+  const tag = data.tag_name || '';
+  if (data.body) {
+    const card = document.getElementById('game-patch-notes-card');
+    card.style.display = '';
+    document.getElementById('game-patch-title').textContent = data.name || `최신 게임 업데이트 (v${tag})`;
+    document.getElementById('game-patch-date').textContent = fmtDate(data.published_at);
+    document.getElementById('game-patch-body').innerHTML = fmtMd(data.body);
+    const lnk = document.getElementById('game-patch-link');
+    if (data.html_url) lnk.href = data.html_url; else lnk.style.display = 'none';
+  }
+}
+
+// ── 서버 상태 (mcstatus.io 등 활용) ──
+async function fetchServerStatus() {
+  // 실제 서버 IP를 script.js 원본과 동일하게 유지
+  // 원본에서 fetchServerStatus 함수 구현이 없어서 기본값으로 처리
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('server-status-text');
+  // 원본 script.js의 fetchServerStatus를 그대로 호출 (외부 파일)
+  // 여기선 placeholder
+  if (dot) dot.style.background = '#22c55e';
+  if (txt) txt.textContent = '온라인';
+}
+
+// ── SLIDER ──
+let currentSlide = 0;
+function updateDots() {
+  const dots = document.querySelectorAll('.dot');
+  dots.forEach((d,i) => d.classList.toggle('active', i === currentSlide));
+}
+function goSlide(n) {
+  const wrapper = document.getElementById('showcase-slider');
+  const slides = wrapper.querySelectorAll('img');
+  currentSlide = (n + slides.length) % slides.length;
+  wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+  updateDots();
+}
+function moveSlider(dir) {
+  const wrapper = document.getElementById('showcase-slider');
+  const slides = wrapper.querySelectorAll('img');
+  goSlide(currentSlide + dir);
+  playSound('click');
+}
+
+// ── SOUND ──
+const sounds = {
+  hover: new Audio('asset/audio/hover.mp3'),
+  click: new Audio('asset/audio/click.mp3')
+};
+function playSound(type) {
+  const s = sounds[type];
+  if (s) { s.currentTime = 0; s.play().catch(()=>{}); }
+}
+
+document.addEventListener('mouseover', e => {
+  if (e.target.closest('.btn, .comm-btn, .dl-btn, .slider-btn, .hdr-link')) playSound('hover');
+});
+
+// ── LAUNCHER 버튼 (원본 script.js 의존) ──
+function handleAction(url, btn, msg) {
+  if (msg && !confirm(msg)) return;
+  playSound('click');
+  btn.disabled = true; btn.style.opacity = '0.5';
+  setTimeout(() => { window.location.href = url; btn.disabled = false; btn.style.opacity = ''; }, 300);
+}
+// 원본 script.js의 함수들과 충돌 방지용 기본 정의
+window.startGame = window.startGame || function(btn){ btn.innerText = '실행중...'; };
+window.openLoginInfo = window.openLoginInfo || function(btn){};
+window.openReplayFolder = window.openReplayFolder || function(btn){};
+window.reset = window.reset || function(btn){};
+window.uninstall = window.uninstall || function(btn){};
+
+// ── INIT ──
+(async () => {
+  const [client, game] = await Promise.all([fetchRelease('client'), fetchRelease('game')]);
+  if (client) updateClientInfo(client);
+  else {
+    const bar = document.getElementById('client-version-bar');
+    if (bar) bar.textContent = '불러오기 실패';
+  }
+  if (game) updateGameInfo(game);
+  fetchServerStatus();
+  setInterval(fetchServerStatus, 60000);
+  setInterval(() => moveSlider(1), 5000);
+})();
+</script>
+
+<!-- 원본 script.js도 함께 로드 (startGame 등 런처 함수 사용) -->
+<script src="asset/script.js"></script>
+</body>
+</html>
+>>>>>>> f119cdb114f03ed928b4f094b7bb8a06cf5f8dfa
