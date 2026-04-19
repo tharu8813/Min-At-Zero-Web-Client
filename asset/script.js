@@ -359,3 +359,17 @@ window.uninstall = function(btn) {
   startSliderAuto();
   attachButtonEffects();
 })();
+
+function faqToggle(btn) {
+  const item = btn.closest('.faq-item');
+  const wasOpen = item.classList.contains('faq-open');
+  document.querySelectorAll('.faq-item.faq-open').forEach(i => i.classList.remove('faq-open'));
+  if (!wasOpen) item.classList.add('faq-open');
+}
+
+function copyIP(btn) {
+  navigator.clipboard.writeText('tharu81.kro.kr').then(() => {
+    btn.textContent = '완료!';
+    setTimeout(() => btn.textContent = '복사', 1500);
+  });
+}
