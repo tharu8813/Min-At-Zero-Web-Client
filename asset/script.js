@@ -353,7 +353,6 @@ function initCardTilt() {
   const cards = document.querySelectorAll('.card');
 
   cards.forEach(card => {
-    // 빛 반사 레이어 추가
     const glare = document.createElement('div');
     glare.className = 'card-glare';
     glare.style.cssText = `
@@ -368,6 +367,27 @@ function initCardTilt() {
     `;
     card.appendChild(glare);
 
+    // ── iframe 오버레이 생성 ──
+    const iframes = card.querySelectorAll('iframe');
+    const iframeOverlays = [];
+    iframes.forEach(iframe => {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        cursor: none;
+      `;
+      iframe.parentElement.style.position = 'relative';
+      iframe.parentElement.appendChild(overlay);
+      iframeOverlays.push({ overlay, iframe });
+    });
+
+    function removeIframeOverlays() {
+      iframeOverlays.forEach(({ overlay }) => overlay.remove());
+      iframeOverlays.length = 0;
+    }
+
     card.addEventListener('mousemove', e => {
       const rect = card.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
@@ -375,7 +395,6 @@ function initCardTilt() {
       const dx = (e.clientX - cx) / (rect.width / 2);
       const dy = (e.clientY - cy) / (rect.height / 2);
 
-      // 최대 기울기 8도
       const rotX = -dy * 1;
       const rotY = dx * 1;
 
@@ -383,7 +402,6 @@ function initCardTilt() {
       card.style.transition = 'transform 0.1s ease, border-color 0.3s, box-shadow 0.3s';
       card.style.willChange = 'transform';
 
-      // 빛 반사 위치
       const glareX = ((e.clientX - rect.left) / rect.width) * 100;
       const glareY = ((e.clientY - rect.top) / rect.height) * 100;
       glare.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.10) 0%, transparent 55%)`;
@@ -394,6 +412,26 @@ function initCardTilt() {
       card.style.transform = '';
       card.style.transition = 'transform 0.5s cubic-bezier(0.23,1,0.32,1), border-color 0.3s, box-shadow 0.3s';
       glare.style.opacity = '0';
+
+      // 마우스가 카드를 벗어나면 오버레이 제거 → iframe 클릭 가능 상태로 복원
+      removeIframeOverlays();
+    });
+
+    // 마우스가 카드에 들어올 때 오버레이 다시 생성
+    card.addEventListener('mouseenter', () => {
+      if (iframes.length === 0) return;
+      iframes.forEach(iframe => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+          position: absolute;
+          inset: 0;
+          z-index: 3;
+          cursor: none;
+        `;
+        iframe.parentElement.style.position = 'relative';
+        iframe.parentElement.appendChild(overlay);
+        iframeOverlays.push({ overlay, iframe });
+      });
     });
   });
 }
