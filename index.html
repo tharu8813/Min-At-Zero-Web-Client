@@ -659,7 +659,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 11px 0;
+      padding: 10px 0;
       border-bottom: 1px solid var(--border);
       font-size: 13px;
     }
@@ -670,15 +670,66 @@
 
     .req-key {
       color: var(--text-muted);
-      font-size: 11px;
+      font-size: 10px;
       font-family: var(--mono);
       letter-spacing: 1px;
+      flex-shrink: 0;
+      width: 58px;
     }
 
     .req-val {
       color: var(--text-primary);
       font-weight: 600;
       font-size: 13px;
+    }
+
+    /* 최소 / 권장 2열 테이블 레이아웃 */
+    .req-col-header {
+      display: grid;
+      grid-template-columns: 58px 1fr 1fr;
+      gap: 6px;
+      padding: 0 0 8px;
+      border-bottom: 1px solid var(--green-border);
+      margin-bottom: 2px;
+    }
+
+    .req-col-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .req-col-label.col-min {
+      color: var(--text-muted);
+    }
+
+    .req-col-label.col-rec {
+      color: var(--green);
+    }
+
+    .req-item-table {
+      display: grid;
+      grid-template-columns: 58px 1fr 1fr;
+      align-items: center;
+      gap: 6px;
+      justify-content: unset;
+    }
+
+    .req-val-min {
+      color: var(--text-muted);
+      font-size: 11px;
+      font-family: var(--mono);
+      line-height: 1.4;
+    }
+
+    .req-val-rec {
+      color: var(--text-primary);
+      font-size: 11px;
+      font-family: var(--mono);
+      font-weight: 600;
+      line-height: 1.4;
     }
 
     /* ══════════════════════════════════════
@@ -1199,11 +1250,42 @@
         <div class="card">
           <div class="card-top-bar"></div>
           <div class="card-label">Requirements</div>
-          <div class="req-list">
-            <div class="req-item"><span class="req-key">CPU</span><span class="req-val">i5 8세대 이상</span></div>
-            <div class="req-item"><span class="req-key">RAM</span><span class="req-val">8GB 할당 권장</span></div>
-            <div class="req-item"><span class="req-key">GPU</span><span class="req-val">GTX 1050Ti ↑</span></div>
-            <div class="req-item"><span class="req-key">JAVA</span><span class="req-val">Java 17 (x64)</span></div>
+          <div class="req-table-wrap">
+            <div class="req-col-header">
+              <span class="req-col-label">항목</span>
+              <span class="req-col-label col-min">최소</span>
+              <span class="req-col-label col-rec">권장</span>
+            </div>
+            <div class="req-list">
+              <div class="req-item req-item-table">
+                <span class="req-key">OS</span>
+                <span class="req-val-min">Win 10/11 64bit</span>
+                <span class="req-val-rec">Win 10/11 64bit</span>
+              </div>
+              <div class="req-item req-item-table">
+                <span class="req-key">CPU</span>
+                <span class="req-val-min">i3-8100 / R3 3100</span>
+                <span class="req-val-rec">i5-11400F / R5 5600</span>
+              </div>
+              <div class="req-item req-item-table">
+                <span class="req-key">RAM</span>
+                <span class="req-val-min">8 GB</span>
+                <span class="req-val-rec">16 GB</span>
+              </div>
+              <div class="req-item req-item-table">
+                <span class="req-key">GPU</span>
+                <span class="req-val-min">UHD 630 / GT 1030</span>
+                <span class="req-val-rec">GTX 1050Ti / RX 570</span>
+              </div>
+              <div class="req-item req-item-table">
+                <span class="req-key">STORAGE</span>
+                <span class="req-val-min" style="grid-column: span 2; color: var(--text-primary);">2 GB 이상</span>
+              </div>
+              <div class="req-item req-item-table">
+                <span class="req-key">JAVA</span>
+                <span class="req-val-min" style="grid-column: span 2; color: var(--text-primary);">Java 17 (x64)</span>
+              </div>
+            </div>
           </div>
         </div>
 
