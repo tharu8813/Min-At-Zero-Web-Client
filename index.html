@@ -95,8 +95,15 @@
     }
 
     @keyframes lineFlicker {
-      0%, 100% { opacity: 0.15 }
-      50% { opacity: 0.25 }
+
+      0%,
+      100% {
+        opacity: 0.15
+      }
+
+      50% {
+        opacity: 0.25
+      }
     }
 
     /* ── WRAP ── */
@@ -154,7 +161,9 @@
       display: block;
     }
 
-    .header-text { flex: 1; }
+    .header-text {
+      flex: 1;
+    }
 
     .site-title {
       font-family: 'Rajdhani', sans-serif;
@@ -166,18 +175,45 @@
       display: inline-block;
     }
 
-    .site-title:hover { animation: glitch 0.3s both infinite; }
-
-    @keyframes glitch {
-      0%   { transform: translate(0); text-shadow: none; }
-      20%  { transform: translate(-2px, 1px); text-shadow: 2px 0 var(--green); }
-      40%  { transform: translate(2px, -1px); text-shadow: -2px 0 var(--blue); }
-      60%  { transform: translate(-1px, 2px); text-shadow: 2px 0 var(--green); }
-      80%  { transform: translate(1px, -2px); text-shadow: -2px 0 var(--blue); }
-      100% { transform: translate(0); text-shadow: none; }
+    .site-title:hover {
+      animation: glitch 0.3s both infinite;
     }
 
-    .site-title span { color: var(--green); }
+    @keyframes glitch {
+      0% {
+        transform: translate(0);
+        text-shadow: none;
+      }
+
+      20% {
+        transform: translate(-0.5px, 0.5px);
+        text-shadow: 1px 0 var(--green);
+      }
+
+      40% {
+        transform: translate(0.5px, -0.5px);
+        text-shadow: -1px 0 var(--blue);
+      }
+
+      60% {
+        transform: translate(-0.5px, 1px);
+        text-shadow: 1px 0 var(--green);
+      }
+
+      80% {
+        transform: translate(0.5px, -1px);
+        text-shadow: -1px 0 var(--blue);
+      }
+
+      100% {
+        transform: translate(0);
+        text-shadow: none;
+      }
+    }
+
+    .site-title span {
+      color: var(--green);
+    }
 
     .site-meta {
       display: flex;
@@ -277,7 +313,9 @@
       letter-spacing: 1px;
     }
 
-    .status-item .value { color: var(--text-primary); }
+    .status-item .value {
+      color: var(--text-primary);
+    }
 
     .status-sep {
       width: 1px;
@@ -297,8 +335,17 @@
     }
 
     @keyframes pulseDot {
-      0%, 100% { opacity: 1; transform: scale(1) }
-      50% { opacity: 0.6; transform: scale(0.8) }
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: 0.6;
+        transform: scale(0.8)
+      }
     }
 
     .badge {
@@ -374,8 +421,15 @@
     }
 
     @keyframes revealUp {
-      from { opacity: 0; transform: translateY(16px) }
-      to   { opacity: 1; transform: translateY(0) }
+      from {
+        opacity: 0;
+        transform: translateY(16px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
     }
 
     .card:hover {
@@ -422,8 +476,13 @@
       background: linear-gradient(90deg, var(--green-border), transparent);
     }
 
-    .card-label.blue { color: var(--blue); }
-    .card-label.blue::after { background: linear-gradient(90deg, var(--blue-border), transparent); }
+    .card-label.blue {
+      color: var(--blue);
+    }
+
+    .card-label.blue::after {
+      background: linear-gradient(90deg, var(--blue-border), transparent);
+    }
 
     .card::before {
       content: '';
@@ -438,7 +497,9 @@
       transition: border-color 0.3s;
     }
 
-    .card:hover::before { border-color: var(--green-border); }
+    .card:hover::before {
+      border-color: var(--green-border);
+    }
 
     /* ══════════════════════════════════════
        런처 카드
@@ -466,8 +527,15 @@
       font-family: 'Noto Sans KR', sans-serif;
     }
 
-    .btn-icon { font-size: 15px; flex-shrink: 0; }
-    .btn-text { flex: 1; text-align: left; }
+    .btn-icon {
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .btn-text {
+      flex: 1;
+      text-align: left;
+    }
 
     .btn-tag {
       font-family: var(--mono);
@@ -544,16 +612,40 @@
       border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    .comm-btn.notion { background: rgba(255, 255, 255, 0.04); color: #cdd5e0; }
-    .comm-btn.notion:hover { background: rgba(255, 255, 255, 0.09); transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.12); }
-    .comm-btn.discord { background: rgba(88, 101, 242, 0.08); color: #818cf8; border-color: rgba(88, 101, 242, 0.15); }
-    .comm-btn.discord:hover { background: rgba(88, 101, 242, 0.16); transform: translateY(-2px); border-color: rgba(88, 101, 242, 0.3); }
-    .comm-icon { font-size: 16px; }
+    .comm-btn.notion {
+      background: rgba(255, 255, 255, 0.04);
+      color: #cdd5e0;
+    }
+
+    .comm-btn.notion:hover {
+      background: rgba(255, 255, 255, 0.09);
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .comm-btn.discord {
+      background: rgba(88, 101, 242, 0.08);
+      color: #818cf8;
+      border-color: rgba(88, 101, 242, 0.15);
+    }
+
+    .comm-btn.discord:hover {
+      background: rgba(88, 101, 242, 0.16);
+      transform: translateY(-2px);
+      border-color: rgba(88, 101, 242, 0.3);
+    }
+
+    .comm-icon {
+      font-size: 16px;
+    }
 
     /* ══════════════════════════════════════
        사양 카드
     ══════════════════════════════════════ */
-    .req-list { display: flex; flex-direction: column; }
+    .req-list {
+      display: flex;
+      flex-direction: column;
+    }
 
     .req-item {
       display: flex;
@@ -564,7 +656,9 @@
       font-size: 13px;
     }
 
-    .req-item:last-child { border-bottom: none; }
+    .req-item:last-child {
+      border-bottom: none;
+    }
 
     .req-key {
       color: var(--text-muted);
@@ -575,7 +669,11 @@
       width: 58px;
     }
 
-    .req-val { color: var(--text-primary); font-weight: 600; font-size: 13px; }
+    .req-val {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 13px;
+    }
 
     .req-col-header {
       display: grid;
@@ -594,8 +692,13 @@
       color: var(--text-dim);
     }
 
-    .req-col-label.col-min { color: var(--text-muted); }
-    .req-col-label.col-rec { color: var(--green); }
+    .req-col-label.col-min {
+      color: var(--text-muted);
+    }
+
+    .req-col-label.col-rec {
+      color: var(--green);
+    }
 
     .req-item-table {
       display: grid;
@@ -605,8 +708,20 @@
       justify-content: unset;
     }
 
-    .req-val-min { color: var(--text-muted); font-size: 11px; font-family: var(--mono); line-height: 1.4; }
-    .req-val-rec { color: var(--text-primary); font-size: 11px; font-family: var(--mono); font-weight: 600; line-height: 1.4; }
+    .req-val-min {
+      color: var(--text-muted);
+      font-size: 11px;
+      font-family: var(--mono);
+      line-height: 1.4;
+    }
+
+    .req-val-rec {
+      color: var(--text-primary);
+      font-size: 11px;
+      font-family: var(--mono);
+      font-weight: 600;
+      line-height: 1.4;
+    }
 
     /* ══════════════════════════════════════
        트레일러 카드
@@ -646,7 +761,11 @@
       transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
-    .slider-wrapper img { width: 100%; flex-shrink: 0; object-fit: cover; }
+    .slider-wrapper img {
+      width: 100%;
+      flex-shrink: 0;
+      object-fit: cover;
+    }
 
     .slider-controls {
       position: absolute;
@@ -660,7 +779,10 @@
       justify-content: space-between;
     }
 
-    .slider-dots { display: flex; gap: 6px; }
+    .slider-dots {
+      display: flex;
+      gap: 6px;
+    }
 
     .dot {
       width: 6px;
@@ -678,7 +800,10 @@
       border-radius: 3px;
     }
 
-    .slider-btns { display: flex; gap: 6px; }
+    .slider-btns {
+      display: flex;
+      gap: 6px;
+    }
 
     .slider-btn {
       background: rgba(0, 0, 0, 0.6);
@@ -694,12 +819,17 @@
       transition: all 0.2s;
     }
 
-    .slider-btn:hover { background: rgba(34, 197, 94, 0.2); border-color: var(--green-border); }
+    .slider-btn:hover {
+      background: rgba(34, 197, 94, 0.2);
+      border-color: var(--green-border);
+    }
 
     /* ══════════════════════════════════════
        패치 노트
     ══════════════════════════════════════ */
-    .patch-header { margin-bottom: 14px; }
+    .patch-header {
+      margin-bottom: 14px;
+    }
 
     .patch-title {
       font-family: 'Rajdhani', sans-serif;
@@ -709,7 +839,11 @@
       margin-bottom: 4px;
     }
 
-    .patch-date { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+    .patch-date {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
 
     .patch-body {
       background: rgba(0, 0, 0, 0.3);
@@ -723,8 +857,14 @@
       color: var(--text-muted);
     }
 
-    .patch-body::-webkit-scrollbar { width: 4px; }
-    .patch-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .patch-body::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .patch-body::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
 
     .patch-link {
       display: inline-flex;
@@ -740,7 +880,9 @@
       transition: opacity 0.2s;
     }
 
-    .patch-link:hover { opacity: 1; }
+    .patch-link:hover {
+      opacity: 1;
+    }
 
     /* ══════════════════════════════════════
        다운로드 섹션
@@ -760,7 +902,12 @@
       margin-bottom: 8px;
     }
 
-    .dl-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; }
+    .dl-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
 
     .dl-meta-row {
       display: flex;
@@ -771,11 +918,22 @@
       color: var(--text-dim);
     }
 
-    .dl-meta-item { display: flex; align-items: center; gap: 6px; }
+    .dl-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-    .dl-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-dim); }
+    .dl-meta-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--text-dim);
+    }
 
-    .dl-btn-wrap { flex-shrink: 0; }
+    .dl-btn-wrap {
+      flex-shrink: 0;
+    }
 
     .dl-btn {
       display: inline-flex;
@@ -811,7 +969,9 @@
       transition: 0.5s;
     }
 
-    .dl-btn:hover::before { left: 140%; }
+    .dl-btn:hover::before {
+      left: 140%;
+    }
 
     .dl-icon {
       font-size: 26px;
@@ -820,12 +980,29 @@
     }
 
     @keyframes dlBounce {
-      0%, 100% { transform: translateY(0) }
-      50% { transform: translateY(-5px) }
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-5px)
+      }
     }
 
-    .dl-text { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
-    .dl-sub { font-size: 11px; opacity: 0.65; margin-top: 4px; font-family: var(--mono); }
+    .dl-text {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .dl-sub {
+      font-size: 11px;
+      opacity: 0.65;
+      margin-top: 4px;
+      font-family: var(--mono);
+    }
 
     .client-update-box {
       margin-top: 24px;
@@ -843,7 +1020,10 @@
     /* ══════════════════════════════════════
        INFO ROW
     ══════════════════════════════════════ */
-    .info-rows { display: flex; flex-direction: column; }
+    .info-rows {
+      display: flex;
+      flex-direction: column;
+    }
 
     .info-row {
       display: flex;
@@ -854,14 +1034,29 @@
       font-size: 13px;
     }
 
-    .info-row:last-child { border-bottom: none; }
-    .info-key { color: var(--text-muted); font-size: 11px; font-family: var(--mono); letter-spacing: 0.5px; }
-    .info-val { color: var(--text-primary); font-weight: 600; }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-key {
+      color: var(--text-muted);
+      font-size: 11px;
+      font-family: var(--mono);
+      letter-spacing: 0.5px;
+    }
+
+    .info-val {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
 
     /* ══════════════════════════════════════
        설치 가이드
     ══════════════════════════════════════ */
-    .steps-wrap { display: flex; flex-direction: column; }
+    .steps-wrap {
+      display: flex;
+      flex-direction: column;
+    }
 
     .step-item {
       display: flex;
@@ -871,7 +1066,10 @@
       align-items: flex-start;
     }
 
-    .step-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .step-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
 
     .step-num-box {
       width: 34px;
@@ -889,9 +1087,22 @@
       color: var(--green);
     }
 
-    .step-body { flex: 1; }
-    .step-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
-    .step-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.75; }
+    .step-body {
+      flex: 1;
+    }
+
+    .step-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .step-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.75;
+    }
 
     .step-tag {
       display: inline-block;
@@ -909,9 +1120,18 @@
     /* ══════════════════════════════════════
        FAQ
     ══════════════════════════════════════ */
-    .faq-list { display: flex; flex-direction: column; }
-    .faq-item { border-bottom: 1px solid var(--border); }
-    .faq-item:last-child { border-bottom: none; }
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .faq-item:last-child {
+      border-bottom: none;
+    }
 
     .faq-q {
       width: 100%;
@@ -930,7 +1150,9 @@
       transition: color 0.2s;
     }
 
-    .faq-q:hover { color: var(--green); }
+    .faq-q:hover {
+      color: var(--green);
+    }
 
     .faq-icon {
       width: 20px;
@@ -948,7 +1170,10 @@
       line-height: 1;
     }
 
-    .faq-item.faq-open .faq-icon { transform: rotate(45deg); background: rgba(34, 197, 94, 0.18); }
+    .faq-item.faq-open .faq-icon {
+      transform: rotate(45deg);
+      background: rgba(34, 197, 94, 0.18);
+    }
 
     .faq-a {
       font-size: 12.5px;
@@ -959,7 +1184,10 @@
       transition: max-height 0.35s ease, padding 0.35s;
     }
 
-    .faq-item.faq-open .faq-a { max-height: 200px; padding-bottom: 15px; }
+    .faq-item.faq-open .faq-a {
+      max-height: 200px;
+      padding-bottom: 15px;
+    }
 
     .faq-badge {
       font-family: var(--mono);
@@ -1003,7 +1231,9 @@
       transition: background 0.2s;
     }
 
-    .faq-copy-btn:hover { background: rgba(34, 197, 94, 0.2); }
+    .faq-copy-btn:hover {
+      background: rgba(34, 197, 94, 0.2);
+    }
 
     /* ══════════════════════════════════════
        FOOTER
@@ -1061,7 +1291,9 @@
       transition: color 0.2s;
     }
 
-    .footer-link:hover { color: var(--green); }
+    .footer-link:hover {
+      color: var(--green);
+    }
 
     .footer-link-dot {
       width: 4px;
@@ -1072,7 +1304,9 @@
       transition: background 0.2s;
     }
 
-    .footer-link:hover .footer-link-dot { background: var(--green); }
+    .footer-link:hover .footer-link-dot {
+      background: var(--green);
+    }
 
     .footer-bottom {
       border-top: 1px solid var(--border);
@@ -1090,7 +1324,9 @@
       color: var(--text-dim);
     }
 
-    .footer-copy span { color: var(--text-muted); }
+    .footer-copy span {
+      color: var(--text-muted);
+    }
 
     .footer-disclaimer {
       font-family: var(--mono);
@@ -1103,29 +1339,245 @@
        반응형
     ══════════════════════════════════════ */
     @media (max-width: 1080px) {
-      .main-grid { grid-template-columns: 1fr; }
-      .sidebar { order: 2; }
-      .main-content { order: 1; }
-      .download-section { grid-template-columns: 1fr; text-align: center; }
-      .dl-btn { width: 100%; min-width: unset; }
-      .dl-meta-row { justify-content: center; }
-      .header-links { display: none; }
-      .footer-grid { grid-template-columns: 1fr; gap: 20px; }
-      .footer-disclaimer { text-align: left; }
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        order: 2;
+      }
+
+      .main-content {
+        order: 1;
+      }
+
+      .download-section {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .dl-btn {
+        width: 100%;
+        min-width: unset;
+      }
+
+      .dl-meta-row {
+        justify-content: center;
+      }
+
+      .header-links {
+        display: none;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .footer-disclaimer {
+        text-align: left;
+      }
     }
 
     @media (max-width: 600px) {
-      .wrap { padding: 0 14px 60px; }
-      .status-bar { gap: 12px; flex-wrap: wrap; }
+      .wrap {
+        padding: 0 14px 60px;
+      }
+
+      .status-bar {
+        gap: 12px;
+        flex-wrap: wrap;
+      }
     }
 
     /* 애니메이션 딜레이 */
-    .card:nth-child(1) { animation-delay: 0.05s }
-    .card:nth-child(2) { animation-delay: 0.10s }
-    .card:nth-child(3) { animation-delay: 0.15s }
-    .card:nth-child(4) { animation-delay: 0.20s }
-    .card:nth-child(5) { animation-delay: 0.25s }
-    .card:nth-child(6) { animation-delay: 0.30s }
+    .card:nth-child(1) {
+      animation-delay: 0.05s
+    }
+
+    .card:nth-child(2) {
+      animation-delay: 0.10s
+    }
+
+    .card:nth-child(3) {
+      animation-delay: 0.15s
+    }
+
+    .card:nth-child(4) {
+      animation-delay: 0.20s
+    }
+
+    .card:nth-child(5) {
+      animation-delay: 0.25s
+    }
+
+    .card:nth-child(6) {
+      animation-delay: 0.30s
+    }
+
+    /* ══ CUSTOM POPUP ══ */
+    .matz-popup-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 89990;
+      pointer-events: none;
+    }
+
+    .matz-popup-overlay.active {
+      pointer-events: all;
+    }
+
+    .matz-popup {
+      position: fixed;
+      min-width: 280px;
+      width: 300px;
+      background: var(--bg-card);
+      border: 1px solid var(--green-border);
+      border-radius: 14px;
+      padding: 0;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(34, 197, 94, 0.08);
+      overflow: hidden;
+      transform-origin: top center;
+      opacity: 0;
+      transform: scaleY(0.88) translateY(-8px);
+      transition: opacity 0.22s cubic-bezier(0.23, 1, 0.32, 1),
+        transform 0.22s cubic-bezier(0.23, 1, 0.32, 1),
+        box-shadow 0.22s;
+      pointer-events: none;
+      z-index: 89999;
+      backdrop-filter: blur(12px);
+    }
+
+    .matz-popup.popup-up {
+      transform-origin: bottom center;
+      transform: scaleY(0.88) translateY(8px);
+    }
+
+    .matz-popup.show {
+      opacity: 1;
+      transform: scaleY(1) translateY(0);
+      pointer-events: all;
+    }
+
+    .matz-popup::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(0deg,
+          transparent, transparent 3px,
+          rgba(0, 0, 0, 0.04) 3px, rgba(0, 0, 0, 0.04) 4px);
+    }
+
+    .matz-popup-bar {
+      height: 2px;
+      background: linear-gradient(90deg, #ef4444 0%, rgba(239, 68, 68, 0.3) 60%, transparent 100%);
+    }
+
+    .matz-popup-inner {
+      padding: 18px 20px 16px;
+    }
+
+    .matz-popup-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .matz-popup-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.22);
+    }
+
+    .matz-popup-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.3px;
+      line-height: 1.2;
+    }
+
+    .matz-popup-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .matz-popup-msg {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.8;
+      margin-bottom: 16px;
+      white-space: pre-line;
+    }
+
+    .matz-popup-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .matz-popup-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      letter-spacing: 0.3px;
+      transition: all 0.18s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .matz-popup-btn.cancel {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    .matz-popup-btn.cancel:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text-primary);
+    }
+
+    .matz-popup-btn.confirm-danger {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .matz-popup-btn.confirm-danger:hover {
+      background: rgba(239, 68, 68, 0.22);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.25);
+    }
+
+    .matz-popup-corner {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      width: 12px;
+      height: 12px;
+      border-right: 1px solid rgba(239, 68, 68, 0.2);
+      border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 0 0 3px 0;
+      pointer-events: none;
+    }
   </style>
 </head>
 
@@ -1319,16 +1771,26 @@
           <div class="card-label">Weapons &amp; Maps</div>
           <div class="slider-outer">
             <div class="slider-wrapper" id="showcase-slider">
-              <img src="image/1.png" alt="Showcase 1"  onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+1'">
-              <img src="image/2.png" alt="Showcase 2"  onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+2'">
-              <img src="image/3.png" alt="Showcase 3"  onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+3'">
-              <img src="image/4.png" alt="Showcase 4"  onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+4'">
-              <img src="image/5.png" alt="Showcase 5"  onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+5'">
-              <img src="image/6.png" alt="Showcase 6"  onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+6'">
-              <img src="image/7.png" alt="Showcase 7"  onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+7'">
-              <img src="image/8.png" alt="Showcase 8"  onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+8'">
-              <img src="image/9.png" alt="Showcase 9"  onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+9'">
-              <img src="image/10.png" alt="Showcase 10" onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+10'">
+              <img src="image/1.png" alt="Showcase 1"
+                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+1'">
+              <img src="image/2.png" alt="Showcase 2"
+                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+2'">
+              <img src="image/3.png" alt="Showcase 3"
+                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+3'">
+              <img src="image/4.png" alt="Showcase 4"
+                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+4'">
+              <img src="image/5.png" alt="Showcase 5"
+                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+5'">
+              <img src="image/6.png" alt="Showcase 6"
+                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+6'">
+              <img src="image/7.png" alt="Showcase 7"
+                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+7'">
+              <img src="image/8.png" alt="Showcase 8"
+                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+8'">
+              <img src="image/9.png" alt="Showcase 9"
+                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+9'">
+              <img src="image/10.png" alt="Showcase 10"
+                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+10'">
             </div>
             <div class="slider-controls">
               <div class="slider-dots" id="slider-dots">
@@ -1361,7 +1823,8 @@
               <div class="step-num-box">01</div>
               <div class="step-body">
                 <div class="step-title">클라이언트 다운로드</div>
-                <div class="step-desc">이 페이지 하단의 <strong>Download</strong> 섹션에서 Windows 클라이언트 설치 파일(.exe)을 다운로드합니다.</div>
+                <div class="step-desc">이 페이지 하단의 <strong>Download</strong> 섹션에서 Windows 클라이언트 설치 파일(.exe)을 다운로드합니다.
+                </div>
                 <span class="step-tag">Windows 전용</span>
               </div>
             </div>
@@ -1370,7 +1833,9 @@
               <div class="step-num-box">02</div>
               <div class="step-body">
                 <div class="step-title">설치 파일 실행</div>
-                <div class="step-desc">다운로드된 <strong>.exe 파일</strong>을 실행합니다. 설치 마법사가 시작되면 화면의 안내에 따라 <strong>다음(Next)</strong>을 눌러 진행하세요.</div>
+                <div class="step-desc">다운로드된 <strong>.exe 파일</strong>을 실행합니다. 설치 마법사가 시작되면 화면의 안내에 따라
+                  <strong>다음(Next)</strong>을 눌러 진행하세요.
+                </div>
                 <span class="step-tag">화면 안내대로 진행</span>
               </div>
             </div>
@@ -1387,8 +1852,11 @@
               <div class="step-num-box">04</div>
               <div class="step-body">
                 <div class="step-title">정품 계정으로 로그인</div>
-                <div class="step-desc">클라이언트 실행 후 <strong>정품 Microsoft / Minecraft 계정</strong>으로 로그인합니다. 정품 계정 없이는 게임 시작이 불가합니다.</div>
-                <span class="step-tag" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#fca5a5;">정품 계정 필수</span>
+                <div class="step-desc">클라이언트 실행 후 <strong>정품 Microsoft / Minecraft 계정</strong>으로 로그인합니다. 정품 계정 없이는 게임
+                  시작이 불가합니다.</div>
+                <span class="step-tag"
+                  style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#fca5a5;">정품 계정
+                  필수</span>
               </div>
             </div>
 
@@ -1396,7 +1864,8 @@
               <div class="step-num-box">05</div>
               <div class="step-body">
                 <div class="step-title">이 페이지에서 게임 시작</div>
-                <div class="step-desc">설치 이후 게임 시작, 계정 관리, 리플레이 폴더 열기 등 모든 기능은 <strong>이 사이트의 런처 버튼</strong>을 통해 이용할 수 있습니다.</div>
+                <div class="step-desc">설치 이후 게임 시작, 계정 관리, 리플레이 폴더 열기 등 모든 기능은 <strong>이 사이트의 런처 버튼</strong>을 통해 이용할 수
+                  있습니다.</div>
                 <span class="step-tag">사이트 런처 이용</span>
               </div>
             </div>
@@ -1459,7 +1928,8 @@
               </button>
               <div class="faq-a">
                 클라이언트를 설치하면 마인크래프트 시작 화면이 바뀌며, 시작하기 버튼을 누르면 자동으로 서버에 접속됩니다. IP를 직접 입력하고 싶다면 아래 주소를 사용하세요.<br><br>
-                <span class="faq-ip-box">tharu81.kro.kr <button class="faq-copy-btn" onclick="copyIP(this)">복사</button></span>
+                <span class="faq-ip-box">tharu81.kro.kr <button class="faq-copy-btn"
+                    onclick="copyIP(this)">복사</button></span>
               </div>
             </div>
 
@@ -1469,7 +1939,8 @@
                 Mac / Linux에서도 플레이 가능한가요?
                 <span class="faq-badge badge-red">미지원</span>
               </button>
-              <div class="faq-a">마인크래프트 자체는 Mac/Linux에서도 실행되지만, 전용 클라이언트가 현재 Windows만 지원합니다. Mac/Linux에서는 플레이가 불가합니다.</div>
+              <div class="faq-a">마인크래프트 자체는 Mac/Linux에서도 실행되지만, 전용 클라이언트가 현재 Windows만 지원합니다. Mac/Linux에서는 플레이가 불가합니다.
+              </div>
             </div>
 
             <div class="faq-item">
@@ -1478,7 +1949,8 @@
                 MultiMC 등 다른 런처로 접속할 수 있나요?
                 <span class="faq-badge badge-red">불가</span>
               </button>
-              <div class="faq-a">불가합니다. 서버 플레이에 필요한 모드팩은 전용 클라이언트를 통해서만 설치·다운로드할 수 있습니다. 또한 부정행위 방지를 위해 전용 클라이언트 외 접속은 허용되지 않습니다.</div>
+              <div class="faq-a">불가합니다. 서버 플레이에 필요한 모드팩은 전용 클라이언트를 통해서만 설치·다운로드할 수 있습니다. 또한 부정행위 방지를 위해 전용 클라이언트 외 접속은
+                허용되지 않습니다.</div>
             </div>
 
             <div class="faq-item">
@@ -1486,7 +1958,8 @@
                 <span class="faq-icon">+</span>
                 게임이 버벅이거나 렉이 심할 때는 어떻게 하나요?
               </button>
-              <div class="faq-a">설치되는 모드팩에 다양한 최적화 모드가 이미 포함되어 있습니다. 그래도 성능이 낮다면 게임 내 그래픽 설정(렌더 거리, 그래픽 품질 등)을 낮춰 보시기를 권장합니다.</div>
+              <div class="faq-a">설치되는 모드팩에 다양한 최적화 모드가 이미 포함되어 있습니다. 그래도 성능이 낮다면 게임 내 그래픽 설정(렌더 거리, 그래픽 품질 등)을 낮춰 보시기를
+                권장합니다.</div>
             </div>
 
             <div class="faq-item">
@@ -1495,7 +1968,8 @@
                 모드를 추가로 설치해도 되나요?
                 <span class="faq-badge badge-red">금지</span>
               </button>
-              <div class="faq-a">부정행위 방지를 위해 추가 모드 설치는 엄격히 금지되어 있습니다. 클라이언트는 설치된 모드에 대해 무결성 검사를 진행하므로 임의로 추가된 모드는 감지됩니다.</div>
+              <div class="faq-a">부정행위 방지를 위해 추가 모드 설치는 엄격히 금지되어 있습니다. 클라이언트는 설치된 모드에 대해 무결성 검사를 진행하므로 임의로 추가된 모드는 감지됩니다.
+              </div>
             </div>
 
             <div class="faq-item">
@@ -1545,7 +2019,8 @@
           <a href="https://discord.gg/xAPPegjYnN" target="_blank" class="footer-link">
             <span class="footer-link-dot"></span>Discord 서버
           </a>
-          <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016" target="_blank" class="footer-link">
+          <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
+            target="_blank" class="footer-link">
             <span class="footer-link-dot"></span>가이드 (Notion)
           </a>
         </div>
@@ -1567,6 +2042,27 @@
 
     </div>
   </footer>
+
+  <!-- ══ CUSTOM POPUP ══ -->
+  <div class="matz-popup-overlay" id="popup-overlay"></div>
+  <div class="matz-popup danger-mode" id="matz-popup" role="dialog" aria-modal="true">
+    <div class="matz-popup-bar" id="popup-bar"></div>
+    <div class="matz-popup-inner">
+      <div class="matz-popup-header">
+        <div class="matz-popup-icon" id="popup-icon"></div>
+        <div>
+          <div class="matz-popup-title" id="popup-title"></div>
+          <div class="matz-popup-sub" id="popup-sub"></div>
+        </div>
+      </div>
+      <div class="matz-popup-msg" id="popup-msg"></div>
+      <div class="matz-popup-actions">
+        <button class="matz-popup-btn cancel" id="popup-cancel">취소</button>
+        <button class="matz-popup-btn confirm-danger" id="popup-confirm">확인</button>
+      </div>
+    </div>
+    <div class="matz-popup-corner"></div>
+  </div>
 
   <script src="asset/script.js"></script>
 </body>

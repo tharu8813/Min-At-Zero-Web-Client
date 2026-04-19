@@ -1,7 +1,7 @@
 // ── REPOS ──
 const REPOS = {
   client: 'tharu8813/Min-At-Zero-Clinet',
-  game:   'tharu8813/Min-At-Zero'
+  game: 'tharu8813/Min-At-Zero'
 };
 
 // ── API ──
@@ -26,8 +26,8 @@ function fmtMd(md) {
   if (!md) return '';
   return md
     .replace(/^### (.+)$/gm, '<h4 style="color:var(--green);font-size:13px;font-weight:600;margin:14px 0 6px">$1</h4>')
-    .replace(/^## (.+)$/gm,  '<h3 style="color:var(--green);font-size:14px;font-weight:600;margin:14px 0 6px">$1</h3>')
-    .replace(/^# (.+)$/gm,   '<h2 style="color:var(--green);font-size:15px;font-weight:700;margin:14px 0 6px">$1</h2>')
+    .replace(/^## (.+)$/gm, '<h3 style="color:var(--green);font-size:14px;font-weight:600;margin:14px 0 6px">$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2 style="color:var(--green);font-size:15px;font-weight:700;margin:14px 0 6px">$1</h2>')
     .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text-primary);font-weight:600">$1</strong>')
     .replace(/`([^`]+)`/g, '<code style="background:rgba(59,130,246,0.12);padding:1px 6px;border-radius:4px;font-family:monospace;color:#60a5fa;font-size:12px">$1</code>')
     .replace(/^[\*\-] (.+)$/gm, '<li style="margin:4px 0 4px 16px;color:var(--text-muted)">$1</li>')
@@ -195,8 +195,8 @@ function playSound(type) {
   if (!s) return;
   try {
     s.currentTime = 0;
-    s.play().catch(() => {});
-  } catch {}
+    s.play().catch(() => { });
+  } catch { }
 }
 
 // ════════════════════════════════════════
@@ -218,12 +218,12 @@ function initParticles() {
   let W, H, particles, mouse = { x: -9999, y: -9999 };
 
   function resize() {
-    W = canvas.width  = window.innerWidth;
+    W = canvas.width = window.innerWidth;
     H = canvas.height = window.innerHeight;
   }
 
   function createParticles() {
-    const count = Math.floor((W * H) / 18000);
+    const count = Math.floor((W * H) / 10000);
     particles = Array.from({ length: count }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
@@ -253,8 +253,8 @@ function initParticles() {
       // 속도 감쇠
       p.vx *= 0.98;
       p.vy *= 0.98;
-      p.x  += p.vx;
-      p.y  += p.vy;
+      p.x += p.vx;
+      p.y += p.vy;
 
       // 경계 처리
       if (p.x < 0) p.x = W;
@@ -276,7 +276,7 @@ function initParticles() {
       for (let j = i + 1; j < particles.length; j++) {
         const dx = particles[i].x - particles[j].x;
         const dy = particles[i].y - particles[j].y;
-        const d  = Math.sqrt(dx * dx + dy * dy);
+        const d = Math.sqrt(dx * dx + dy * dy);
         if (d < 90) {
           ctx.beginPath();
           ctx.moveTo(particles[i].x, particles[i].y);
@@ -340,7 +340,7 @@ function initMouseAurora() {
     ax += (tx - ax) * 0.07;
     ay += (ty - ay) * 0.07;
     aurora.style.left = ax + 'px';
-    aurora.style.top  = ay + 'px';
+    aurora.style.top = ay + 'px';
     requestAnimationFrame(tick);
   }
   tick();
@@ -369,31 +369,31 @@ function initCardTilt() {
     card.appendChild(glare);
 
     card.addEventListener('mousemove', e => {
-      const rect  = card.getBoundingClientRect();
-      const cx    = rect.left + rect.width  / 2;
-      const cy    = rect.top  + rect.height / 2;
-      const dx    = (e.clientX - cx) / (rect.width  / 2);
-      const dy    = (e.clientY - cy) / (rect.height / 2);
+      const rect = card.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) / (rect.width / 2);
+      const dy = (e.clientY - cy) / (rect.height / 2);
 
       // 최대 기울기 8도
-      const rotX  = -dy * 8;
-      const rotY  =  dx * 8;
+      const rotX = -dy * 1;
+      const rotY = dx * 1;
 
-      card.style.transform    = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(6px)`;
-      card.style.transition   = 'transform 0.1s ease, border-color 0.3s, box-shadow 0.3s';
-      card.style.willChange   = 'transform';
+      card.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(6px)`;
+      card.style.transition = 'transform 0.1s ease, border-color 0.3s, box-shadow 0.3s';
+      card.style.willChange = 'transform';
 
       // 빛 반사 위치
-      const glareX = ((e.clientX - rect.left) / rect.width)  * 100;
-      const glareY = ((e.clientY - rect.top)  / rect.height) * 100;
+      const glareX = ((e.clientX - rect.left) / rect.width) * 100;
+      const glareY = ((e.clientY - rect.top) / rect.height) * 100;
       glare.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.10) 0%, transparent 55%)`;
-      glare.style.opacity = '1';
+      glare.style.opacity = '0.5';
     });
 
     card.addEventListener('mouseleave', () => {
-      card.style.transform  = '';
+      card.style.transform = '';
       card.style.transition = 'transform 0.5s cubic-bezier(0.23,1,0.32,1), border-color 0.3s, box-shadow 0.3s';
-      glare.style.opacity   = '0';
+      glare.style.opacity = '0';
     });
   });
 }
@@ -454,7 +454,7 @@ function initCustomCursor() {
   `;
   document.head.appendChild(style);
 
-  const dot  = document.createElement('div'); dot.id  = 'cursor-dot';
+  const dot = document.createElement('div'); dot.id = 'cursor-dot';
   const ring = document.createElement('div'); ring.id = 'cursor-ring';
   document.body.appendChild(dot);
   document.body.appendChild(ring);
@@ -466,7 +466,7 @@ function initCustomCursor() {
     mx = e.clientX;
     my = e.clientY;
     dot.style.left = mx + 'px';
-    dot.style.top  = my + 'px';
+    dot.style.top = my + 'px';
   });
 
   // ring은 lerp로 부드럽게
@@ -474,7 +474,7 @@ function initCustomCursor() {
     rx += (mx - rx) * 0.14;
     ry += (my - ry) * 0.14;
     ring.style.left = rx + 'px';
-    ring.style.top  = ry + 'px';
+    ring.style.top = ry + 'px';
     requestAnimationFrame(animRing);
   }
   animRing();
@@ -657,9 +657,9 @@ function attachButtonEffects() {
       const size = Math.max(rect.width, rect.height);
       const ripple = document.createElement('span');
       ripple.className = 'btn-ripple';
-      ripple.style.width  = ripple.style.height = size + 'px';
-      ripple.style.left   = (e.clientX - rect.left - size / 2) + 'px';
-      ripple.style.top    = (e.clientY - rect.top  - size / 2) + 'px';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
       btn.appendChild(ripple);
       setTimeout(() => ripple.remove(), 600);
 
@@ -684,31 +684,123 @@ function setBtnLoading(btn, msg, duration = 2000) {
 }
 
 // ── 런처 버튼 ──
-window.startGame = function(btn) {
+window.startGame = function (btn) {
   setBtnLoading(btn, '⏳ 실행 준비 중...');
   setTimeout(() => { window.location.href = "matz-client://start"; }, 100);
 };
 
-window.openLoginInfo = function(btn) {
+window.openLoginInfo = function (btn) {
   setBtnLoading(btn, '⏳ 여는 중...');
   setTimeout(() => { window.location.href = "matz-client://login-info"; }, 100);
 };
 
-window.openReplayFolder = function(btn) {
+window.openReplayFolder = function (btn) {
   setBtnLoading(btn, '⏳ 폴더 여는 중...');
   setTimeout(() => { window.location.href = "matz-client://replay"; }, 100);
 };
 
-window.reset = function(btn) {
-  if (!confirm('클라이언트를 초기화하시겠습니까?')) return;
-  setBtnLoading(btn, '⏳ 초기화 중...');
-  setTimeout(() => { window.location.href = "matz-client://reset"; }, 100);
+// ── CUSTOM POPUP ENGINE ──
+const POPUP_CFG = {
+  reset: {
+    icon: '🗑️', title: '클라이언트 초기화', sub: 'WARNING · RESET',
+    msg: '클라이언트 설정과 캐시를 모두 초기화합니다.\n이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?',
+    confirmText: '초기화', action: () => { window.location.href = 'matz-client://reset'; }
+  },
+  uninstall: {
+    icon: '❌', title: '클라이언트 삭제', sub: 'DANGER · UNINSTALL',
+    msg: '클라이언트를 완전히 삭제합니다.\n모든 데이터가 제거되며 되돌릴 수 없습니다.',
+    confirmText: '삭제', action: () => { window.location.href = 'matz-client://uninstall'; }
+  }
 };
 
-window.uninstall = function(btn) {
-  if (!confirm('클라이언트를 정말 삭제하시겠습니까?')) return;
-  setBtnLoading(btn, '⏳ 삭제 중...');
-  setTimeout(() => { window.location.href = "matz-client://uninstall"; }, 100);
+let _popupAction = null;
+
+// 위치 계산 로직 — 분리된 함수
+function repositionPopup(popup, btn) {
+  const rect = btn.getBoundingClientRect();
+  const popupW = 300;
+  const goUp = (window.innerHeight - rect.bottom - 16) < 180;
+
+  let left = rect.left + rect.width / 2 - popupW / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - popupW - 8));
+
+  popup.classList.toggle('popup-up', goUp);
+  popup.style.width = popupW + 'px';
+  popup.style.left = left + 'px';
+
+  if (goUp) {
+    popup.style.top = 'auto';
+    popup.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+  } else {
+    popup.style.top = (rect.bottom + 10) + 'px';
+    popup.style.bottom = 'auto';
+  }
+}
+
+function showMatzPopup(triggerBtn, type) {
+  const cfg = POPUP_CFG[type];
+  if (!cfg) return;
+  _popupAction = cfg.action;
+
+  window._setPopupTriggerBtn(triggerBtn);
+
+  const popup = document.getElementById('matz-popup');
+  const overlay = document.getElementById('popup-overlay');
+
+  document.getElementById('popup-icon').textContent = cfg.icon;
+  document.getElementById('popup-title').textContent = cfg.title;
+  document.getElementById('popup-sub').textContent = cfg.sub;
+  document.getElementById('popup-msg').textContent = cfg.msg;
+  document.getElementById('popup-confirm').textContent = cfg.confirmText;
+
+  repositionPopup(popup, triggerBtn);
+
+  overlay.classList.add('active');
+  requestAnimationFrame(() => requestAnimationFrame(() => popup.classList.add('show')));
+  playSound('click');
+}
+
+function closeMatzPopup() {
+  document.getElementById('matz-popup').classList.remove('show');
+  document.getElementById('popup-overlay').classList.remove('active');
+  _popupAction = null;
+  window._clearPopupTriggerBtn();
+}
+
+// 팝업 초기화 (DOMContentLoaded 이후 한 번만)
+function initMatzPopup() {
+  document.getElementById('popup-cancel').addEventListener('click', closeMatzPopup);
+  document.getElementById('popup-confirm').addEventListener('click', () => {
+    closeMatzPopup();
+    if (_popupAction) setTimeout(_popupAction, 100);
+  });
+  document.getElementById('popup-overlay').addEventListener('click', closeMatzPopup);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMatzPopup(); });
+
+  // ── 스크롤 시 팝업 위치 재계산 ──
+  let _popupTriggerBtn = null; // 현재 팝업을 연 버튼 참조 저장
+
+  // showMatzPopup 에서 triggerBtn을 저장하도록 수정
+  // (아래 showMatzPopup 에서 _popupTriggerBtn = triggerBtn 라인 참고)
+
+  window.addEventListener('scroll', () => {
+    const popup = document.getElementById('matz-popup');
+    if (!popup.classList.contains('show') || !_popupTriggerBtn) return;
+    repositionPopup(popup, _popupTriggerBtn);
+  }, { passive: true });
+
+  // 외부에서 접근할 수 있도록 setter 노출
+  window._setPopupTriggerBtn = (btn) => { _popupTriggerBtn = btn; };
+  window._clearPopupTriggerBtn = () => { _popupTriggerBtn = null; };
+}
+
+// ── 런처 버튼 (confirm → showMatzPopup 으로 교체) ──
+window.reset = function (btn) {
+  showMatzPopup(btn, 'reset');
+};
+
+window.uninstall = function (btn) {
+  showMatzPopup(btn, 'uninstall');
 };
 
 // ── FAQ / IP ──
@@ -728,6 +820,8 @@ function copyIP(btn) {
 
 // ── INIT ──
 (async () => {
+  initMatzPopup();
+
   // 배경 / UX 효과 먼저 초기화 (빠른 시각적 피드백)
   initScrollProgress();
   initScrollReveal();
