@@ -117,22 +117,34 @@ async function fetchServerStatus() {
         dot.style.background = '#22c55e';
         dot.style.boxShadow = '0 0 8px #22c55e';
       }
-      if (txt) txt.textContent = '온라인';
+      if (txt) {
+        animateTextChange(txt, '온라인');
+      }
       if (players && data.players) {
-        players.textContent = data.players.online + ' / ' + data.players.max;
+        animateTextChange(players, data.players.online + ' / ' + data.players.max);
       }
     } else {
       if (dot) {
         dot.style.background = '#ef4444';
         dot.style.boxShadow = '0 0 8px #ef4444';
       }
-      if (txt) txt.textContent = '오프라인';
-      if (players) players.textContent = '— / —';
+      if (txt) animateTextChange(txt, '오프라인');
+      if (players) animateTextChange(players, '— / —');
     }
   } catch (e) {
-    if (txt) txt.textContent = '확인 불가';
+    if (txt) animateTextChange(txt, '확인 불가');
     console.error('Server status fetch failed:', e);
   }
+}
+
+// 텍스트 바뀔 때 fade 전환
+function animateTextChange(el, newText) {
+  el.style.transition = 'opacity 0.25s';
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.textContent = newText;
+    el.style.opacity = '1';
+  }, 250);
 }
 
 // ── SLIDER ──
@@ -156,12 +168,17 @@ function goSlide(n) {
 
 function moveSlider(dir) {
   goSlide(currentSlide + dir);
+  resetSliderAuto();
   playSound('click');
 }
 
-function startSliderAuto() {
+function resetSliderAuto() {
   if (sliderTimer) clearInterval(sliderTimer);
   sliderTimer = setInterval(() => goSlide(currentSlide + 1), 5000);
+}
+
+function startSliderAuto() {
+  resetSliderAuto();
 }
 
 // ── SOUND ──
@@ -179,33 +196,386 @@ function playSound(type) {
   try {
     s.currentTime = 0;
     s.play().catch(() => {});
-  } catch {
-    // 오디오 파일 없으면 무시
-  }
+  } catch {}
 }
 
-// ── 버튼 애니메이션 CSS 주입 ──
+// ════════════════════════════════════════
+//  PARTICLE BACKGROUND
+// ════════════════════════════════════════
+function initParticles() {
+  const canvas = document.createElement('canvas');
+  canvas.id = 'particle-canvas';
+  canvas.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.55;
+  `;
+  document.body.insertBefore(canvas, document.body.firstChild);
+
+  const ctx = canvas.getContext('2d');
+  let W, H, particles, mouse = { x: -9999, y: -9999 };
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function createParticles() {
+    const count = Math.floor((W * H) / 18000);
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 1.5 + 0.4,
+      alpha: Math.random() * 0.5 + 0.1,
+      // 각 파티클마다 색 변형 살짝
+      hue: Math.random() > 0.8 ? 210 : 142
+    }));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    particles.forEach(p => {
+      // 마우스 반응 — 가까우면 살짝 밀림
+      const dx = p.x - mouse.x;
+      const dy = p.y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 120) {
+        const force = (120 - dist) / 120;
+        p.vx += (dx / dist) * force * 0.04;
+        p.vy += (dy / dist) * force * 0.04;
+      }
+
+      // 속도 감쇠
+      p.vx *= 0.98;
+      p.vy *= 0.98;
+      p.x  += p.vx;
+      p.y  += p.vy;
+
+      // 경계 처리
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H;
+      if (p.y > H) p.y = 0;
+
+      // 파티클 그리기
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.hue === 142
+        ? `rgba(34,197,94,${p.alpha})`
+        : `rgba(59,130,246,${p.alpha * 0.6})`;
+      ctx.fill();
+    });
+
+    // 가까운 파티클끼리 선 연결
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d  = Math.sqrt(dx * dx + dy * dy);
+        if (d < 90) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(34,197,94,${(1 - d / 90) * 0.08})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+
+  window.addEventListener('resize', () => {
+    resize();
+    createParticles();
+  });
+
+  resize();
+  createParticles();
+  draw();
+}
+
+// ════════════════════════════════════════
+//  MOUSE AURORA — 마우스 따라 빛 번짐
+// ════════════════════════════════════════
+function initMouseAurora() {
+  const aurora = document.createElement('div');
+  aurora.id = 'mouse-aurora';
+  aurora.style.cssText = `
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(34,197,94,0.07) 0%, rgba(34,197,94,0.03) 40%, transparent 70%);
+    transition: opacity 0.4s;
+    will-change: transform;
+  `;
+  document.body.appendChild(aurora);
+
+  let ax = window.innerWidth / 2;
+  let ay = window.innerHeight / 2;
+  let tx = ax, ty = ay;
+
+  window.addEventListener('mousemove', e => {
+    tx = e.clientX;
+    ty = e.clientY;
+  });
+
+  function tick() {
+    // 부드럽게 따라오기 (lerp)
+    ax += (tx - ax) * 0.07;
+    ay += (ty - ay) * 0.07;
+    aurora.style.left = ax + 'px';
+    aurora.style.top  = ay + 'px';
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+// ════════════════════════════════════════
+//  CARD 3D TILT — 아이폰 느낌 기울기
+// ════════════════════════════════════════
+function initCardTilt() {
+  const cards = document.querySelectorAll('.card');
+
+  cards.forEach(card => {
+    // 빛 반사 레이어 추가
+    const glare = document.createElement('div');
+    glare.className = 'card-glare';
+    glare.style.cssText = `
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.3s;
+      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 60%);
+    `;
+    card.appendChild(glare);
+
+    card.addEventListener('mousemove', e => {
+      const rect  = card.getBoundingClientRect();
+      const cx    = rect.left + rect.width  / 2;
+      const cy    = rect.top  + rect.height / 2;
+      const dx    = (e.clientX - cx) / (rect.width  / 2);
+      const dy    = (e.clientY - cy) / (rect.height / 2);
+
+      // 최대 기울기 8도
+      const rotX  = -dy * 8;
+      const rotY  =  dx * 8;
+
+      card.style.transform    = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(6px)`;
+      card.style.transition   = 'transform 0.1s ease, border-color 0.3s, box-shadow 0.3s';
+      card.style.willChange   = 'transform';
+
+      // 빛 반사 위치
+      const glareX = ((e.clientX - rect.left) / rect.width)  * 100;
+      const glareY = ((e.clientY - rect.top)  / rect.height) * 100;
+      glare.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.10) 0%, transparent 55%)`;
+      glare.style.opacity = '1';
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transform  = '';
+      card.style.transition = 'transform 0.5s cubic-bezier(0.23,1,0.32,1), border-color 0.3s, box-shadow 0.3s';
+      glare.style.opacity   = '0';
+    });
+  });
+}
+
+// ════════════════════════════════════════
+//  CUSTOM CURSOR
+// ════════════════════════════════════════
+function initCustomCursor() {
+  // 모바일이면 건너뜀
+  if (window.matchMedia('(pointer: coarse)').matches) return;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    * { cursor: none !important; }
+
+    #cursor-dot {
+      position: fixed;
+      width: 6px;
+      height: 6px;
+      background: #22c55e;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.08s, background 0.2s, width 0.2s, height 0.2s;
+      box-shadow: 0 0 8px rgba(34,197,94,0.8);
+      will-change: left, top;
+    }
+
+    #cursor-ring {
+      position: fixed;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(34,197,94,0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 99998;
+      transform: translate(-50%, -50%);
+      transition: width 0.25s cubic-bezier(0.23,1,0.32,1),
+                  height 0.25s cubic-bezier(0.23,1,0.32,1),
+                  border-color 0.25s,
+                  opacity 0.25s;
+      will-change: left, top;
+    }
+
+    #cursor-ring.hover {
+      width: 52px;
+      height: 52px;
+      border-color: rgba(34,197,94,0.8);
+      background: rgba(34,197,94,0.04);
+    }
+
+    #cursor-ring.click {
+      width: 22px;
+      height: 22px;
+      border-color: rgba(34,197,94,1);
+    }
+  `;
+  document.head.appendChild(style);
+
+  const dot  = document.createElement('div'); dot.id  = 'cursor-dot';
+  const ring = document.createElement('div'); ring.id = 'cursor-ring';
+  document.body.appendChild(dot);
+  document.body.appendChild(ring);
+
+  let mx = -100, my = -100;
+  let rx = -100, ry = -100;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
+    dot.style.left = mx + 'px';
+    dot.style.top  = my + 'px';
+  });
+
+  // ring은 lerp로 부드럽게
+  function animRing() {
+    rx += (mx - rx) * 0.14;
+    ry += (my - ry) * 0.14;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  // 클릭 가능한 요소 위에서 ring 확장
+  const hoverEls = 'a, button, .btn, .comm-btn, .slider-btn, .dot, .faq-q, .faq-copy-btn, .hdr-link, .dl-btn';
+  document.querySelectorAll(hoverEls).forEach(el => {
+    el.addEventListener('mouseenter', () => ring.classList.add('hover'));
+    el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+  });
+
+  document.addEventListener('mousedown', () => {
+    ring.classList.add('click');
+    dot.style.transform = 'translate(-50%,-50%) scale(0.6)';
+  });
+  document.addEventListener('mouseup', () => {
+    ring.classList.remove('click');
+    dot.style.transform = 'translate(-50%,-50%) scale(1)';
+  });
+
+  document.addEventListener('mouseleave', () => { ring.style.opacity = '0'; dot.style.opacity = '0'; });
+  document.addEventListener('mouseenter', () => { ring.style.opacity = '1'; dot.style.opacity = '1'; });
+}
+
+// ════════════════════════════════════════
+//  SCROLL PROGRESS BAR
+// ════════════════════════════════════════
+function initScrollProgress() {
+  const bar = document.createElement('div');
+  bar.id = 'scroll-progress';
+  bar.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    width: 0%;
+    background: linear-gradient(90deg, #22c55e, #3b82f6);
+    z-index: 10000;
+    pointer-events: none;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 8px rgba(34,197,94,0.6);
+  `;
+  document.body.appendChild(bar);
+
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (docH > 0 ? (scrollTop / docH) * 100 : 0) + '%';
+  }, { passive: true });
+}
+
+// ════════════════════════════════════════
+//  SCROLL REVEAL — IntersectionObserver
+// ════════════════════════════════════════
+function initScrollReveal() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .card {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.55s cubic-bezier(0.23,1,0.32,1),
+                  transform 0.55s cubic-bezier(0.23,1,0.32,1),
+                  border-color 0.3s,
+                  box-shadow 0.3s;
+    }
+    .card.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  `;
+  document.head.appendChild(style);
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('revealed'), i * 60);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.card').forEach(c => observer.observe(c));
+}
+
+// ════════════════════════════════════════
+//  BUTTON EFFECTS (shimmer + flash + ripple)
+// ════════════════════════════════════════
 (function injectStyles() {
   if (document.getElementById('btn-anim-styles')) return;
   const style = document.createElement('style');
   style.id = 'btn-anim-styles';
   style.textContent = `
-    /* shimmer 엘리먼트 */
     .btn-shimmer {
       position: absolute;
       top: 0; left: -80%;
       width: 55%;
       height: 100%;
-      background: linear-gradient(
-        105deg,
-        transparent 15%,
-        rgba(255,255,255,0.20) 50%,
-        transparent 85%
-      );
+      background: linear-gradient(105deg, transparent 15%, rgba(255,255,255,0.20) 50%, transparent 85%);
       pointer-events: none;
       z-index: 10;
     }
-    /* 호버 시 shimmer 슬라이드 */
     .btn:hover .btn-shimmer,
     .comm-btn:hover .btn-shimmer,
     .slider-btn:hover .btn-shimmer {
@@ -216,7 +586,6 @@ function playSound(type) {
       to   { left: 130%; }
     }
 
-    /* flash 엘리먼트 */
     .btn-flash {
       position: absolute;
       inset: 0;
@@ -233,7 +602,20 @@ function playSound(type) {
       100% { background: rgba(255,255,255,0); }
     }
 
-    /* 클릭 시 살짝 눌림 */
+    /* 리플 */
+    .btn-ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      transform: scale(0);
+      animation: rippleAnim 0.5s linear forwards;
+      pointer-events: none;
+      z-index: 12;
+    }
+    @keyframes rippleAnim {
+      to { transform: scale(4); opacity: 0; }
+    }
+
     .btn:active,
     .comm-btn:active,
     .slider-btn:active {
@@ -244,7 +626,6 @@ function playSound(type) {
   document.head.appendChild(style);
 })();
 
-// shimmer + flash 엘리먼트를 버튼에 주입
 function attachButtonEffects() {
   const targets = document.querySelectorAll('.btn, .comm-btn, .slider-btn');
   targets.forEach(btn => {
@@ -259,23 +640,35 @@ function attachButtonEffects() {
     btn.appendChild(flash);
 
     btn.addEventListener('mouseenter', () => {
-      // CSS hover가 처리하지만, 재진입 시 animation 재시작 보장
       shimmer.style.animation = 'none';
       void shimmer.offsetWidth;
       shimmer.style.animation = '';
       playSound('hover');
     });
 
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', e => {
+      // flash
       flash.classList.remove('active');
       void flash.offsetWidth;
       flash.classList.add('active');
+
+      // ripple
+      const rect = btn.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const ripple = document.createElement('span');
+      ripple.className = 'btn-ripple';
+      ripple.style.width  = ripple.style.height = size + 'px';
+      ripple.style.left   = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top    = (e.clientY - rect.top  - size / 2) + 'px';
+      btn.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+
       playSound('click');
     });
   });
 }
 
-// ── 런처 버튼 로딩 피드백 헬퍼 ──
+// ── 런처 버튼 로딩 피드백 ──
 function setBtnLoading(btn, msg, duration = 2000) {
   const textEl = btn.querySelector('.btn-text');
   if (!textEl) return;
@@ -290,76 +683,35 @@ function setBtnLoading(btn, msg, duration = 2000) {
   }, duration);
 }
 
-// ── 런처 버튼 (웹 환경 폴백) ──
-// 실행 방식 확정 후 TODO 부분만 교체하세요.
-// 예: matz-client:// 프로토콜 / Electron IPC / WebSocket 등
-
+// ── 런처 버튼 ──
 window.startGame = function(btn) {
   setBtnLoading(btn, '⏳ 실행 준비 중...');
-  setTimeout(() => {
-    window.location.href = "matz-client://start";
-  }, 100);
+  setTimeout(() => { window.location.href = "matz-client://start"; }, 100);
 };
 
 window.openLoginInfo = function(btn) {
   setBtnLoading(btn, '⏳ 여는 중...');
-  setTimeout(() => {
-    window.location.href = "matz-client://login-info";
-  }, 100);
+  setTimeout(() => { window.location.href = "matz-client://login-info"; }, 100);
 };
 
 window.openReplayFolder = function(btn) {
   setBtnLoading(btn, '⏳ 폴더 여는 중...');
-  setTimeout(() => {
-    window.location.href = "matz-client://replay";
-  }, 100);
+  setTimeout(() => { window.location.href = "matz-client://replay"; }, 100);
 };
 
 window.reset = function(btn) {
   if (!confirm('클라이언트를 초기화하시겠습니까?')) return;
   setBtnLoading(btn, '⏳ 초기화 중...');
-  setTimeout(() => {
-    window.location.href = "matz-client://reset";
-  }, 100);
+  setTimeout(() => { window.location.href = "matz-client://reset"; }, 100);
 };
 
 window.uninstall = function(btn) {
   if (!confirm('클라이언트를 정말 삭제하시겠습니까?')) return;
   setBtnLoading(btn, '⏳ 삭제 중...');
-  setTimeout(() => {
-    window.location.href = "matz-client://uninstall";
-  }, 100);
+  setTimeout(() => { window.location.href = "matz-client://uninstall"; }, 100);
 };
 
-// ── INIT ──
-(async () => {
-  const [client, game] = await Promise.all([
-    fetchRelease('client'),
-    fetchRelease('game')
-  ]);
-
-  if (client) {
-    updateClientInfo(client);
-  } else {
-    const bar = document.getElementById('client-version-bar');
-    if (bar) bar.textContent = '불러오기 실패';
-
-    const dlBtn = document.getElementById('download-btn');
-    if (dlBtn && !dlBtn.getAttribute('href')) {
-      dlBtn.style.opacity = '0.5';
-      dlBtn.style.pointerEvents = 'none';
-    }
-  }
-
-  if (game) updateGameInfo(game);
-
-  fetchServerStatus();
-  setInterval(fetchServerStatus, 60000);
-
-  startSliderAuto();
-  attachButtonEffects();
-})();
-
+// ── FAQ / IP ──
 function faqToggle(btn) {
   const item = btn.closest('.faq-item');
   const wasOpen = item.classList.contains('faq-open');
@@ -373,3 +725,44 @@ function copyIP(btn) {
     setTimeout(() => btn.textContent = '복사', 1500);
   });
 }
+
+// ── INIT ──
+(async () => {
+  // 배경 / UX 효과 먼저 초기화 (빠른 시각적 피드백)
+  initScrollProgress();
+  initScrollReveal();
+  initParticles();
+  initMouseAurora();
+  initCustomCursor();
+
+  // 카드 tilt는 DOM이 안정된 후
+  requestAnimationFrame(() => {
+    initCardTilt();
+    attachButtonEffects();
+  });
+
+  // 데이터 fetch
+  const [client, game] = await Promise.all([
+    fetchRelease('client'),
+    fetchRelease('game')
+  ]);
+
+  if (client) {
+    updateClientInfo(client);
+  } else {
+    const bar = document.getElementById('client-version-bar');
+    if (bar) bar.textContent = '불러오기 실패';
+    const dlBtn = document.getElementById('download-btn');
+    if (dlBtn && !dlBtn.getAttribute('href')) {
+      dlBtn.style.opacity = '0.5';
+      dlBtn.style.pointerEvents = 'none';
+    }
+  }
+
+  if (game) updateGameInfo(game);
+
+  fetchServerStatus();
+  setInterval(fetchServerStatus, 60000);
+
+  startSliderAuto();
+})();
