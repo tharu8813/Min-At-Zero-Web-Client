@@ -4,1588 +4,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Min. At. Zero</title>
+  <title>Min. At. Zero Web Client</title>
+  <link rel="icon" type="image/png" href="asset/image/icon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap"
     rel="stylesheet">
-  <style>
-    /* ── RESET & ROOT ── */
-    *,
-    *::before,
-    *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --green: #22c55e;
-      --green-dim: #16a34a;
-      --green-glow: rgba(34, 197, 94, 0.15);
-      --green-border: rgba(34, 197, 94, 0.25);
-      --blue: #3b82f6;
-      --blue-glow: rgba(59, 130, 246, 0.15);
-      --blue-border: rgba(59, 130, 246, 0.25);
-      --red: #ef4444;
-      --red-glow: rgba(239, 68, 68, 0.12);
-      --bg-deep: #04080e;
-      --bg-card: rgba(11, 18, 32, 0.9);
-      --bg-card-hover: rgba(14, 23, 42, 0.95);
-      --border: rgba(255, 255, 255, 0.06);
-      --text-primary: #e8f0ff;
-      --text-muted: #5a7090;
-      --text-dim: #2d4060;
-      --mono: 'Share Tech Mono', monospace;
-    }
-
-    body {
-      background: var(--bg-deep);
-      color: var(--text-primary);
-      font-family: 'Noto Sans KR', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* CRT 스캔라인 오버레이 */
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background:
-        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.07) 2px, rgba(0, 0, 0, 0.07) 4px);
-      z-index: 9999;
-      pointer-events: none;
-    }
-
-    /* ── BACKGROUND ── */
-    .bg-grid {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      background-image:
-        linear-gradient(rgba(34, 197, 94, 0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(34, 197, 94, 0.025) 1px, transparent 1px);
-      background-size: 48px 48px;
-      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
-    }
-
-    .bg-radial {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(ellipse 60% 40% at 50% -5%, rgba(34, 197, 94, 0.12) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 30% at 80% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 60%);
-    }
-
-    .bg-lines {
-      position: fixed;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      z-index: 0;
-      pointer-events: none;
-      background: linear-gradient(180deg, transparent 0%, var(--green) 30%, var(--green) 70%, transparent 100%);
-      opacity: 0.15;
-      animation: lineFlicker 4s ease-in-out infinite;
-    }
-
-    @keyframes lineFlicker {
-
-      0%,
-      100% {
-        opacity: 0.15
-      }
-
-      50% {
-        opacity: 0.25
-      }
-    }
-
-    /* ── WRAP ── */
-    .wrap {
-      max-width: 1360px;
-      margin: 0 auto;
-      padding: 0 28px 80px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ══════════════════════════════════════
-       HEADER
-    ══════════════════════════════════════ */
-    .header {
-      padding: 36px 0 28px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      position: relative;
-    }
-
-    .header::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, var(--green) 0%, rgba(34, 197, 94, 0.3) 40%, transparent 100%);
-    }
-
-    .logo-box {
-      width: 54px;
-      height: 54px;
-      background: linear-gradient(135deg, var(--green), var(--green-dim));
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 0 0 1px var(--green-border), 0 0 20px var(--green-glow), 0 8px 24px rgba(0, 0, 0, 0.4);
-      flex-shrink: 0;
-      position: relative;
-    }
-
-    .logo-box::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
-    }
-
-    .logo-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .header-text {
-      flex: 1;
-    }
-
-    .site-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 34px;
-      font-weight: 700;
-      color: var(--text-primary);
-      line-height: 1;
-      letter-spacing: 1px;
-      display: inline-block;
-    }
-
-    .site-title:hover {
-      animation: glitch 0.3s both infinite;
-    }
-
-    @keyframes glitch {
-      0% {
-        transform: translate(0);
-        text-shadow: none;
-      }
-
-      20% {
-        transform: translate(-0.5px, 0.5px);
-        text-shadow: 1px 0 var(--green);
-      }
-
-      40% {
-        transform: translate(0.5px, -0.5px);
-        text-shadow: -1px 0 var(--blue);
-      }
-
-      60% {
-        transform: translate(-0.5px, 1px);
-        text-shadow: 1px 0 var(--green);
-      }
-
-      80% {
-        transform: translate(0.5px, -1px);
-        text-shadow: -1px 0 var(--blue);
-      }
-
-      100% {
-        transform: translate(0);
-        text-shadow: none;
-      }
-    }
-
-    .site-title span {
-      color: var(--green);
-    }
-
-    .site-meta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 6px;
-    }
-
-    .meta-tag {
-      font-family: var(--mono);
-      font-size: 10px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      background: rgba(255, 255, 255, 0.03);
-      letter-spacing: 1px;
-    }
-
-    .site-desc {
-      font-size: 12.5px;
-      color: var(--text-muted);
-      line-height: 1.65;
-      max-width: 560px;
-      margin-top: 8px;
-    }
-
-    .header-links {
-      display: flex;
-      gap: 10px;
-      flex-shrink: 0;
-    }
-
-    .hdr-link {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text-muted);
-      font-size: 16px;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-
-    .hdr-link:hover {
-      border-color: var(--green-border);
-      color: var(--green);
-      background: var(--green-glow);
-      transform: translateY(-2px);
-    }
-
-    /* ══════════════════════════════════════
-       STATUS BAR
-    ══════════════════════════════════════ */
-    .status-bar {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      padding: 14px 20px;
-      margin: 20px 0 28px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-family: var(--mono);
-      font-size: 12px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .status-bar::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
-    }
-
-    .status-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-muted);
-      white-space: nowrap;
-    }
-
-    .status-item .label {
-      color: var(--text-dim);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .status-item .value {
-      color: var(--text-primary);
-    }
-
-    .status-sep {
-      width: 1px;
-      height: 20px;
-      background: var(--border);
-      flex-shrink: 0;
-    }
-
-    .pulse-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-      animation: pulseDot 2s ease-in-out infinite;
-      flex-shrink: 0;
-    }
-
-    @keyframes pulseDot {
-
-      0%,
-      100% {
-        opacity: 1;
-        transform: scale(1)
-      }
-
-      50% {
-        opacity: 0.6;
-        transform: scale(0.8)
-      }
-    }
-
-    .badge {
-      padding: 3px 9px;
-      border-radius: 5px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .badge-green {
-      background: rgba(34, 197, 94, 0.1);
-      color: #4ade80;
-      border: 1px solid rgba(34, 197, 94, 0.2);
-    }
-
-    .badge-dim {
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text-dim);
-      border: 1px solid var(--border);
-    }
-
-    .badge-red {
-      background: rgba(239, 68, 68, 0.1);
-      color: #fca5a5;
-      border: 1px solid rgba(239, 68, 68, 0.2);
-    }
-
-    /* ══════════════════════════════════════
-       MAIN LAYOUT
-    ══════════════════════════════════════ */
-    .main-grid {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      grid-template-rows: auto;
-      gap: 20px;
-      align-items: start;
-    }
-
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .main-content {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .full-row {
-      grid-column: 1 / -1;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* ══════════════════════════════════════
-       CARDS
-    ══════════════════════════════════════ */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 22px;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
-      animation: revealUp 0.5s backwards;
-      backdrop-filter: blur(8px);
-    }
-
-    @keyframes revealUp {
-      from {
-        opacity: 0;
-        transform: translateY(16px)
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0)
-      }
-    }
-
-    .card:hover {
-      border-color: var(--green-border);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--green-border), inset 0 1px 0 rgba(34, 197, 94, 0.05);
-      transform: translateY(-4px);
-    }
-
-    .card.blue-accent:hover {
-      border-color: var(--blue-border);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--blue-border), inset 0 1px 0 rgba(59, 130, 246, 0.05);
-    }
-
-    .card-top-bar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--green) 0%, rgba(34, 197, 94, 0.3) 60%, transparent 100%);
-    }
-
-    .card-top-bar.blue {
-      background: linear-gradient(90deg, var(--blue) 0%, rgba(59, 130, 246, 0.3) 60%, transparent 100%);
-    }
-
-    .card-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 2.5px;
-      color: var(--green);
-      text-transform: uppercase;
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .card-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--green-border), transparent);
-    }
-
-    .card-label.blue {
-      color: var(--blue);
-    }
-
-    .card-label.blue::after {
-      background: linear-gradient(90deg, var(--blue-border), transparent);
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      bottom: 12px;
-      right: 12px;
-      width: 16px;
-      height: 16px;
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      border-radius: 0 0 4px 0;
-      transition: border-color 0.3s;
-    }
-
-    .card:hover::before {
-      border-color: var(--green-border);
-    }
-
-    /* ══════════════════════════════════════
-       런처 카드
-    ══════════════════════════════════════ */
-    .btn-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 12px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.2s;
-      position: relative;
-      overflow: hidden;
-      font-family: 'Noto Sans KR', sans-serif;
-    }
-
-    .btn-icon {
-      font-size: 15px;
-      flex-shrink: 0;
-    }
-
-    .btn-text {
-      flex: 1;
-      text-align: left;
-    }
-
-    .btn-tag {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 1px;
-      padding: 2px 7px;
-      border-radius: 3px;
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      color: #fff;
-      box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: var(--text-primary);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.08);
-      transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, 0.14);
-    }
-
-    .btn-danger {
-      background: var(--red-glow);
-      border: 1px solid rgba(239, 68, 68, 0.15);
-      color: #fca5a5;
-    }
-
-    .btn-danger:hover {
-      background: rgba(239, 68, 68, 0.18);
-      transform: translateY(-1px);
-    }
-
-    .hint-text {
-      font-size: 10.5px;
-      color: var(--text-dim);
-      text-align: center;
-      margin-top: 12px;
-      font-family: var(--mono);
-      letter-spacing: 0.5px;
-    }
-
-    /* ══════════════════════════════════════
-       커뮤니티 카드
-    ══════════════════════════════════════ */
-    .community-links {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .comm-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 10px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 600;
-      transition: all 0.25s;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .comm-btn.notion {
-      background: rgba(255, 255, 255, 0.04);
-      color: #cdd5e0;
-    }
-
-    .comm-btn.notion:hover {
-      background: rgba(255, 255, 255, 0.09);
-      transform: translateY(-2px);
-      border-color: rgba(255, 255, 255, 0.12);
-    }
-
-    .comm-btn.discord {
-      background: rgba(88, 101, 242, 0.08);
-      color: #818cf8;
-      border-color: rgba(88, 101, 242, 0.15);
-    }
-
-    .comm-btn.discord:hover {
-      background: rgba(88, 101, 242, 0.16);
-      transform: translateY(-2px);
-      border-color: rgba(88, 101, 242, 0.3);
-    }
-
-    .comm-icon {
-      font-size: 16px;
-    }
-
-    /* ══════════════════════════════════════
-       사양 카드
-    ══════════════════════════════════════ */
-    .req-list {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .req-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 13px;
-    }
-
-    .req-item:last-child {
-      border-bottom: none;
-    }
-
-    .req-key {
-      color: var(--text-muted);
-      font-size: 10px;
-      font-family: var(--mono);
-      letter-spacing: 1px;
-      flex-shrink: 0;
-      width: 58px;
-    }
-
-    .req-val {
-      color: var(--text-primary);
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    .req-col-header {
-      display: grid;
-      grid-template-columns: 58px 1fr 1fr;
-      gap: 6px;
-      padding: 0 0 8px;
-      border-bottom: 1px solid var(--green-border);
-      margin-bottom: 2px;
-    }
-
-    .req-col-label {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-
-    .req-col-label.col-min {
-      color: var(--text-muted);
-    }
-
-    .req-col-label.col-rec {
-      color: var(--green);
-    }
-
-    .req-item-table {
-      display: grid;
-      grid-template-columns: 58px 1fr 1fr;
-      align-items: center;
-      gap: 6px;
-      justify-content: unset;
-    }
-
-    .req-val-min {
-      color: var(--text-muted);
-      font-size: 11px;
-      font-family: var(--mono);
-      line-height: 1.4;
-    }
-
-    .req-val-rec {
-      color: var(--text-primary);
-      font-size: 11px;
-      font-family: var(--mono);
-      font-weight: 600;
-      line-height: 1.4;
-    }
-
-    /* ══════════════════════════════════════
-       트레일러 카드
-    ══════════════════════════════════════ */
-    .video-wrap {
-      position: relative;
-      padding-bottom: 56.25%;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #000;
-      box-shadow: 0 0 0 1px var(--border), 0 4px 24px rgba(0, 0, 0, 0.5);
-    }
-
-    .video-wrap iframe {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    /* ══════════════════════════════════════
-       슬라이더 카드
-    ══════════════════════════════════════ */
-    .slider-outer {
-      position: relative;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #000;
-      box-shadow: 0 0 0 1px var(--border);
-      aspect-ratio: 16/9;
-    }
-
-    .slider-wrapper {
-      display: flex;
-      height: 100%;
-      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-
-    .slider-wrapper img {
-      width: 100%;
-      flex-shrink: 0;
-      object-fit: cover;
-    }
-
-    .slider-controls {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 10px 14px;
-      background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .slider-dots {
-      display: flex;
-      gap: 6px;
-    }
-
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.3);
-      transition: all 0.2s;
-      cursor: pointer;
-    }
-
-    .dot.active {
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-      width: 18px;
-      border-radius: 3px;
-    }
-
-    .slider-btns {
-      display: flex;
-      gap: 6px;
-    }
-
-    .slider-btn {
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-family: var(--mono);
-      letter-spacing: 1px;
-      transition: all 0.2s;
-    }
-
-    .slider-btn:hover {
-      background: rgba(34, 197, 94, 0.2);
-      border-color: var(--green-border);
-    }
-
-    /* ══════════════════════════════════════
-       패치 노트
-    ══════════════════════════════════════ */
-    .patch-header {
-      margin-bottom: 14px;
-    }
-
-    .patch-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-    }
-
-    .patch-date {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-
-    .patch-body {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
-      max-height: 360px;
-      overflow-y: auto;
-      font-size: 13.5px;
-      line-height: 1.8;
-      color: var(--text-muted);
-    }
-
-    .patch-body::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    .patch-body::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 2px;
-    }
-
-    .patch-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--green);
-      font-size: 12px;
-      text-decoration: none;
-      margin-top: 14px;
-      font-family: var(--mono);
-      letter-spacing: 0.5px;
-      opacity: 0.8;
-      transition: opacity 0.2s;
-    }
-
-    .patch-link:hover {
-      opacity: 1;
-    }
-
-    /* ══════════════════════════════════════
-       다운로드 섹션
-    ══════════════════════════════════════ */
-    .download-section {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 32px;
-    }
-
-    .dl-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-    }
-
-    .dl-desc {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 16px;
-    }
-
-    .dl-meta-row {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-
-    .dl-meta-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .dl-meta-dot {
-      width: 3px;
-      height: 3px;
-      border-radius: 50%;
-      background: var(--text-dim);
-    }
-
-    .dl-btn-wrap {
-      flex-shrink: 0;
-    }
-
-    .dl-btn {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px 40px;
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-      color: white;
-      text-decoration: none;
-      border-radius: 14px;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s;
-      box-shadow: 0 8px 28px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-      min-width: 240px;
-    }
-
-    .dl-btn:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 40px rgba(59, 130, 246, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    }
-
-    .dl-btn::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -60%;
-      width: 20%;
-      height: 200%;
-      background: rgba(255, 255, 255, 0.18);
-      transform: rotate(30deg);
-      transition: 0.5s;
-    }
-
-    .dl-btn:hover::before {
-      left: 140%;
-    }
-
-    .dl-icon {
-      font-size: 26px;
-      margin-bottom: 6px;
-      animation: dlBounce 2s ease-in-out infinite;
-    }
-
-    @keyframes dlBounce {
-
-      0%,
-      100% {
-        transform: translateY(0)
-      }
-
-      50% {
-        transform: translateY(-5px)
-      }
-    }
-
-    .dl-text {
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .dl-sub {
-      font-size: 11px;
-      opacity: 0.65;
-      margin-top: 4px;
-      font-family: var(--mono);
-    }
-
-    .client-update-box {
-      margin-top: 24px;
-      padding-top: 22px;
-      border-top: 1px solid var(--border);
-    }
-
-    .client-update-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    /* ══════════════════════════════════════
-       INFO ROW
-    ══════════════════════════════════════ */
-    .info-rows {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 13px;
-    }
-
-    .info-row:last-child {
-      border-bottom: none;
-    }
-
-    .info-key {
-      color: var(--text-muted);
-      font-size: 11px;
-      font-family: var(--mono);
-      letter-spacing: 0.5px;
-    }
-
-    .info-val {
-      color: var(--text-primary);
-      font-weight: 600;
-    }
-
-    /* ══════════════════════════════════════
-       설치 가이드
-    ══════════════════════════════════════ */
-    .steps-wrap {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .step-item {
-      display: flex;
-      gap: 16px;
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border);
-      align-items: flex-start;
-    }
-
-    .step-item:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-
-    .step-num-box {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      background: rgba(34, 197, 94, 0.08);
-      border: 1px solid var(--green-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--green);
-    }
-
-    .step-body {
-      flex: 1;
-    }
-
-    .step-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-    }
-
-    .step-desc {
-      font-size: 12.5px;
-      color: var(--text-muted);
-      line-height: 1.75;
-    }
-
-    .step-tag {
-      display: inline-block;
-      margin-top: 7px;
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.5px;
-      padding: 2px 9px;
-      border-radius: 4px;
-      background: rgba(34, 197, 94, 0.08);
-      border: 1px solid var(--green-border);
-      color: var(--green);
-    }
-
-    /* ══════════════════════════════════════
-       FAQ
-    ══════════════════════════════════════ */
-    .faq-list {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .faq-item {
-      border-bottom: 1px solid var(--border);
-    }
-
-    .faq-item:last-child {
-      border-bottom: none;
-    }
-
-    .faq-q {
-      width: 100%;
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      font-family: 'Noto Sans KR', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 15px 0;
-      text-align: left;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: color 0.2s;
-    }
-
-    .faq-q:hover {
-      color: var(--green);
-    }
-
-    .faq-icon {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      background: rgba(34, 197, 94, 0.08);
-      border: 1px solid var(--green-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      color: var(--green);
-      transition: transform 0.3s, background 0.2s;
-      line-height: 1;
-    }
-
-    .faq-item.faq-open .faq-icon {
-      transform: rotate(45deg);
-      background: rgba(34, 197, 94, 0.18);
-    }
-
-    .faq-a {
-      font-size: 12.5px;
-      color: var(--text-muted);
-      line-height: 1.8;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.35s ease, padding 0.35s;
-    }
-
-    .faq-item.faq-open .faq-a {
-      max-height: 200px;
-      padding-bottom: 15px;
-    }
-
-    .faq-badge {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.5px;
-      padding: 2px 8px;
-      border-radius: 4px;
-      margin-left: auto;
-      flex-shrink: 0;
-    }
-
-    .faq-badge.badge-red {
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-      color: #fca5a5;
-    }
-
-    .faq-ip-box {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 6px;
-      font-family: var(--mono);
-      font-size: 12px;
-      padding: 6px 14px;
-      border-radius: 7px;
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-    }
-
-    .faq-copy-btn {
-      font-family: var(--mono);
-      font-size: 10px;
-      padding: 2px 9px;
-      border-radius: 4px;
-      background: rgba(34, 197, 94, 0.1);
-      border: 1px solid var(--green-border);
-      color: var(--green);
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .faq-copy-btn:hover {
-      background: rgba(34, 197, 94, 0.2);
-    }
-
-    /* ══════════════════════════════════════
-       FOOTER
-    ══════════════════════════════════════ */
-    .footer {
-      border-top: 1px solid rgba(34, 197, 94, 0.15);
-      margin-top: 0;
-      padding: 40px 0 0;
-      position: relative;
-      z-index: 1;
-    }
-
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 24px;
-      padding-bottom: 28px;
-    }
-
-    .footer-col-title {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 2.5px;
-      color: var(--green);
-      text-transform: uppercase;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .footer-col-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--green-border), transparent);
-    }
-
-    .footer-text {
-      font-size: 12px;
-      color: var(--text-dim);
-      line-height: 1.9;
-      font-family: var(--mono);
-    }
-
-    .footer-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: var(--text-muted);
-      text-decoration: none;
-      font-family: var(--mono);
-      margin-bottom: 9px;
-      transition: color 0.2s;
-    }
-
-    .footer-link:hover {
-      color: var(--green);
-    }
-
-    .footer-link-dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--text-dim);
-      flex-shrink: 0;
-      transition: background 0.2s;
-    }
-
-    .footer-link:hover .footer-link-dot {
-      background: var(--green);
-    }
-
-    .footer-bottom {
-      border-top: 1px solid var(--border);
-      padding: 16px 0 28px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .footer-copy {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-
-    .footer-copy span {
-      color: var(--text-muted);
-    }
-
-    .footer-disclaimer {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text-dim);
-      text-align: right;
-    }
-
-    /* ══════════════════════════════════════
-       반응형
-    ══════════════════════════════════════ */
-    @media (max-width: 1080px) {
-      .main-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        order: 2;
-      }
-
-      .main-content {
-        order: 1;
-      }
-
-      .download-section {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-
-      .dl-btn {
-        width: 100%;
-        min-width: unset;
-      }
-
-      .dl-meta-row {
-        justify-content: center;
-      }
-
-      .header-links {
-        display: none;
-      }
-
-      .footer-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-
-      .footer-disclaimer {
-        text-align: left;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .wrap {
-        padding: 0 14px 60px;
-      }
-
-      .status-bar {
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-    }
-
-    /* 애니메이션 딜레이 */
-    .card:nth-child(1) {
-      animation-delay: 0.05s
-    }
-
-    .card:nth-child(2) {
-      animation-delay: 0.10s
-    }
-
-    .card:nth-child(3) {
-      animation-delay: 0.15s
-    }
-
-    .card:nth-child(4) {
-      animation-delay: 0.20s
-    }
-
-    .card:nth-child(5) {
-      animation-delay: 0.25s
-    }
-
-    .card:nth-child(6) {
-      animation-delay: 0.30s
-    }
-
-    /* ══ CUSTOM POPUP ══ */
-    .matz-popup-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 89990;
-      pointer-events: none;
-    }
-
-    .matz-popup-overlay.active {
-      pointer-events: all;
-    }
-
-    .matz-popup {
-      position: fixed;
-      min-width: 280px;
-      width: 300px;
-      background: var(--bg-card);
-      border: 1px solid var(--green-border);
-      border-radius: 14px;
-      padding: 0;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(34, 197, 94, 0.08);
-      overflow: hidden;
-      transform-origin: top center;
-      opacity: 0;
-      transform: scaleY(0.88) translateY(-8px);
-      transition: opacity 0.22s cubic-bezier(0.23, 1, 0.32, 1),
-        transform 0.22s cubic-bezier(0.23, 1, 0.32, 1),
-        box-shadow 0.22s;
-      pointer-events: none;
-      z-index: 89999;
-      backdrop-filter: blur(12px);
-    }
-
-    .matz-popup.popup-up {
-      transform-origin: bottom center;
-      transform: scaleY(0.88) translateY(8px);
-    }
-
-    .matz-popup.show {
-      opacity: 1;
-      transform: scaleY(1) translateY(0);
-      pointer-events: all;
-    }
-
-    .matz-popup::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: repeating-linear-gradient(0deg,
-          transparent, transparent 3px,
-          rgba(0, 0, 0, 0.04) 3px, rgba(0, 0, 0, 0.04) 4px);
-    }
-
-    .matz-popup-bar {
-      height: 2px;
-      background: linear-gradient(90deg, #ef4444 0%, rgba(239, 68, 68, 0.3) 60%, transparent 100%);
-    }
-
-    .matz-popup-inner {
-      padding: 18px 20px 16px;
-    }
-
-    .matz-popup-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .matz-popup-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.22);
-    }
-
-    .matz-popup-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: 0.3px;
-      line-height: 1.2;
-    }
-
-    .matz-popup-sub {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 2px;
-      color: var(--red);
-      text-transform: uppercase;
-      margin-top: 2px;
-    }
-
-    .matz-popup-msg {
-      font-size: 12.5px;
-      color: var(--text-muted);
-      line-height: 1.8;
-      margin-bottom: 16px;
-      white-space: pre-line;
-    }
-
-    .matz-popup-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-
-    .matz-popup-btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: 'Noto Sans KR', sans-serif;
-      letter-spacing: 0.3px;
-      transition: all 0.18s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .matz-popup-btn.cancel {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: var(--text-muted);
-    }
-
-    .matz-popup-btn.cancel:hover {
-      background: rgba(255, 255, 255, 0.09);
-      color: var(--text-primary);
-    }
-
-    .matz-popup-btn.confirm-danger {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-      color: #fca5a5;
-    }
-
-    .matz-popup-btn.confirm-danger:hover {
-      background: rgba(239, 68, 68, 0.22);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.25);
-    }
-
-    .matz-popup-corner {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      width: 12px;
-      height: 12px;
-      border-right: 1px solid rgba(239, 68, 68, 0.2);
-      border-bottom: 1px solid rgba(239, 68, 68, 0.2);
-      border-radius: 0 0 3px 0;
-      pointer-events: none;
-    }
-  </style>
+  <link rel="stylesheet" href="asset/style.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 
 <body>
 
-  <div class="bg-grid"></div>
-  <div class="bg-radial"></div>
-  <div class="bg-lines"></div>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-radial" aria-hidden="true"></div>
+  <div class="bg-lines" aria-hidden="true"></div>
+
+  <!-- 라이트박스 -->
+  <div id="lightbox-overlay" class="lightbox-overlay" role="dialog" aria-modal="true" aria-label="이미지 확대보기" aria-hidden="true">
+    <div class="lightbox-content">
+      <img id="lightbox-img" src="" alt="">
+      <button class="lightbox-close" id="lightbox-close" aria-label="닫기">×</button>
+    </div>
+  </div>
+
+  <!-- 토스트 -->
+  <div id="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="wrap">
 
@@ -1593,47 +37,53 @@
     <header class="header">
       <div class="logo-box">
         <img src="asset/image/icon.png" alt="Min. At. Zero 로고"
-          onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:Rajdhani,sans-serif;font-size:28px;font-weight:700;color:white\'>M</div>'">
+          onerror="this.style.display='none';this.parentElement.insertAdjacentHTML('beforeend','<div class=\'logo-fallback\'>M</div>')">
       </div>
       <div class="header-text">
         <h1 class="site-title">Min. At. <span>Zero</span></h1>
-        <div class="site-meta">
+        <div class="site-meta" aria-label="서버 정보">
           <span class="meta-tag">1.20.1</span>
           <span class="meta-tag">FPS / PVP</span>
           <span class="meta-tag">TCZ</span>
         </div>
-        <p class="site-desc">Timeless and Classics Zero 기반 마인크래프트 FPS 서버. 맵과 무기를 선택하고 전투를 펼치세요.</p>
+        <p class="site-desc">기존 Timeless and Classics Guns(1.16.5) 모다 더욱 좋아진 Timeless and Classics Zero(1.20.1) 모드 기반으로<br>제작된 마인크래프트 FPS게임 서버입니다. 맵과 무기를 선택하고 여러가지 맵을 선택해 유저들과 싸워보세요!</p>
       </div>
-      <div class="header-links">
+      <nav class="header-links" aria-label="페이지 내비게이션">
+        <a href="#download-card" class="hdr-link-nav">DOWNLOAD</a>
+        <a href="#showcase-slider-section" class="hdr-link-nav">GALLERY</a>
+        <a href="#faq-section" class="hdr-link-nav">FAQ</a>
+        <div class="status-sep" style="height:24px;margin:0 4px" aria-hidden="true"></div>
+        <button id="cursor-toggle" class="hdr-link" aria-label="커스텀 커서 토글" aria-pressed="false" title="커서 토글">🖱️</button>
         <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
-          target="_blank" class="hdr-link" title="가이드">📖</a>
-        <a href="https://discord.gg/xAPPegjYnN" target="_blank" class="hdr-link" title="디스코드">💬</a>
-      </div>
+          target="_blank" rel="noopener noreferrer" class="hdr-link" aria-label="게임 가이드 (Notion, 새 탭에서 열림)">📖</a>
+        <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer"
+          class="hdr-link" aria-label="디스코드 서버 (새 탭에서 열림)">💬</a>
+      </nav>
     </header>
 
     <!-- ══ STATUS BAR ══ -->
-    <div class="status-bar">
+    <div class="status-bar" role="status" aria-label="서버 현재 상태">
       <div class="status-item">
-        <div class="pulse-dot" id="status-dot"></div>
+        <div class="pulse-dot" id="status-dot" aria-hidden="true"></div>
         <span class="label">STATUS</span>
-        <span class="value" id="server-status-text">확인중...</span>
+        <span class="value skeleton-text" id="server-status-text">확인중...</span>
       </div>
-      <div class="status-sep"></div>
+      <div class="status-sep" aria-hidden="true"></div>
       <div class="status-item">
         <span class="label">PLAYERS</span>
-        <span class="value" id="server-players">— / —</span>
+        <span class="value skeleton-text" id="server-players">— / —</span>
       </div>
-      <div class="status-sep"></div>
+      <div class="status-sep" aria-hidden="true"></div>
       <div class="status-item">
         <span class="label">VERSION</span>
         <span class="value">1.20.1</span>
       </div>
-      <div class="status-sep"></div>
+      <div class="status-sep" aria-hidden="true"></div>
       <div class="status-item">
         <span class="label">CLIENT</span>
-        <span class="value" id="client-version-bar">로딩중...</span>
+        <span class="value skeleton-text" id="client-version-bar">로딩중...</span>
       </div>
-      <div class="status-sep"></div>
+      <div class="status-sep" aria-hidden="true"></div>
       <div class="status-item">
         <span class="label">GENRE</span>
         <span class="value">PvP · FPS</span>
@@ -1644,36 +94,36 @@
     <div class="main-grid">
 
       <!-- ◀ LEFT SIDEBAR ▶ -->
-      <div class="sidebar">
+      <aside class="sidebar" aria-label="런처 및 커뮤니티">
 
         <!-- 런처 카드 -->
         <div class="card blue-accent">
           <div class="card-top-bar blue"></div>
           <div class="card-label blue">Launcher</div>
           <div class="btn-stack">
-            <button class="btn btn-primary" onclick="startGame(this)">
-              <span class="btn-icon">🎮</span>
+            <button class="btn btn-primary" id="btn-start-game">
+              <span class="btn-icon" aria-hidden="true">🎮</span>
               <span class="btn-text">게임 시작</span>
-              <span class="btn-tag">PLAY</span>
+              <span class="btn-tag" aria-hidden="true">PLAY</span>
             </button>
-            <button class="btn btn-secondary" onclick="openLoginInfo(this)">
-              <span class="btn-icon">👤</span>
+            <button class="btn btn-secondary" id="btn-login-info">
+              <span class="btn-icon" aria-hidden="true">👤</span>
               <span class="btn-text">계정 관리자</span>
             </button>
-            <button class="btn btn-secondary" onclick="openReplayFolder(this)">
-              <span class="btn-icon">🎥</span>
+            <button class="btn btn-secondary" id="btn-replay-folder">
+              <span class="btn-icon" aria-hidden="true">🎥</span>
               <span class="btn-text">리플레이 폴더</span>
             </button>
-            <button class="btn btn-danger" onclick="reset(this)">
-              <span class="btn-icon">🗑️</span>
+            <button class="btn btn-danger" id="btn-reset">
+              <span class="btn-icon" aria-hidden="true">🗑️</span>
               <span class="btn-text">클라이언트 초기화</span>
             </button>
-            <button class="btn btn-danger" onclick="uninstall(this)">
-              <span class="btn-icon">❌</span>
+            <button class="btn btn-danger" id="btn-uninstall">
+              <span class="btn-icon" aria-hidden="true">❌</span>
               <span class="btn-text">클라이언트 삭제</span>
             </button>
           </div>
-          <div class="hint-text">※ 전용 클라이언트 필요</div>
+          <p class="hint-text">※ 전용 클라이언트 필요</p>
         </div>
 
         <!-- 커뮤니티 카드 -->
@@ -1682,11 +132,12 @@
           <div class="card-label">Community</div>
           <div class="community-links">
             <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
-              target="_blank" class="comm-btn notion">
-              <span class="comm-icon">📖</span> Guide
+              target="_blank" rel="noopener noreferrer" class="comm-btn notion" aria-label="게임 가이드 (Notion)">
+              <span class="comm-icon" aria-hidden="true">📖</span> Guide
             </a>
-            <a href="https://discord.gg/xAPPegjYnN" target="_blank" class="comm-btn discord">
-              <span class="comm-icon">💬</span> Discord
+            <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer"
+              class="comm-btn discord" aria-label="디스코드 서버">
+              <span class="comm-icon" aria-hidden="true">💬</span> Discord
             </a>
           </div>
         </div>
@@ -1696,60 +147,61 @@
           <div class="card-top-bar"></div>
           <div class="card-label">Requirements</div>
           <div class="req-table-wrap">
-            <div class="req-col-header">
+            <div class="req-col-header" aria-hidden="true">
               <span class="req-col-label">항목</span>
               <span class="req-col-label col-min">최소</span>
               <span class="req-col-label col-rec">권장</span>
             </div>
-            <div class="req-list">
+            <dl class="req-list">
               <div class="req-item req-item-table">
-                <span class="req-key">OS</span>
-                <span class="req-val-min">Win 10/11 64bit</span>
-                <span class="req-val-rec">Win 10/11 64bit</span>
+                <dt class="req-key">OS</dt>
+                <dd class="req-val-min">Win 10/11 64bit</dd>
+                <dd class="req-val-rec">Win 10/11 64bit</dd>
               </div>
               <div class="req-item req-item-table">
-                <span class="req-key">CPU</span>
-                <span class="req-val-min">i3-8100 / R3 3100</span>
-                <span class="req-val-rec">i5-11400F / R5 5600</span>
+                <dt class="req-key">CPU</dt>
+                <dd class="req-val-min">i3-8100 / R3 3100</dd>
+                <dd class="req-val-rec">i5-11400F / R5 5600</dd>
               </div>
               <div class="req-item req-item-table">
-                <span class="req-key">RAM</span>
-                <span class="req-val-min">8 GB</span>
-                <span class="req-val-rec">16 GB</span>
+                <dt class="req-key">RAM</dt>
+                <dd class="req-val-min">8 GB</dd>
+                <dd class="req-val-rec">16 GB</dd>
               </div>
               <div class="req-item req-item-table">
-                <span class="req-key">GPU</span>
-                <span class="req-val-min">UHD 630 / GT 1030</span>
-                <span class="req-val-rec">GTX 1050Ti / RX 570</span>
+                <dt class="req-key">GPU</dt>
+                <dd class="req-val-min">UHD 630 / GT 1030</dd>
+                <dd class="req-val-rec">GTX 1050Ti / RX 570</dd>
               </div>
               <div class="req-item req-item-table">
-                <span class="req-key">STORAGE</span>
-                <span class="req-val-min" style="grid-column: span 2; color: var(--text-primary);">2 GB 이상</span>
+                <dt class="req-key">STORAGE</dt>
+                <dd class="req-val-min" style="grid-column:span 2;color:var(--text-primary)">2 GB 이상</dd>
               </div>
               <div class="req-item req-item-table">
-                <span class="req-key">JAVA</span>
-                <span class="req-val-min" style="grid-column: span 2; color: var(--text-primary);">Java 17 (x64)</span>
+                <dt class="req-key">JAVA</dt>
+                <dd class="req-val-min" style="grid-column:span 2;color:var(--text-primary)">Java 17 (x64)</dd>
               </div>
-            </div>
+            </dl>
           </div>
         </div>
 
-      </div><!-- /sidebar -->
+      </aside>
 
       <!-- ◀ MAIN CONTENT ▶ -->
-      <div class="main-content">
+      <main class="main-content">
 
         <!-- 트레일러 카드 -->
         <div class="card">
           <div class="card-top-bar"></div>
           <div class="card-label">Official Trailer</div>
           <div class="video-wrap">
-            <iframe src="https://www.youtube.com/embed/qqqMY-6juJo?rel=0&modestbranding=1" allowfullscreen></iframe>
+            <iframe src="https://www.youtube.com/embed/qqqMY-6juJo?rel=0&modestbranding=1"
+              title="Min. At. Zero 공식 트레일러" allowfullscreen loading="lazy"></iframe>
           </div>
         </div>
 
-        <!-- 게임 패치 노트 카드 (동적으로 표시) -->
-        <div class="card" id="game-patch-notes-card" style="display:none">
+        <!-- 게임 패치 노트 카드 (JS로 노출) -->
+        <div class="card" id="game-patch-notes-card" hidden>
           <div class="card-top-bar"></div>
           <div class="card-label">Game Patch Notes</div>
           <div class="patch-header">
@@ -1757,120 +209,81 @@
             <div class="patch-date" id="game-patch-date"></div>
           </div>
           <div class="patch-body" id="game-patch-body"></div>
-          <a class="patch-link" id="game-patch-link" href="#" target="_blank">GitHub에서 보기 →</a>
+          <a class="patch-link" id="game-patch-link" href="#" target="_blank" rel="noopener noreferrer">
+            GitHub에서 보기 →
+          </a>
         </div>
 
-      </div><!-- /main-content -->
+      </main>
 
       <!-- ◀ FULL WIDTH ROW ▶ -->
       <div class="full-row">
 
-        <!-- 쇼케이스 슬라이더 카드 -->
-        <div class="card">
+        <!-- 쇼케이스 슬라이더 -->
+        <div class="card" id="showcase-slider-section">
           <div class="card-top-bar"></div>
           <div class="card-label">Weapons &amp; Maps</div>
-          <div class="slider-outer">
+          <div class="slider-outer" role="region" aria-label="게임 스크린샷 슬라이더">
             <div class="slider-wrapper" id="showcase-slider">
-              <img src="image/1.png" alt="Showcase 1"
-                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+1'">
-              <img src="image/2.png" alt="Showcase 2"
-                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+2'">
-              <img src="image/3.png" alt="Showcase 3"
-                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+3'">
-              <img src="image/4.png" alt="Showcase 4"
-                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+4'">
-              <img src="image/5.png" alt="Showcase 5"
-                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+5'">
-              <img src="image/6.png" alt="Showcase 6"
-                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+6'">
-              <img src="image/7.png" alt="Showcase 7"
-                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+7'">
-              <img src="image/8.png" alt="Showcase 8"
-                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+8'">
-              <img src="image/9.png" alt="Showcase 9"
-                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+9'">
-              <img src="image/10.png" alt="Showcase 10"
-                onerror="this.src='https://placehold.co/1200x675/04080e/22c55e?text=Showcase+10'">
+              <!-- JS로 동적 생성 -->
             </div>
             <div class="slider-controls">
-              <div class="slider-dots" id="slider-dots">
-                <div class="dot active" onclick="goSlide(0)"></div>
-                <div class="dot" onclick="goSlide(1)"></div>
-                <div class="dot" onclick="goSlide(2)"></div>
-                <div class="dot" onclick="goSlide(3)"></div>
-                <div class="dot" onclick="goSlide(4)"></div>
-                <div class="dot" onclick="goSlide(5)"></div>
-                <div class="dot" onclick="goSlide(6)"></div>
-                <div class="dot" onclick="goSlide(7)"></div>
-                <div class="dot" onclick="goSlide(8)"></div>
-                <div class="dot" onclick="goSlide(9)"></div>
+              <div class="slider-dots" role="tablist" aria-label="슬라이드 선택" id="slider-dots">
+                <!-- JS로 동적 생성 -->
               </div>
               <div class="slider-btns">
-                <button class="slider-btn" onclick="moveSlider(-1)">◀ PREV</button>
-                <button class="slider-btn" onclick="moveSlider(1)">NEXT ▶</button>
+                <button class="slider-btn" id="slider-prev" aria-label="이전 슬라이드">◀ PREV</button>
+                <button class="slider-btn" id="slider-next" aria-label="다음 슬라이드">NEXT ▶</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 설치 가이드 카드 -->
+        <!-- 설치 가이드 -->
         <div class="card">
           <div class="card-top-bar"></div>
           <div class="card-label">Installation Guide</div>
-          <div class="steps-wrap">
-
-            <div class="step-item">
-              <div class="step-num-box">01</div>
+          <ol class="steps-wrap" aria-label="설치 단계">
+            <li class="step-item">
+              <div class="step-num-box" aria-hidden="true">01</div>
               <div class="step-body">
                 <div class="step-title">클라이언트 다운로드</div>
-                <div class="step-desc">이 페이지 하단의 <strong>Download</strong> 섹션에서 Windows 클라이언트 설치 파일(.exe)을 다운로드합니다.
-                </div>
+                <div class="step-desc">이 페이지 하단의 <strong>Download</strong> 섹션에서 Windows 클라이언트 설치 파일(.exe)을 다운로드합니다.</div>
                 <span class="step-tag">Windows 전용</span>
               </div>
-            </div>
-
-            <div class="step-item">
-              <div class="step-num-box">02</div>
+            </li>
+            <li class="step-item">
+              <div class="step-num-box" aria-hidden="true">02</div>
               <div class="step-body">
                 <div class="step-title">설치 파일 실행</div>
-                <div class="step-desc">다운로드된 <strong>.exe 파일</strong>을 실행합니다. 설치 마법사가 시작되면 화면의 안내에 따라
-                  <strong>다음(Next)</strong>을 눌러 진행하세요.
-                </div>
+                <div class="step-desc">다운로드된 <strong>.exe 파일</strong>을 실행합니다. 설치 마법사가 시작되면 화면의 안내에 따라 <strong>다음(Next)</strong>을 눌러 진행하세요.</div>
                 <span class="step-tag">화면 안내대로 진행</span>
               </div>
-            </div>
-
-            <div class="step-item">
-              <div class="step-num-box">03</div>
+            </li>
+            <li class="step-item">
+              <div class="step-num-box" aria-hidden="true">03</div>
               <div class="step-body">
                 <div class="step-title">설치 완료 확인</div>
                 <div class="step-desc">설치가 완료되면 바탕화면 또는 시작 메뉴에 <strong>Min. At. Zero</strong> 아이콘이 생성됩니다.</div>
               </div>
-            </div>
-
-            <div class="step-item">
-              <div class="step-num-box">04</div>
+            </li>
+            <li class="step-item">
+              <div class="step-num-box" aria-hidden="true">04</div>
               <div class="step-body">
                 <div class="step-title">정품 계정으로 로그인</div>
-                <div class="step-desc">클라이언트 실행 후 <strong>정품 Microsoft / Minecraft 계정</strong>으로 로그인합니다. 정품 계정 없이는 게임
-                  시작이 불가합니다.</div>
-                <span class="step-tag"
-                  style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#fca5a5;">정품 계정
-                  필수</span>
+                <div class="step-desc">클라이언트 실행 후 <strong>정품 Microsoft / Minecraft 계정</strong>으로 로그인합니다. 정품 계정 없이는 게임 시작이 불가합니다.</div>
+                <span class="step-tag" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#fca5a5;">정품 계정 필수</span>
               </div>
-            </div>
-
-            <div class="step-item">
-              <div class="step-num-box">05</div>
+            </li>
+            <li class="step-item">
+              <div class="step-num-box" aria-hidden="true">05</div>
               <div class="step-body">
                 <div class="step-title">이 페이지에서 게임 시작</div>
-                <div class="step-desc">설치 이후 게임 시작, 계정 관리, 리플레이 폴더 열기 등 모든 기능은 <strong>이 사이트의 런처 버튼</strong>을 통해 이용할 수
-                  있습니다.</div>
+                <div class="step-desc">설치 이후 게임 시작, 계정 관리, 리플레이 폴더 열기 등 모든 기능은 <strong>이 사이트의 런처 버튼</strong>을 통해 이용할 수 있습니다.</div>
                 <span class="step-tag">사이트 런처 이용</span>
               </div>
-            </div>
-
-          </div>
+            </li>
+          </ol>
         </div>
 
         <!-- 다운로드 카드 -->
@@ -1880,115 +293,112 @@
           <div class="download-section">
             <div class="dl-info-block">
               <div class="dl-title">Min. At. Zero Client</div>
-              <div class="dl-desc">서버 전용 클라이언트를 다운로드하세요.<br>모드팩이 포함된 설치형 클라이언트입니다.</div>
+              <p class="dl-desc">서버 전용 클라이언트를 다운로드하세요.<br>모드팩이 포함된 설치형 클라이언트입니다.</p>
               <div class="dl-meta-row">
                 <div class="dl-meta-item">
                   <span>최신 버전</span>
                   <span id="dl-version-text">v1.0.0</span>
                 </div>
-                <div class="dl-meta-dot"></div>
+                <div class="dl-meta-dot" aria-hidden="true"></div>
                 <div class="dl-meta-item">
                   <span id="file-size">약 0MB</span>
                 </div>
-                <div class="dl-meta-dot"></div>
+                <div class="dl-meta-dot" aria-hidden="true"></div>
                 <div class="dl-meta-item">Windows 전용</div>
               </div>
             </div>
             <div class="dl-btn-wrap">
-              <a href="" class="dl-btn" id="download-btn" download>
-                <span class="dl-icon">⬇️</span>
+              <a href="" class="dl-btn" id="download-btn" download aria-label="Windows 클라이언트 다운로드">
+                <span class="dl-icon" aria-hidden="true">⬇️</span>
                 <span class="dl-text">Windows 클라이언트</span>
                 <span class="dl-sub" id="dl-sub-ver">Client v1.0.0</span>
               </a>
             </div>
           </div>
-          <!-- 클라이언트 패치노트 -->
           <div id="client-patch-notes"></div>
         </div>
 
-        <!-- FAQ 카드 -->
-        <div class="card">
+        <!-- FAQ -->
+        <div class="card" id="faq-section">
           <div class="card-top-bar"></div>
           <div class="card-label">FAQ</div>
-          <div class="faq-list">
+          <dl class="faq-list">
 
             <div class="faq-item">
-              <button class="faq-q" onclick="faqToggle(this)">
-                <span class="faq-icon">+</span>
+              <button class="faq-q" data-faq aria-expanded="false">
+                <span class="faq-icon" aria-hidden="true">+</span>
                 정품 마인크래프트 계정이 필요한가요?
                 <span class="faq-badge badge-red">필수</span>
               </button>
-              <div class="faq-a">네, 반드시 필요합니다. 게임 시작 시 정품 계정으로 로그인이 되어 있지 않으면 게임이 시작되지 않습니다.</div>
+              <dd class="faq-a" hidden>네, 반드시 필요합니다. 게임 시작 시 정품 계정으로 로그인이 되어 있지 않으면 게임이 시작되지 않습니다.</dd>
             </div>
 
             <div class="faq-item">
-              <button class="faq-q" onclick="faqToggle(this)">
-                <span class="faq-icon">+</span>
+              <button class="faq-q" data-faq aria-expanded="false">
+                <span class="faq-icon" aria-hidden="true">+</span>
                 서버 IP 주소가 뭔가요?
               </button>
-              <div class="faq-a">
+              <dd class="faq-a" hidden>
                 클라이언트를 설치하면 마인크래프트 시작 화면이 바뀌며, 시작하기 버튼을 누르면 자동으로 서버에 접속됩니다. IP를 직접 입력하고 싶다면 아래 주소를 사용하세요.<br><br>
-                <span class="faq-ip-box">tharu81.kro.kr <button class="faq-copy-btn"
-                    onclick="copyIP(this)">복사</button></span>
-              </div>
+                <span class="faq-ip-box">
+                  tharu81.kro.kr
+                  <button class="faq-copy-btn" id="copy-ip-btn" aria-label="서버 IP 복사">복사</button>
+                </span>
+              </dd>
             </div>
 
             <div class="faq-item">
-              <button class="faq-q" onclick="faqToggle(this)">
-                <span class="faq-icon">+</span>
+              <button class="faq-q" data-faq aria-expanded="false">
+                <span class="faq-icon" aria-hidden="true">+</span>
                 Mac / Linux에서도 플레이 가능한가요?
                 <span class="faq-badge badge-red">미지원</span>
               </button>
-              <div class="faq-a">마인크래프트 자체는 Mac/Linux에서도 실행되지만, 전용 클라이언트가 현재 Windows만 지원합니다. Mac/Linux에서는 플레이가 불가합니다.
-              </div>
+              <dd class="faq-a" hidden>마인크래프트 자체는 Mac/Linux에서도 실행되지만, 전용 클라이언트가 현재 Windows만 지원합니다. Mac/Linux에서는 플레이가 불가합니다.</dd>
             </div>
 
             <div class="faq-item">
-              <button class="faq-q" onclick="faqToggle(this)">
-                <span class="faq-icon">+</span>
+              <button class="faq-q" data-faq aria-expanded="false">
+                <span class="faq-icon" aria-hidden="true">+</span>
                 MultiMC 등 다른 런처로 접속할 수 있나요?
                 <span class="faq-badge badge-red">불가</span>
               </button>
-              <div class="faq-a">불가합니다. 서버 플레이에 필요한 모드팩은 전용 클라이언트를 통해서만 설치·다운로드할 수 있습니다. 또한 부정행위 방지를 위해 전용 클라이언트 외 접속은
-                허용되지 않습니다.</div>
+              <dd class="faq-a" hidden>불가합니다. 서버 플레이에 필요한 모드팩은 전용 클라이언트를 통해서만 설치·다운로드할 수 있습니다. 또한 부정행위 방지를 위해 전용 클라이언트 외 접속은 허용되지 않습니다.</dd>
             </div>
 
             <div class="faq-item">
-              <button class="faq-q" onclick="faqToggle(this)">
-                <span class="faq-icon">+</span>
+              <button class="faq-q" data-faq aria-expanded="false">
+                <span class="faq-icon" aria-hidden="true">+</span>
                 게임이 버벅이거나 렉이 심할 때는 어떻게 하나요?
               </button>
-              <div class="faq-a">설치되는 모드팩에 다양한 최적화 모드가 이미 포함되어 있습니다. 그래도 성능이 낮다면 게임 내 그래픽 설정(렌더 거리, 그래픽 품질 등)을 낮춰 보시기를
-                권장합니다.</div>
+              <dd class="faq-a" hidden>설치되는 모드팩에 다양한 최적화 모드가 이미 포함되어 있습니다. 그래도 성능이 낮다면 게임 내 그래픽 설정(렌더 거리, 그래픽 품질 등)을 낮춰 보시기를 권장합니다.</dd>
             </div>
 
             <div class="faq-item">
-              <button class="faq-q" onclick="faqToggle(this)">
-                <span class="faq-icon">+</span>
+              <button class="faq-q" data-faq aria-expanded="false">
+                <span class="faq-icon" aria-hidden="true">+</span>
                 모드를 추가로 설치해도 되나요?
                 <span class="faq-badge badge-red">금지</span>
               </button>
-              <div class="faq-a">부정행위 방지를 위해 추가 모드 설치는 엄격히 금지되어 있습니다. 클라이언트는 설치된 모드에 대해 무결성 검사를 진행하므로 임의로 추가된 모드는 감지됩니다.
-              </div>
+              <dd class="faq-a" hidden>부정행위 방지를 위해 추가 모드 설치는 엄격히 금지되어 있습니다. 클라이언트는 설치된 모드에 대해 무결성 검사를 진행하므로 임의로 추가된 모드는 감지됩니다.</dd>
             </div>
 
             <div class="faq-item">
-              <button class="faq-q" onclick="faqToggle(this)">
-                <span class="faq-icon">+</span>
+              <button class="faq-q" data-faq aria-expanded="false">
+                <span class="faq-icon" aria-hidden="true">+</span>
                 버그나 문제 발생 시 어디에 신고하나요?
               </button>
-              <div class="faq-a">클라이언트 및 서버 관련 버그나 문제는 디스코드 <strong>@tharu_81</strong> 로 문의해 주세요.</div>
+              <dd class="faq-a" hidden>클라이언트 및 서버 관련 버그나 문제는 디스코드 <strong>@tharu_81</strong>로 문의해 주세요.</dd>
             </div>
 
             <div class="faq-item">
-              <button class="faq-q" onclick="faqToggle(this)">
-                <span class="faq-icon">+</span>
+              <button class="faq-q" data-faq aria-expanded="false">
+                <span class="faq-icon" aria-hidden="true">+</span>
                 서버 점검 시간이 따로 있나요?
               </button>
-              <div class="faq-a">정기 점검은 따로 없습니다. 다만 치명적인 오류 발생 시 예고 없이 점검이 진행될 수 있습니다. 점검 공지는 디스코드에서 확인하세요.</div>
+              <dd class="faq-a" hidden>정기 점검은 따로 없습니다. 다만 치명적인 오류 발생 시 예고 없이 점검이 진행될 수 있습니다. 점검 공지는 디스코드에서 확인하세요.</dd>
             </div>
 
-          </div>
+          </dl>
         </div>
 
       </div><!-- /full-row -->
@@ -1998,10 +408,8 @@
 
   <!-- ══ FOOTER ══ -->
   <footer class="footer">
-    <div class="wrap" style="padding-bottom: 0;">
-
+    <div class="wrap" style="padding-bottom:0">
       <div class="footer-grid">
-
         <div>
           <div class="footer-col-title">Min. At. Zero</div>
           <p class="footer-text">
@@ -2010,58 +418,53 @@
             전용 클라이언트 필요
           </p>
         </div>
-
-        <div>
+        <nav aria-label="Footer 링크">
           <div class="footer-col-title">Links</div>
-          <a href="https://github.com/tharu8813" target="_blank" class="footer-link">
-            <span class="footer-link-dot"></span>GitHub Repository
+          <a href="https://github.com/tharu8813" target="_blank" rel="noopener noreferrer" class="footer-link">
+            <span class="footer-link-dot" aria-hidden="true"></span>GitHub Repository
           </a>
-          <a href="https://discord.gg/xAPPegjYnN" target="_blank" class="footer-link">
-            <span class="footer-link-dot"></span>Discord 서버
+          <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer" class="footer-link">
+            <span class="footer-link-dot" aria-hidden="true"></span>Discord 서버
           </a>
           <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
-            target="_blank" class="footer-link">
-            <span class="footer-link-dot"></span>가이드 (Notion)
+            target="_blank" rel="noopener noreferrer" class="footer-link">
+            <span class="footer-link-dot" aria-hidden="true"></span>가이드 (Notion)
           </a>
-        </div>
-
+        </nav>
         <div>
           <div class="footer-col-title">Site Info</div>
           <p class="footer-text">
             Hosted on GitHub Pages<br>
-            Site v3.1
+            Site v4.1
           </p>
         </div>
-
       </div>
-
       <div class="footer-bottom">
         <span class="footer-copy">© 2024–2026 <span>JI BAEK MIN (tharu8133)</span>. All rights reserved.</span>
         <span class="footer-disclaimer">Minecraft는 Mojang Studios의 상표입니다. Mojang / Microsoft와는 아무런 관련이 없습니다.</span>
       </div>
-
     </div>
   </footer>
 
   <!-- ══ CUSTOM POPUP ══ -->
-  <div class="matz-popup-overlay" id="popup-overlay"></div>
-  <div class="matz-popup danger-mode" id="matz-popup" role="dialog" aria-modal="true">
-    <div class="matz-popup-bar" id="popup-bar"></div>
+  <div class="matz-popup-overlay" id="popup-overlay" aria-hidden="true"></div>
+  <div class="matz-popup" id="matz-popup" role="dialog" aria-modal="true" aria-labelledby="popup-title" aria-hidden="true">
+    <div class="matz-popup-bar"></div>
     <div class="matz-popup-inner">
       <div class="matz-popup-header">
-        <div class="matz-popup-icon" id="popup-icon"></div>
+        <div class="matz-popup-icon" id="popup-icon" aria-hidden="true"></div>
         <div>
           <div class="matz-popup-title" id="popup-title"></div>
           <div class="matz-popup-sub" id="popup-sub"></div>
         </div>
       </div>
-      <div class="matz-popup-msg" id="popup-msg"></div>
+      <p class="matz-popup-msg" id="popup-msg"></p>
       <div class="matz-popup-actions">
         <button class="matz-popup-btn cancel" id="popup-cancel">취소</button>
         <button class="matz-popup-btn confirm-danger" id="popup-confirm">확인</button>
       </div>
     </div>
-    <div class="matz-popup-corner"></div>
+    <div class="matz-popup-corner" aria-hidden="true"></div>
   </div>
 
   <script src="asset/script.js"></script>

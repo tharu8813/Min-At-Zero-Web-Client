@@ -1,0 +1,21 @@
+{
+  "name": "Min. At. Zero Web Client",
+  "short_name": "MATZ Client",
+  "description": "Minecraft 1.20.1 FPS/PvP Server Web Client",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#04080e",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "asset/image/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "asset/image/96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    }
+  ]
+}
