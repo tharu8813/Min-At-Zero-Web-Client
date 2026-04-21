@@ -1,1850 +1,1054 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ranking — Min. At. Zero</title>
-  <meta name="description" content="Min. At. Zero 플레이어 랭킹 및 전적 검색">
+  <meta name="description" content="Min. At. Zero 플레이어 랭킹 및 전투 통계">
   <meta name="theme-color" content="#22c55e">
   <link rel="icon" type="image/png" href="asset/image/icon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="asset/style.css">
   <style>
-    /* ══ RANKING PAGE STYLES ══ */
+    /* ── PAGE HERO ── */
+    .page-hero { padding: 44px 0 32px; }
+    .page-title { font-family: 'Rajdhani', sans-serif; font-size: clamp(32px, 8vw, 52px); font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+    .page-title span { color: var(--green); }
+    .page-desc { font-size: 15px; color: var(--text-muted); max-width: 600px; line-height: 1.75; margin-top: 14px; }
 
-    @keyframes rowFadeIn {
-      from { opacity: 0; transform: translateX(-10px); }
-      to   { opacity: 1; transform: translateX(0); }
+    /* ── SEARCH ── */
+    .search-wrap { display: flex; gap: 10px; margin-bottom: 24px; }
+    .search-input-wrap { position: relative; flex: 1; max-width: 480px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; color: var(--text-dim); }
+    .search-input {
+      width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 14px 11px 42px; color: var(--text-primary);
+      font-family: 'Noto Sans KR', sans-serif; font-size: 14px; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input:focus { border-color: var(--green-border); box-shadow: 0 0 0 3px rgba(34,197,94,0.08); }
+    .search-input::placeholder { color: var(--text-dim); }
+    .search-clear {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-dim); font-size: 16px; cursor: pointer;
+      display: none; line-height: 1; padding: 2px 4px; border-radius: 4px;
+      transition: color 0.2s;
+    }
+    .search-clear:hover { color: var(--text-primary); }
+    .search-clear.visible { display: block; }
+    .search-btn {
+      padding: 11px 22px; background: linear-gradient(135deg, #22c55e, #16a34a);
+      border: none; border-radius: 10px; color: #fff; font-family: var(--mono);
+      font-size: 13px; font-weight: 700; letter-spacing: 1px; cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(34,197,94,0.2); white-space: nowrap; position: relative; overflow: hidden;
+    }
+    .search-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(34,197,94,0.35); }
+    .search-btn:active { transform: scale(0.96) !important; }
+
+    /* ── PLAYER CARD ── */
+    .player-card { display: none; margin-bottom: 24px; }
+    .player-card.visible { display: block; animation: fadeSlideIn 0.4s cubic-bezier(0.23,1,0.32,1); }
+    @keyframes fadeSlideIn { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:translateY(0); } }
+    .player-card-inner { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .player-avatar-wrap { position: relative; flex-shrink: 0; }
+    .player-avatar {
+      width: 76px; height: 76px; border-radius: 18px; image-rendering: pixelated;
+      border: 2px solid var(--green-border); box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .player-card:hover .player-avatar { transform: scale(1.06) translateY(-3px); border-color: var(--green); }
+    .player-rank-badge {
+      position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%);
+      background: var(--green); color: #000; font-family: var(--mono);
+      font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(34,197,94,0.4);
+    }
+    .player-info { flex: 0 0 auto; min-width: 140px; }
+    .player-name { font-family: 'Rajdhani', sans-serif; font-size: 30px; font-weight: 700; color: var(--text-primary); line-height: 1; margin-bottom: 6px; }
+    .player-meta { display: flex; flex-direction: column; gap: 4px; }
+    .player-cr { font-family: var(--mono); font-size: 12px; color: #fbbf24; letter-spacing: 1px; }
+    .player-winrate { font-family: var(--mono); font-size: 12px; color: var(--green); letter-spacing: 1px; }
+    .player-stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+      gap: 10px; flex: 1; min-width: 280px;
+    }
+    .stat-box {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 12px; text-align: center;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .stat-box:hover { border-color: var(--green-border); background: var(--green-glow); }
+    .stat-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; }
+    .stat-value { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+    .stat-value.kda-val { color: var(--green); }
+    .stat-value.cr-val { color: #fbbf24; }
+    .stat-value.wr-val { color: #60a5fa; }
+
+    .player-not-found {
+      display: none; text-align: center; padding: 18px 20px; margin-bottom: 20px;
+      color: var(--text-dim); font-family: 'Noto Sans KR', var(--mono); font-size: 13px;
+      background: rgba(239,68,68,0.04); border: 1px solid rgba(239,68,68,0.12);
+      border-radius: 10px;
+    }
+    .player-not-found.visible { display: block; }
+
+    /* ── LEADERBOARD ── */
+    .lb-section { margin-top: 0; }
+    .lb-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
+    }
+    .lb-title-wrap { display: flex; align-items: center; gap: 10px; }
+    .lb-title { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: var(--text-primary); }
+    .lb-updated { font-family: 'Noto Sans KR', var(--mono); font-size: 12px; color: var(--text-dim); letter-spacing: 0; }
+    .lb-count-badge {
+      font-family: var(--mono); font-size: 12px; color: var(--green);
+      background: var(--green-glow); padding: 2px 8px; border-radius: 6px;
     }
 
-    @keyframes statCardIn {
-      from { opacity: 0; transform: translateY(10px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
+    .lb-controls { display: flex; align-items: center; gap: 8px; }
+    .lb-refresh-btn {
+      display: flex; align-items: center; gap: 6px; padding: 7px 14px;
+      border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+      color: var(--text-dim); font-family: var(--mono); font-size: 12px; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .lb-refresh-btn:hover:not(:disabled) { border-color: var(--green-border); color: var(--green); background: var(--green-glow); }
+    .lb-refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .lb-refresh-btn.spinning .refresh-icon { animation: spinAnim 0.8s linear infinite; }
+    @keyframes spinAnim { to { transform: rotate(360deg); } }
+    .refresh-icon { display: inline-block; }
+
+    .lb-tab-bar {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+    }
+    .lb-tab {
+      display: flex; align-items: center; gap: 5px; padding: 7px 13px;
+      border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+      color: var(--text-muted); font-family: var(--mono); font-size: 12px;
+      letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .lb-tab:hover { border-color: var(--green-border); color: var(--green); background: var(--green-glow); }
+    .lb-tab.active { border-color: rgba(251,191,36,0.4); color: #fbbf24; background: rgba(251,191,36,0.07); }
+    .tab-icon { font-size: 13px; }
+
+    /* ── TABLE ── */
+    .lb-table-wrap {
+      background: rgba(255,255,255,0.01); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+    }
+    .lb-table { width: 100%; border-collapse: collapse; }
+    .lb-table th {
+      font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px;
+      color: var(--text-dim); text-transform: uppercase; padding: 12px 16px;
+      text-align: left; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);
+    }
+    .lb-table th.col-val { text-align: right; }
+    .lb-table td {
+      padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.025);
+      font-size: 13px; color: var(--text-muted); vertical-align: middle;
+    }
+    .lb-table tr:last-child td { border-bottom: none; }
+    .lb-table tr[data-player] { cursor: pointer; transition: background 0.15s; }
+    .lb-table tr[data-player]:hover td { background: rgba(255,255,255,0.025); }
+    .lb-table td.col-rank { width: 52px; }
+    .lb-table td.col-val { text-align: right; font-family: var(--mono); color: var(--text-primary); font-size: 14px; font-weight: 600; }
+
+    .rank-pos { font-family: var(--mono); font-size: 12px; color: var(--text-dim); width: 28px; display: inline-block; text-align: center; }
+    .rank-medal { font-size: 17px; width: 28px; display: inline-block; text-align: center; }
+
+    .player-cell { display: flex; align-items: center; gap: 10px; }
+    .player-cell img {
+      width: 32px; height: 32px; border-radius: 7px; image-rendering: pixelated;
+      border: 1px solid var(--border); flex-shrink: 0; transition: border-color 0.2s;
+    }
+    .lb-table tr:hover .player-cell img { border-color: var(--green-border); }
+    .player-cell-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .player-cell-name.is-searched { color: var(--green); }
+
+    tr.row-highlighted td { background: rgba(34,197,94,0.05) !important; }
+    tr.row-highlighted td:first-child { box-shadow: inset 2px 0 0 var(--green); }
+
+    /* ── EMPTY / ERROR / SKELETON ── */
+    .lb-empty { padding: 52px 20px; text-align: center; }
+    .lb-empty-icon { font-size: 34px; display: block; margin-bottom: 12px; }
+    .lb-empty-text { color: var(--text-dim); font-family: var(--mono); font-size: 13px; letter-spacing: 1px; }
+    .lb-empty-sub { color: var(--text-dim); font-size: 12px; margin-top: 6px; opacity: 0.7; }
+    .skeleton-cell { height: 18px; border-radius: 4px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .search-wrap { flex-direction: column; }
+      .search-input-wrap { max-width: 100%; }
+      .player-stats-grid { grid-template-columns: repeat(3, 1fr); }
+      .lb-tab { font-size: 11px; padding: 6px 9px; }
+      .lb-table th, .lb-table td { padding: 10px 10px; }
+    }
+    @media (max-width: 480px) {
+      .player-card-inner { gap: 16px; }
+      .player-stats-grid { min-width: 100%; grid-template-columns: repeat(3, 1fr); }
     }
 
-    .rank-tabs {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
+    /* ════════════════════════════════════════
+       ✨ 추가된 시각적 요소
+    ════════════════════════════════════════ */
+
+    /* 히어로 타이틀 진입 애니메이션 */
+    .page-hero { animation: heroIn 0.6s cubic-bezier(0.23,1,0.32,1) both; }
+    @keyframes heroIn {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    .rank-tab {
-      font-family: var(--mono);
-      font-size: 14px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all var(--dur-fast);
-      display: flex;
-      align-items: center;
-      gap: 7px;
+    /* 검색 영역 진입 */
+    .search-wrap { animation: heroIn 0.6s cubic-bezier(0.23,1,0.32,1) 0.1s both; }
+
+    /* 검색창 스캔라인 포커스 효과 */
+    .search-input-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(34,197,94,0.04) 0%, transparent 60%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .search-input:focus ~ .search-input-wrap::after,
+    .search-input-wrap:focus-within::after { opacity: 1; }
+
+    /* 검색 버튼 shimmer */
+    .search-btn::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -80%; width: 50%; height: 100%;
+      background: linear-gradient(105deg, transparent 15%, rgba(255,255,255,0.18) 50%, transparent 85%);
+      pointer-events: none;
+    }
+    .search-btn:hover::after { animation: btnShimmer 0.5s ease forwards; }
+    @keyframes btnShimmer { from { left: -80%; } to { left: 130%; } }
+
+    /* 플레이어 카드 — 아바타 픽셀 글로우 */
+    .player-avatar-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 22px;
+      background: radial-gradient(circle, rgba(34,197,94,0.2) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
+    .player-card:hover .player-avatar-wrap::before { opacity: 1; }
+
+    /* 랭크 배지 펄스 */
+    .player-rank-badge { animation: badgePulse 2.5s ease-in-out infinite; }
+    @keyframes badgePulse {
+      0%, 100% { box-shadow: 0 2px 8px rgba(34,197,94,0.4); }
+      50%       { box-shadow: 0 2px 18px rgba(34,197,94,0.75); }
     }
 
-    .rank-tab:hover {
-      border-color: var(--green-border);
-      color: var(--green);
-      background: var(--green-glow);
+    /* 스탯 박스 — 진입 스태거 */
+    .stat-box {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: border-color 0.2s, background 0.2s,
+                  opacity 0.35s cubic-bezier(0.23,1,0.32,1),
+                  transform 0.35s cubic-bezier(0.23,1,0.32,1);
+    }
+    .stat-box.revealed { opacity: 1; transform: translateY(0); }
+
+    /* 스탯 박스 상단 accent 라인 */
+    .stat-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1.5px;
+      border-radius: 10px 10px 0 0;
+      background: linear-gradient(90deg, var(--green), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .stat-box { position: relative; }
+    .stat-box:hover::before { opacity: 1; }
+
+    /* 숫자 카운트업 — 초기 흐림 처리 */
+    .stat-value[data-countup] { transition: opacity 0.15s; }
+
+    /* 리더보드 헤더 진입 */
+    .lb-header { animation: heroIn 0.5s cubic-bezier(0.23,1,0.32,1) 0.15s both; }
+    .lb-tab-bar { animation: heroIn 0.5s cubic-bezier(0.23,1,0.32,1) 0.2s both; }
+
+    /* 탭 버튼 — 클릭 ripple */
+    .lb-tab { position: relative; overflow: hidden; }
+    .lb-tab::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(251,191,36,0.25), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .lb-tab.active::after { opacity: 1; }
+
+    /* 테이블 — 스캔라인 오버레이 */
+    .lb-table-wrap {
+      position: relative;
+      animation: heroIn 0.5s cubic-bezier(0.23,1,0.32,1) 0.25s both;
+    }
+    .lb-table-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.03) 3px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      border-radius: 14px;
     }
 
-    .rank-tab.active {
-      border-color: var(--green);
-      color: var(--green);
-      background: var(--green-glow);
+    /* 테이블 행 — 스태거 진입 */
+    .lb-table tbody tr {
+      opacity: 0;
+      transform: translateX(-8px);
+      animation: rowIn 0.3s cubic-bezier(0.23,1,0.32,1) forwards;
+    }
+    @keyframes rowIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* 행 hover — 왼쪽 accent 라인 */
+    .lb-table tr[data-player] { position: relative; }
+    .lb-table tr[data-player]:hover td:first-child {
+      box-shadow: inset 2px 0 0 rgba(34,197,94,0.5);
+    }
+
+    /* 값 셀 — 글로우 */
+    .lb-table td.col-val {
+      text-shadow: 0 0 12px rgba(34,197,94,0.15);
+      transition: text-shadow 0.2s, color 0.2s;
+    }
+    .lb-table tr:hover td.col-val { text-shadow: 0 0 18px rgba(34,197,94,0.4); color: #e8f0ff; }
+
+    /* 1~3위 행 특별 처리 */
+    .lb-table tr.rank-top1 td { background: rgba(251,191,36,0.04) !important; }
+    .lb-table tr.rank-top2 td { background: rgba(148,163,184,0.04) !important; }
+    .lb-table tr.rank-top3 td { background: rgba(205,127,50,0.04) !important; }
+    .lb-table tr.rank-top1:hover td { background: rgba(251,191,36,0.08) !important; }
+    .lb-table tr.rank-top2:hover td { background: rgba(148,163,184,0.07) !important; }
+    .lb-table tr.rank-top3:hover td { background: rgba(205,127,50,0.07) !important; }
+
+    /* 1위 값 특별 색상 */
+    .lb-table tr.rank-top1 td.col-val { color: #fbbf24; text-shadow: 0 0 14px rgba(251,191,36,0.4); }
+    .lb-table tr.rank-top2 td.col-val { color: #94a3b8; }
+    .lb-table tr.rank-top3 td.col-val { color: #cd7f32; }
+
+    /* 아바타 이미지 hover scale */
+    .player-cell img { transition: border-color 0.2s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+    .lb-table tr:hover .player-cell img { transform: scale(1.12); }
+
+    /* 새로고침 버튼 hover glow */
+    .lb-refresh-btn:hover:not(:disabled) {
       box-shadow: 0 0 12px rgba(34,197,94,0.15);
     }
 
-    .rank-tab:focus-visible {
-      outline: 2px solid var(--green);
-      outline-offset: 2px;
+    /* not-found 진입 */
+    .player-not-found.visible {
+      animation: heroIn 0.3s ease both;
     }
 
-    .rank-tab-icon { font-size: 13px; }
-
-    .search-wrap {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      align-items: center;
+    /* 스켈레톤 행 */
+    .lb-table tbody tr.skel-row {
+      opacity: 1 !important;
+      transform: none !important;
+      animation: none !important;
     }
 
-    .search-input-wrap {
-      flex: 1;
-      position: relative;
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-dim);
-      font-size: 14px;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 12px 16px 12px 40px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text-primary);
-      font-family: var(--mono);
-      font-size: 16px;
-      outline: none;
-      transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
-    }
-
-    .search-input::placeholder { color: var(--text-dim); }
-
-    .search-input:focus {
-      border-color: var(--green-border);
-      box-shadow: 0 0 0 3px rgba(34,197,94,0.08);
-    }
-
-    .search-btn {
-      padding: 12px 22px;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      border: none;
-      border-radius: 10px;
-      color: #fff;
-      font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      transition: all var(--dur-fast);
-      white-space: nowrap;
-      box-shadow: 0 4px 16px rgba(34,197,94,0.2);
-      flex-shrink: 0;
-    }
-
-    .search-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(34,197,94,0.35);
-    }
-
-    .search-btn:active { transform: scale(0.96) translateY(1px); }
-
-    .search-btn:focus-visible {
-      outline: 2px solid var(--green);
-      outline-offset: 2px;
-    }
-
+    /* ── SEARCH SUGGESTIONS ── */
     .search-suggestions {
-      position: absolute;
-      top: 0; left: 0;
-      background: rgba(11,18,32,0.98);
-      border: 1px solid var(--green-border);
-      border-radius: 12px;
-      overflow: hidden;
-      z-index: 99999;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(34,197,94,0.05);
-      display: none;
-      max-height: 260px;
-      overflow-y: auto;
+      position: fixed; top: 0; left: 0; width: 0;
+      background: #07101e; border: 1px solid var(--green-border);
+      border-radius: 10px; overflow: hidden; z-index: 99999;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.9), 0 0 0 1px rgba(34,197,94,0.15);
+      max-height: 0; opacity: 0; pointer-events: none;
+      transition: max-height 0.25s cubic-bezier(0.23,1,0.32,1), opacity 0.2s;
     }
-
     .search-suggestions.open {
-      display: block;
-      animation: suggestIn 0.18s cubic-bezier(0.23,1,0.32,1);
+      max-height: 260px; opacity: 1; pointer-events: all;
     }
+    .suggestions-list { list-style: none; overflow-y: auto; max-height: 260px; }
+    .suggestions-list::-webkit-scrollbar { width: 4px; }
+    .suggestions-list::-webkit-scrollbar-thumb { background: rgba(34,197,94,0.25); border-radius: 2px; }
 
-    @keyframes suggestIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .suggest-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 16px;
-      cursor: pointer;
+    .suggestion-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px; cursor: pointer;
+      transition: background 0.15s;
       border-bottom: 1px solid rgba(255,255,255,0.03);
-      transition: background var(--dur-fast);
+      animation: suggIn 0.2s cubic-bezier(0.23,1,0.32,1) both;
     }
-
-    .suggest-item:last-child { border-bottom: none; }
-
-    .suggest-item:hover,
-    .suggest-item.focused { background: rgba(34,197,94,0.08); }
-
-    .suggest-avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 5px;
-      image-rendering: pixelated;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.03);
-      flex-shrink: 0;
-    }
-
-    .suggest-name {
-      flex: 1;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .suggest-name mark {
-      background: rgba(34,197,94,0.25);
-      color: var(--green);
-      border-radius: 2px;
-      padding: 0 1px;
-    }
-
-    .suggest-rank {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text-dim);
-    }
-
-    .suggest-empty {
-      padding: 20px 16px;
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      text-align: center;
-      letter-spacing: 1px;
-    }
-
-    @keyframes skeleton-shimmer {
-      0%   { background-position: -200% 0; }
-      100% { background-position:  200% 0; }
-    }
-
-    .skeleton {
-      background: linear-gradient(90deg,
-        rgba(255,255,255,0.03) 25%,
-        rgba(255,255,255,0.08) 50%,
-        rgba(255,255,255,0.03) 75%);
-      background-size: 200% 100%;
-      animation: skeleton-shimmer 1.5s infinite linear;
-      border-radius: 4px;
-    }
-
-    .skeleton-card {
-      height: 240px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
-    }
-
-    .skeleton-row { height: 52px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-
-    .rank-table-wrap {
-      overflow-x: auto;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      min-height: 600px;
-    }
-
-    .rank-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-
-    .rank-table thead th {
-      font-family: var(--mono);
-      font-size: 14px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      padding: 14px 18px;
-      background: rgba(255,255,255,0.02);
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    .rank-table thead th:last-child { text-align: right; }
-
-    .rank-table tbody tr {
-      border-bottom: 1px solid rgba(255,255,255,0.03);
-      transition: background var(--dur-fast);
-    }
-
-    .rank-table tbody tr:last-child { border-bottom: none; }
-    .rank-table tbody tr:hover { background: rgba(34,197,94,0.04); }
-
-    .rank-table tbody td { padding: 13px 18px; vertical-align: middle; }
-
-    .rank-table tbody td:last-child {
-      text-align: right;
-      font-family: var(--mono);
-      font-size: 14px;
-      color: var(--green);
-      font-weight: 600;
-    }
-
-    .rank-num {
-      font-family: var(--mono);
-      font-size: 18px;
-      color: var(--text-dim);
-      width: 40px;
-      display: inline-block;
-      text-align: center;
-    }
-
-    .rank-num.gold   { color: #fbbf24; text-shadow: 0 0 8px rgba(251,191,36,0.4); }
-    .rank-num.silver { color: #94a3b8; text-shadow: 0 0 8px rgba(148,163,184,0.3); }
-    .rank-num.bronze { color: #cd7f32; text-shadow: 0 0 8px rgba(205,127,50,0.3); }
-
-    .player-cell {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-
-    .player-cell:focus-visible {
-      outline: 2px solid var(--green);
-      outline-offset: 2px;
-    }
-
-    .player-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      flex-shrink: 0;
-      image-rendering: pixelated;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.03);
-    }
-
-    .player-name { font-weight: 600; color: var(--text-primary); font-size: 14px; }
-
-    .profile-panel {
-      display: grid;
-      grid-template-rows: 0fr;
-      opacity: 0;
-      overflow: hidden;
-      transition:
-        grid-template-rows 0.4s cubic-bezier(0.23,1,0.32,1),
-        opacity 0.3s ease,
-        margin-bottom 0.4s ease,
-        padding 0.4s ease;
-      border-radius: 14px;
-      border: 1px solid var(--green-border);
-      background: rgba(11,18,32,0.95);
-      margin-bottom: 0;
-      padding-top: 0;
-      padding-bottom: 0;
-      box-shadow: 0 0 32px rgba(34,197,94,0.1);
-      position: relative;
-    }
-
-    .profile-panel::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--green), rgba(34,197,94,0.3), transparent);
-    }
-
-    .profile-panel.visible {
-      grid-template-rows: 1fr;
-      opacity: 1;
-      margin-bottom: 20px;
-      padding-top: 24px;
-      padding-bottom: 24px;
-      padding-left: 24px;
-      padding-right: 24px;
-    }
-
-    .profile-panel.closing {
-      grid-template-rows: 0fr;
-      opacity: 0;
-      margin-bottom: 0;
-      padding: 0;
-    }
-
-    .profile-panel-inner { min-height: 0; }
-
-    #search-card { overflow: visible !important; }
-
-    .profile-panel.loading .profile-header {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-
-    .profile-header {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      margin-bottom: 22px;
-      padding-bottom: 18px;
-      border-bottom: 1px solid var(--border);
-      transition: opacity 0.2s;
-    }
-
-    .profile-avatar {
-      width: 64px;
-      height: 64px;
-      border-radius: 12px;
-      image-rendering: pixelated;
-      border: 2px solid var(--green-border);
-      box-shadow: 0 0 20px rgba(34,197,94,0.2);
-      background: rgba(255,255,255,0.03);
-      flex-shrink: 0;
-      transition: opacity 0.25s;
-    }
-
-    .profile-name {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--text-primary);
-      line-height: 1;
-    }
-
-    .profile-sub {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      margin-top: 5px;
-      letter-spacing: 1px;
-    }
-
-    .profile-close {
-      margin-left: auto;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all var(--dur-fast);
-      flex-shrink: 0;
-    }
-
-    .profile-close:hover {
-      background: var(--red-glow);
-      border-color: rgba(239,68,68,0.3);
-      color: #fca5a5;
-    }
-
-    .profile-close:focus-visible {
-      outline: 2px solid var(--green);
-      outline-offset: 2px;
-    }
-
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 12px;
-    }
-
-    .stat-card {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-      transition: all var(--dur-fast);
-    }
-
-    .stat-card:hover {
-      border-color: var(--green-border);
-      background: var(--green-glow);
-    }
-
-    .stat-label {
-      font-family: var(--mono);
-      font-size: 14px;
-      letter-spacing: 2px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-
-    .stat-value {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--green);
-      line-height: 1;
-    }
-
-    .stat-value.blue  { color: var(--blue); }
-    .stat-value.red   { color: #f87171; }
-    .stat-value.gold  { color: #fbbf24; }
-
-    .stat-sub {
-      font-family: var(--mono);
-      font-size: 14px;
-      color: var(--text-dim);
-      margin-top: 3px;
-    }
-
-    .rank-loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 60px 0;
-      color: var(--text-dim);
-      font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing: 1px;
-    }
-
-    .rank-spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid var(--border);
-      border-top-color: var(--green);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      flex-shrink: 0;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .rank-empty {
-      text-align: center;
-      padding: 60px 0;
-      color: var(--text-dim);
-      font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing: 1px;
-    }
-
-    .rank-empty-icon { font-size: 32px; display: block; margin-bottom: 12px; opacity: 0.4; }
-
-    .page-back {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 1.5px;
-      color: var(--text-dim);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: color var(--dur-fast);
-    }
-
-    .page-back:hover { color: var(--green); }
-
-    .rank-updated {
-      font-family: 'Noto Sans KR', var(--mono);
-      font-size: 14px;
-      color: var(--text-dim);
-      letter-spacing: 0;
-    }
-
-    .top3-grid {
-      display: grid;
-      grid-template-columns: 1fr 1.2fr 1fr;
-      align-items: end;
-      gap: 12px;
-      margin: 30px 0 40px;
-    }
-
-    .top3-card {
-      position: relative;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px 16px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.23,1,0.32,1);
-      overflow: visible;
-    }
-
-    .top3-card.rank-1 {
-      --base-transform: scale(1.1);
-      transform: var(--base-transform);
-      z-index: 2;
-      background:
-        radial-gradient(circle at 50% 0%, rgba(251,191,36,0.2), transparent 70%),
-        rgba(255,255,255,0.06);
-      border-color: rgba(251,191,36,0.5);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 20px rgba(251,191,36,0.1);
-    }
-
-    .top3-card.rank-2 {
-      --base-transform: scale(1.0);
-      transform: var(--base-transform);
-      opacity: 0.9;
-      z-index: 1;
-    }
-
-    .top3-card.rank-3 {
-      --base-transform: scale(0.92);
-      transform: var(--base-transform);
-      opacity: 0.8;
-      z-index: 1;
-    }
-
-    .top3-card:hover {
-      opacity: 1;
-      border-color: var(--green-border);
-      background: var(--green-glow);
-      z-index: 3;
-    }
-
-    .top3-card.rank-1:hover { transform: scale(1.15) translateY(-8px); border-color: #fbbf24; }
-    .top3-card.rank-2:hover { transform: scale(1.05) translateY(-5px); }
-    .top3-card.rank-3:hover { transform: scale(0.97) translateY(-5px); }
-
-    .top3-medal {
-      font-size: 32px;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-    }
-
-    .top3-card.rank-1 .top3-avatar { width: 64px; height: 64px; border-color: #fbbf24; }
-    .top3-card.rank-1 .top3-name   { font-size: 18px; color: #fff; }
-
-    .top3-avatar {
-      width: 52px;
-      height: 52px;
-      border-radius: 10px;
-      image-rendering: pixelated;
-      margin: 0 auto 10px;
-      display: block;
-      border: 2px solid var(--border);
-      background: rgba(255,255,255,0.03);
-    }
-
-    .top3-name {
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .top3-value {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    .top3-card.rank-1 .top3-value { color: #fbbf24; }
-    .top3-card.rank-2 .top3-value { color: #94a3b8; }
-    .top3-card.rank-3 .top3-value { color: #cd7f32; }
-
-    @keyframes top3In {
-      from { opacity: 0; transform: translateY(16px) scale(0.96); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .top3-card.animate-in { animation: top3In 0.35s cubic-bezier(0.23,1,0.32,1) both; }
-
-    .search-not-found {
-      display: none;
-      text-align: center;
-      padding: 40px;
-      color: var(--text-dim);
-      font-family: var(--mono);
-      font-size: 12px;
-    }
-
-    .search-not-found.visible { display: block; }
-
-    .rank-row-anim { animation: rowFadeIn 0.25s cubic-bezier(0.23,1,0.32,1) both; }
-
-    @keyframes tbodyFade { from { opacity: 0; } to { opacity: 1; } }
-
-    @keyframes rowHighlight {
-      0%   { background: rgba(34,197,94,0.25); box-shadow: inset 0 0 0 1px rgba(34,197,94,0.5); }
-      60%  { background: rgba(34,197,94,0.12); box-shadow: inset 0 0 0 1px rgba(34,197,94,0.3); }
-      100% { background: transparent; box-shadow: none; }
-    }
-
-    .rank-row-highlight td {
-      animation: rowHighlight 2s cubic-bezier(0.23,1,0.32,1) forwards !important;
-    }
-
-    @keyframes top3Highlight-rank1 {
-      0%   { box-shadow: 0 0 0 2px rgba(34,197,94,0.8), 0 0 24px rgba(34,197,94,0.4); transform: scale(1.1) translateY(-6px); }
-      50%  { box-shadow: 0 0 0 1px rgba(34,197,94,0.4), 0 0 12px rgba(34,197,94,0.2); transform: scale(1.1) translateY(-3px); }
-      100% { box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 20px rgba(251,191,36,0.1); transform: scale(1.1) translateY(0); }
-    }
-
-    @keyframes top3Highlight-rank2 {
-      0%   { box-shadow: 0 0 0 2px rgba(34,197,94,0.8), 0 0 24px rgba(34,197,94,0.4); transform: scale(1.0) translateY(-6px); }
-      50%  { box-shadow: 0 0 0 1px rgba(34,197,94,0.4), 0 0 12px rgba(34,197,94,0.2); transform: scale(1.0) translateY(-3px); }
-      100% { box-shadow: none; transform: scale(1.0) translateY(0); }
-    }
-
-    @keyframes top3Highlight-rank3 {
-      0%   { box-shadow: 0 0 0 2px rgba(34,197,94,0.8), 0 0 24px rgba(34,197,94,0.4); transform: scale(0.92) translateY(-6px); }
-      50%  { box-shadow: 0 0 0 1px rgba(34,197,94,0.4), 0 0 12px rgba(34,197,94,0.2); transform: scale(0.92) translateY(-3px); }
-      100% { box-shadow: none; transform: scale(0.92) translateY(0); }
-    }
-
-    .top3-card.card-highlight { border-color: var(--green) !important; }
-    .top3-card.card-highlight.rank-1 { animation: top3Highlight-rank1 2s cubic-bezier(0.23,1,0.32,1) forwards !important; }
-    .top3-card.card-highlight.rank-2 { animation: top3Highlight-rank2 2s cubic-bezier(0.23,1,0.32,1) forwards !important; }
-    .top3-card.card-highlight.rank-3 { animation: top3Highlight-rank3 2s cubic-bezier(0.23,1,0.32,1) forwards !important; }
-
-    .hdr-link-home {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 8px 16px;
+    .suggestion-item:last-child { border-bottom: none; }
+    @keyframes suggIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:translateX(0); } }
+
+    .suggestion-item:hover,
+    .suggestion-item.active {
       background: rgba(34,197,94,0.08);
-      border: 1px solid var(--green-border);
-      border-radius: 10px;
-      color: var(--green);
-      font-family: var(--mono);
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-decoration: none;
-      transition: all var(--dur-fast);
-      white-space: nowrap;
     }
+    .suggestion-item.active { border-left: 2px solid var(--green); padding-left: 12px; }
 
-    .hdr-link-home:hover {
-      background: rgba(34,197,94,0.18);
-      border-color: var(--green);
-      transform: translateX(-3px);
-      box-shadow: 0 0 16px rgba(34,197,94,0.2);
+    .sugg-avatar {
+      width: 26px; height: 26px; border-radius: 6px;
+      image-rendering: pixelated; border: 1px solid var(--border); flex-shrink: 0;
+      transition: border-color 0.15s;
     }
+    .suggestion-item.active .sugg-avatar,
+    .suggestion-item:hover .sugg-avatar { border-color: var(--green-border); }
 
-    .hdr-link-home:focus-visible {
-      outline: 2px solid var(--green);
-      outline-offset: 2px;
+    .sugg-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .sugg-name mark {
+      background: none; color: var(--green);
+      font-weight: 700; text-decoration: underline; text-underline-offset: 2px;
     }
+    .sugg-score { font-family: var(--mono); font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
 
-    .hdr-home-icon { font-size: 14px; transition: transform var(--dur-fast); }
-    .hdr-link-home:hover .hdr-home-icon { transform: translateX(-3px); }
-
-    .mobile-home-btn {
-      display: none;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      background: rgba(34,197,94,0.08);
-      border: 1px solid var(--green-border);
-      border-radius: 8px;
-      color: var(--green);
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 1.5px;
-      text-decoration: none;
-      white-space: nowrap;
-      transition: all var(--dur-fast);
-      flex-shrink: 0;
+    .sugg-hint {
+      padding: 7px 14px; font-family: var(--mono); font-size: 11px;
+      color: var(--text-dim); letter-spacing: 0.5px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      display: flex; align-items: center; gap: 6px;
     }
-
-    .mobile-home-btn:hover { background: rgba(34,197,94,0.18); }
-
-    @media (max-width: 1080px) { .mobile-home-btn { display: flex; } }
-
-    @media (max-width: 700px) {
-      .top3-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-      .top3-card.rank-1 { grid-column: 1 / -1; }
-      .stat-grid { grid-template-columns: repeat(2, 1fr); }
-      .rank-tabs { gap: 4px; }
-      .rank-tab { font-size: 10px; padding: 7px 12px; }
-    }
-
-    @media (max-width: 480px) { .top3-grid { grid-template-columns: 1fr; } }
-
-    .rank-header {
-      margin-bottom: 24px;
-      overflow: hidden;
-    }
-
-    .rank-header-inner {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      animation: rankHeaderIn 0.35s cubic-bezier(0.23, 1, 0.32, 1) both;
-    }
-
-    @keyframes rankHeaderIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .rank-header-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text-primary);
-      line-height: 1;
-    }
-
-    .rank-header-title-icon {
-      font-size: 26px;
-      filter: drop-shadow(0 0 6px rgba(34,197,94,0.4));
-    }
-
-    .rank-header-title-text {
-      background: linear-gradient(135deg, #fff 40%, var(--green));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .rank-header-title-unit {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--green);
-      background: var(--green-glow);
-      border: 1px solid var(--green-border);
-      border-radius: 6px;
-      padding: 3px 8px;
-      letter-spacing: 1px;
-      -webkit-text-fill-color: unset;
-      align-self: center;
-    }
-
-    .rank-header-desc {
-      font-family: 'Noto Sans KR', sans-serif;
-      font-size: 13px;
+    .sugg-key {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 18px; padding: 0 5px; border-radius: 3px; font-size: 10px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
       color: var(--text-dim);
-      line-height: 1.6;
-      max-width: 600px;
-      letter-spacing: 0;
     }
 
-    .rank-header-divider {
-      height: 1px;
-      background: linear-gradient(90deg, var(--green-border), transparent);
-      margin-top: 4px;
-    }
-
-    #rank-refresh-btn {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      color: var(--text-dim);
-      padding: 4px 10px;
-      font-family: var(--mono);
-      font-size: 14px;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: all var(--dur-fast);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    #rank-refresh-btn:hover { border-color: var(--green-border); color: var(--green); }
-
-    #rank-refresh-btn:focus-visible {
-      outline: 2px solid var(--green);
-      outline-offset: 2px;
-    }
-
-    #rank-refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    #rank-refresh-btn.spinning .refresh-icon {
-      display: inline-block;
-      animation: spin 0.7s linear infinite;
-    }
-
-    .refresh-icon { display: inline-block; }
   </style>
 </head>
-
 <body>
-
-  <div class="bg-grid"   aria-hidden="true"></div>
+  <!-- 검색 자동완성 — body 직속으로 위치, transform 영향 없음 -->
+  <div id="search-suggestions" class="search-suggestions" role="listbox" aria-label="검색 추천">
+    <ul class="suggestions-list" id="suggestions-list"></ul>
+    <div class="sugg-hint" id="sugg-hint" style="display:none">
+      <span class="sugg-key">↑↓</span> 이동 &nbsp;
+      <span class="sugg-key">Enter</span> 선택 &nbsp;
+      <span class="sugg-key">Esc</span> 닫기
+    </div>
+  </div>
+  <div class="bg-grid" aria-hidden="true"></div>
   <div class="bg-radial" aria-hidden="true"></div>
-  <div class="bg-lines"  aria-hidden="true"></div>
-  <div id="cursor-ring"     aria-hidden="true"></div>
+  <div class="bg-lines" aria-hidden="true"></div>
   <div id="scroll-progress" aria-hidden="true"></div>
 
-  <div id="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="toast-container" role="region" aria-live="polite" aria-label="알림"></div>
 
-  <div class="wrap">
-    <header class="header">
-      <div class="logo-box">
-        <img src="asset/image/icon.png" alt="Min. At. Zero 로고"
-          onerror="this.style.display='none';this.parentElement.insertAdjacentHTML('beforeend','<div class=\'logo-fallback\'>M</div>')">
-      </div>
-      <div class="header-text">
-        <h1 class="site-title">Min. At. <span>Zero</span></h1>
-        <div class="site-meta" aria-label="서버 정보">
-          <span class="meta-tag">1.20.1</span>
-          <span class="meta-tag">FPS / PVP</span>
-          <span class="meta-tag">RANKING</span>
-        </div>
-        <p class="site-desc" id="typewriter-desc">플레이어 랭킹 및 전적 검색</p>
-      </div>
-      <nav class="header-links" aria-label="페이지 내비게이션">
-        <a href="index.html" class="hdr-link-home" aria-label="홈으로 돌아가기">
-          <span class="hdr-home-icon" aria-hidden="true">←</span>
-          <span class="hdr-home-text">HOME</span>
-        </a>
-        <a href="#" class="hdr-link-nav" style="color:var(--green)" aria-current="page">RANKING</a>
-        <div class="status-sep" style="height:24px;margin:0 4px" aria-hidden="true"></div>
-        <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
-          target="_blank" rel="noopener noreferrer" class="hdr-link" aria-label="게임 가이드">📖</a>
-        <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer" class="hdr-link"
-          aria-label="디스코드">💬</a>
-      </nav>
-      <a href="index.html" class="mobile-home-btn" aria-label="홈으로 돌아가기">← HOME</a>
-    </header>
-
-    <div style="height:20px"></div>
-
-    <main>
-
-      <div class="card revealed" id="search-card" style="margin-bottom:20px">
-        <div class="card-top-bar blue"></div>
-        <div class="card-label blue">Player Search</div>
-
-        <div class="search-wrap">
-          <div class="search-input-wrap">
-            <span class="search-icon" aria-hidden="true">🔍</span>
-            <input type="text" class="search-input" id="search-input"
-              placeholder="플레이어 이름을 입력하세요..."
-              autocomplete="off" spellcheck="false"
-              role="combobox" aria-expanded="false"
-              aria-autocomplete="list" aria-controls="search-suggestions">
-          </div>
-          <button class="search-btn" id="search-btn" aria-label="검색">SEARCH</button>
-        </div>
-
-        <div class="profile-panel" id="profile-panel" role="region" aria-label="플레이어 전적">
-          <div class="profile-panel-inner">
-            <div class="profile-header">
-              <img class="profile-avatar" id="profile-avatar" src="" alt="" width="64" height="64">
-              <div>
-                <div class="profile-name" id="profile-name">—</div>
-                <div class="profile-sub" id="profile-sub">PLAYER STATS</div>
-              </div>
-              <button class="profile-close" id="profile-close" aria-label="전적 패널 닫기">×</button>
-            </div>
-            <div class="stat-grid" id="profile-stats" role="list"></div>
-          </div>
-        </div>
-
-        <div class="search-not-found" id="search-not-found" role="alert">
-          <span style="font-size:28px;display:block;margin-bottom:10px;opacity:0.4" aria-hidden="true">👤</span>
-          플레이어를 찾을 수 없습니다.
-        </div>
-      </div>
-
-      <div class="card revealed">
-        <div class="card-top-bar"></div>
-        <div class="card-label">Leaderboard</div>
-
-        <!-- [FIX] 탭 버튼: 종합점수 → COMBAT RATING, data-label/data-unit 수정 -->
-        <div class="rank-tabs" role="tablist" id="rank-tabs" aria-label="랭킹 카테고리">
-          <button class="rank-tab active" role="tab" aria-selected="true"  data-table="score"           data-label="COMBAT RATING" data-unit="CR">
-            <span class="rank-tab-icon" aria-hidden="true">🏅</span> COMBAT RATING
-          </button>
-          <button class="rank-tab"        role="tab" aria-selected="false" data-table="all_kill"        data-label="킬"       data-unit="킬">
-            <span class="rank-tab-icon" aria-hidden="true">⚔️</span> 킬
-          </button>
-          <button class="rank-tab"        role="tab" aria-selected="false" data-table="all_death"       data-label="데스"     data-unit="데스">
-            <span class="rank-tab-icon" aria-hidden="true">💀</span> 데스
-          </button>
-          <button class="rank-tab"        role="tab" aria-selected="false" data-table="kill_assist_all" data-label="어시스트" data-unit="어시스트">
-            <span class="rank-tab-icon" aria-hidden="true">🤝</span> 어시스트
-          </button>
-          <button class="rank-tab"        role="tab" aria-selected="false" data-table="round_count"     data-label="플레이수" data-unit="판">
-            <span class="rank-tab-icon" aria-hidden="true">🎮</span> 플레이수
-          </button>
-          <button class="rank-tab"        role="tab" aria-selected="false" data-table="win_count"       data-label="승리수"   data-unit="승">
-            <span class="rank-tab-icon" aria-hidden="true">🏆</span> 승리수
-          </button>
-          <button class="rank-tab"        role="tab" aria-selected="false" data-table="playTime_H"      data-label="플레이타임" data-unit="시간">
-            <span class="rank-tab-icon" aria-hidden="true">⏱️</span> 플레이타임
-          </button>
-          <button class="rank-tab"        role="tab" aria-selected="false" data-table="kda"             data-label="KDA"       data-unit="">
-            <span class="rank-tab-icon" aria-hidden="true">⚡</span> KDA
-          </button>
-        </div>
-
-        <div class="rank-header" id="rank-header">
-          <div class="rank-header-inner" id="rank-header-inner">
-            <div class="rank-header-title">
-              <span class="rank-header-title-icon" id="rank-header-icon">🏅</span>
-              <span class="rank-header-title-text" id="rank-header-label">COMBAT RATING</span>
-              <span class="rank-header-title-unit" id="rank-header-unit">RANKING</span>
-            </div>
-            <div class="rank-header-desc" id="rank-header-desc">
-              KDA · 승률 · 플레이수 · 플레이타임을 종합해 계산한 최종 순위입니다.
-            </div>
-            <div class="rank-header-divider"></div>
-          </div>
-        </div>
-
-        <div class="top3-grid" id="top3-grid" aria-label="상위 3인"></div>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <span class="rank-updated" id="rank-updated" aria-live="polite">데이터 로딩 중...</span>
-          <button id="rank-refresh-btn" title="랭킹 새로고침" aria-label="랭킹 새로고침">
-            <span class="refresh-icon" aria-hidden="true">⟳</span>
-            새로고침
-          </button>
-        </div>
-
-        <div class="rank-table-wrap">
-          <table class="rank-table" aria-label="랭킹 테이블">
-            <thead>
-              <tr>
-                <th style="width:60px" scope="col">#</th>
-                <th scope="col">플레이어</th>
-                <th style="text-align:right" id="rank-col-label" scope="col">점수</th>
-              </tr>
-            </thead>
-            <tbody id="rank-tbody"></tbody>
-          </table>
-        </div>
-
-        <div id="rank-status" aria-live="polite"></div>
-      </div>
-
-    </main>
-
-    <footer class="footer" style="margin-top:40px">
-      <div style="padding-bottom:0">
-        <div class="footer-bottom">
-          <span class="footer-copy">© 2024–2026 <span>JI BAEK MIN (tharu8133)</span>. All rights reserved.</span>
-          <span class="footer-disclaimer">Minecraft는 Mojang Studios의 상표입니다.</span>
-        </div>
-      </div>
-    </footer>
-
+  <div id="lightbox-overlay" class="lightbox-overlay" aria-modal="true" aria-hidden="true" role="dialog">
+    <div class="lightbox-content">
+      <button class="lightbox-close" id="lightbox-close" aria-label="닫기">×</button>
+      <img id="lightbox-img" src="" alt="">
+    </div>
   </div>
 
-  <div class="search-suggestions" id="search-suggestions"
-    role="listbox" aria-label="플레이어 검색 제안"></div>
+  <div id="popup-overlay" class="matz-popup-overlay" aria-hidden="true">
+    <div id="matz-popup" class="matz-popup" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="popup-title">
+      <div class="matz-popup-bar"></div>
+      <div class="matz-popup-inner">
+        <div class="matz-popup-header">
+          <div class="matz-popup-icon"><span id="popup-icon"></span></div>
+          <div>
+            <div class="matz-popup-title" id="popup-title"></div>
+            <div class="matz-popup-sub" id="popup-sub"></div>
+          </div>
+        </div>
+        <p class="matz-popup-msg" id="popup-msg"></p>
+        <div class="matz-popup-actions">
+          <button class="matz-popup-btn cancel" id="popup-cancel">취소</button>
+          <button class="matz-popup-btn confirm-danger" id="popup-confirm"></button>
+        </div>
+      </div>
+      <div class="matz-popup-corner"></div>
+    </div>
+  </div>
 
+  <div class="wrap">
+    <header id="header-root" class="header"></header>
+
+    <section class="page-hero">
+      <h2 class="page-title">Player <span>Ranking</span></h2>
+      <p class="page-desc">플레이어 전투 통계와 종합 랭킹을 확인하세요. 닉네임으로 특정 플레이어를 검색할 수 있습니다.</p>
+    </section>
+
+    <div class="search-wrap" role="search">
+      <div class="search-input-wrap">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input
+          type="text" id="search-input" class="search-input"
+          placeholder="플레이어 닉네임 검색..."
+          autocomplete="off" spellcheck="false"
+          aria-label="플레이어 닉네임 검색"
+        >
+        <button id="search-clear" class="search-clear" aria-label="검색 지우기" title="지우기">×</button>
+      </div>
+      <button id="search-btn" class="search-btn" aria-label="검색 실행">SEARCH</button>
+    </div>
+
+    <div id="player-card" class="card player-card" aria-live="polite" aria-label="플레이어 통계">
+      <div class="card-top-bar"></div>
+      <div class="player-card-inner">
+        <div class="player-avatar-wrap">
+          <img id="player-avatar" class="player-avatar" src="" alt="플레이어 아바타">
+          <span id="player-rank-badge" class="player-rank-badge" aria-label="랭킹 순위"></span>
+        </div>
+        <div class="player-info">
+          <div id="player-name" class="player-name"></div>
+          <div class="player-meta">
+            <div id="player-cr" class="player-cr"></div>
+            <div id="player-wr" class="player-winrate"></div>
+          </div>
+        </div>
+        <div id="player-stats-grid" class="player-stats-grid"></div>
+      </div>
+    </div>
+
+    <div id="player-not-found" class="player-not-found" role="alert">
+      👤 &nbsp;플레이어를 찾을 수 없습니다. 닉네임을 정확히 입력해주세요.
+    </div>
+
+    <section class="lb-section" aria-label="리더보드">
+      <div class="lb-header">
+        <div class="lb-title-wrap">
+          <span class="lb-title">🏆 Leaderboard</span>
+          <span id="lb-count-badge" class="lb-count-badge" style="display:none"></span>
+          <span id="lb-updated" class="lb-updated"></span>
+        </div>
+        <div class="lb-controls">
+          <button id="lb-refresh-btn" class="lb-refresh-btn" aria-label="데이터 새로고침">
+            <span class="refresh-icon" id="refresh-icon">⟳</span>
+            <span>새로고침</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="lb-tab-bar" id="lb-tab-bar" role="tablist" aria-label="랭킹 카테고리">
+        <button class="lb-tab active" data-tab="score"           role="tab" aria-selected="true" ><span class="tab-icon">🏅</span> COMBAT RATING</button>
+        <button class="lb-tab"        data-tab="all_kill"        role="tab" aria-selected="false"><span class="tab-icon">⚔️</span> 킬</button>
+        <button class="lb-tab"        data-tab="all_death"       role="tab" aria-selected="false"><span class="tab-icon">💀</span> 데스</button>
+        <button class="lb-tab"        data-tab="kill_assist_all" role="tab" aria-selected="false"><span class="tab-icon">🤝</span> 어시스트</button>
+        <button class="lb-tab"        data-tab="round_count"     role="tab" aria-selected="false"><span class="tab-icon">🎮</span> 플레이수</button>
+        <button class="lb-tab"        data-tab="win_count"       role="tab" aria-selected="false"><span class="tab-icon">🏆</span> 승리수</button>
+        <button class="lb-tab"        data-tab="playTime_H"      role="tab" aria-selected="false"><span class="tab-icon">⏱️</span> 플레이타임</button>
+        <button class="lb-tab"        data-tab="kda"             role="tab" aria-selected="false"><span class="tab-icon">⚡</span> KDA</button>
+      </div>
+
+      <div class="lb-table-wrap">
+        <table class="lb-table" aria-label="플레이어 순위 테이블">
+          <thead>
+            <tr>
+              <th class="col-rank" scope="col">#</th>
+              <th scope="col">플레이어</th>
+              <th class="col-val" id="lb-col-label" scope="col">점수</th>
+            </tr>
+          </thead>
+          <tbody id="lb-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer id="footer-root" class="footer"></footer>
+  </div>
+
+  <script src="asset/script.js"></script>
   <script>
-    'use strict';
+    (function () {
+      'use strict';
 
-    /* ══ CONFIG ══ */
-    const SUPABASE_URL = 'https://mcojlhiycruiifrcaxam.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_motLaW6vYM8bLPov6QTYMg_LxfbSXfr';
+      const SUPABASE_URL = 'https://mcojlhiycruiifrcaxam.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_motLaW6vYM8bLPov6QTYMg_LxfbSXfr';
+      const FALLBACK_AV  = 'data:image/svg+xml,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" fill="#0b1220"/><text x="12" y="17" text-anchor="middle" fill="#22c55e" font-size="13" font-family="monospace">?</text></svg>'
+      );
 
-    /* [FIX] score 탭: label → COMBAT RATING, unit → CR */
-    const TABLE_CONFIG = {
-      score:           { label: 'COMBAT RATING', unit: 'CR',       icon: '🏅', format: v => v.toFixed(1),
-                         desc: 'KDA · 승률 · 플레이수 · 플레이타임을 종합해 계산한 최종 전투 등급입니다. 잘 싸우고, 자주 이기고, 꾸준히 플레이한 플레이어가 높은 점수를 받습니다.' },
-      all_kill:        { label: '킬',        unit: '킬',       icon: '⚔️', format: v => v.toLocaleString(),
-                         desc: '적을 가장 많이 처치한 플레이어 순위입니다. 한 판 한 판 최대한 많은 킬을 기록하세요.' },
-      all_death:       { label: '데스',      unit: '데스',     icon: '💀', format: v => v.toLocaleString(),
-                         desc: '가장 많이 사망한 플레이어 순위입니다. 적의 손에 많이 쓰러진 용감한 플레이어들이 모여 있습니다.' },
-      kill_assist_all: { label: '어시스트',  unit: '어시스트', icon: '🤝', format: v => v.toLocaleString(),
-                         desc: '팀원의 킬을 가장 많이 도운 플레이어 순위입니다. 혼자 다 하지 않아도 됩니다 — 함께 싸우는 것도 실력입니다.' },
-      round_count:     { label: '플레이수',  unit: '판',       icon: '🎮', format: v => v.toLocaleString(),
-                         desc: '가장 많은 판을 플레이한 플레이어 순위입니다. 꾸준한 참여가 곧 실력으로 이어집니다.' },
-      win_count:       { label: '승리수',    unit: '승',       icon: '🏆', format: v => v.toLocaleString(),
-                         desc: '가장 많은 승리를 거둔 플레이어 순위입니다. 결국 이기는 것이 목표입니다.' },
-      playTime_H:      { label: '플레이타임', unit: 'h',       icon: '⏱️', format: v => Number.isInteger(v) ? String(v) : v.toFixed(1),
-                         desc: '서버에서 가장 오랜 시간을 보낸 플레이어 순위입니다. 시간이 곧 열정입니다.' },
-      kda:             { label: 'KDA',       unit: '',         icon: '⚡', format: v => v.toFixed(2),
-                         desc: '(킬 + 어시스트) ÷ 데스로 계산한 전투 효율 순위입니다. 숫자가 높을수록 죽지 않고 많이 싸운 플레이어입니다.' },
-    };
-
-    /* ══ SUPABASE API ══ */
-    async function fetchRanking(table, signal) {
-      const url = `${SUPABASE_URL}/rest/v1/${table}?select=entry,value,updated_at&order=value.desc&limit=100`;
-      const res = await fetch(url, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
-        signal,
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    }
-
-    async function fetchKdaRanking(signal) {
-      const [killRows, deathRows, assistRows] = await Promise.all([
-        fetchRanking('all_kill',        signal),
-        fetchRanking('all_death',       signal),
-        fetchRanking('kill_assist_all', signal),
-      ]);
-
-      const map = {};
-      killRows.forEach(r => {
-        map[r.entry] = { entry: r.entry, kills: r.value, deaths: 0, assists: 0, updated_at: r.updated_at };
-      });
-      deathRows.forEach(r => {
-        if (map[r.entry]) map[r.entry].deaths = r.value;
-        else map[r.entry] = { entry: r.entry, kills: 0, deaths: r.value, assists: 0, updated_at: r.updated_at };
-      });
-      assistRows.forEach(r => {
-        if (map[r.entry]) map[r.entry].assists = r.value;
-        else map[r.entry] = { entry: r.entry, kills: 0, deaths: 0, assists: r.value, updated_at: r.updated_at };
-      });
-
-      return Object.values(map)
-        .filter(p => p.kills + p.assists > 0)
-        .map(p => ({
-          entry:      p.entry,
-          value:      p.deaths > 0 ? (p.kills + p.assists) / p.deaths : p.kills + p.assists,
-          updated_at: p.updated_at,
-          _detail:    `${p.kills}K / ${p.deaths}D / ${p.assists}A`,
-        }))
-        .sort((a, b) => b.value - a.value);
-    }
-
-    /* ══ COMBAT RATING 계산 ══
-       [FIX] script.js scoreCalc 모듈과 완전히 동일한 로직 사용
-       - filter: rounds > 0 || kills > 0  (기존 rounds > 0 에서 변경)
-       - 점수 공식 동일: KDA×40 + 승률×30 + 플레이수×20 + 플레이타임×10 (정규화 후)
-    ══════════════════════════════════════════════════════════════════ */
-    async function fetchScoreRanking(signal) {
-      const [killRows, deathRows, assistRows, winRows, roundRows, ptRows] = await Promise.all([
-        fetchRanking('all_kill',        signal),
-        fetchRanking('all_death',       signal),
-        fetchRanking('kill_assist_all', signal),
-        fetchRanking('win_count',       signal),
-        fetchRanking('round_count',     signal),
-        fetchRanking('playTime_H',      signal),
-      ]);
-
-      const map = {};
-      const ensure = n => {
-        if (!map[n]) map[n] = { entry: n, kills: 0, deaths: 0, assists: 0, wins: 0, rounds: 0, playtime: 0, updated_at: null };
+      const TAB_CFG = {
+        score:           { col: 'COMBAT RATING', fmt: v => (+v).toFixed(1)                },
+        all_kill:        { col: '킬',            fmt: v => (+v).toLocaleString()          },
+        all_death:       { col: '데스',          fmt: v => (+v).toLocaleString()          },
+        kill_assist_all: { col: '어시스트',      fmt: v => (+v).toLocaleString()          },
+        round_count:     { col: '게임수',        fmt: v => (+v).toLocaleString() + ' 판'  },
+        win_count:       { col: '승리',          fmt: v => (+v).toLocaleString() + ' 승'  },
+        playTime_H:      { col: '플레이타임',    fmt: v => (+v).toLocaleString() + ' h'   },
+        kda:             { col: 'KDA',           fmt: v => (+v).toFixed(2)                },
       };
 
-      killRows.forEach(r   => { ensure(r.entry); map[r.entry].kills    = r.value; if (r.updated_at) map[r.entry].updated_at = r.updated_at; });
-      deathRows.forEach(r  => { ensure(r.entry); map[r.entry].deaths   = r.value; });
-      assistRows.forEach(r => { ensure(r.entry); map[r.entry].assists  = r.value; });
-      winRows.forEach(r    => { ensure(r.entry); map[r.entry].wins     = r.value; });
-      roundRows.forEach(r  => { ensure(r.entry); map[r.entry].rounds   = r.value; });
-      ptRows.forEach(r     => { ensure(r.entry); map[r.entry].playtime = r.value; });
+      let allPlayers    = null;
+      let currentTab    = 'score';
+      let searchedName  = '';
+      let fetching      = false;
+      let refreshLocked = false;
 
-      /* [FIX] script.js scoreCalc 과 동일한 필터 조건 */
-      const players = Object.values(map).filter(p => p.rounds > 0 || p.kills > 0);
+      const $ = id => document.getElementById(id);
+      const searchInput  = $('search-input');
+      const searchClear  = $('search-clear');
+      const searchBtn    = $('search-btn');
+      const playerCard   = $('player-card');
+      const playerNF     = $('player-not-found');
+      const lbTbody      = $('lb-tbody');
+      const lbColLabel   = $('lb-col-label');
+      const lbUpdated    = $('lb-updated');
+      const lbCountBadge = $('lb-count-badge');
+      const refreshBtn   = $('lb-refresh-btn');
 
-      players.forEach(p => {
-        p.kda     = p.deaths > 0 ? (p.kills + p.assists) / p.deaths : (p.kills + p.assists);
-        p.winRate = p.rounds > 0 ? (p.wins / p.rounds) * 100 : 0;
-      });
-
-      const maxKda     = players.reduce((m, p) => Math.max(m, p.kda),      1);
-      const maxWinRate = players.reduce((m, p) => Math.max(m, p.winRate),   1);
-      const maxRounds  = players.reduce((m, p) => Math.max(m, p.rounds),   1);
-      const maxPt      = players.reduce((m, p) => Math.max(m, p.playtime), 1);
-
-      /* 전역 max 캐시 — 개인 전적 COMBAT RATING 계산에 재사용 */
-      scoreMaxCache = { maxKda, maxWinRate, maxRounds, maxPt };
-
-      players.forEach(p => {
-        p.score   = (p.kda / maxKda) * 40 + (p.winRate / maxWinRate) * 30
-                  + (p.rounds / maxRounds) * 20 + (p.playtime / maxPt) * 10;
-        p._detail = `KDA ${p.kda.toFixed(2)} · 승률 ${p.winRate.toFixed(1)}% · ${p.rounds}판`;
-      });
-
-      return players
-        .sort((a, b) => b.score - a.score)
-        .map(p => ({
-          entry:      p.entry,
-          value:      Math.round(p.score * 10) / 10,
-          updated_at: p.updated_at,
-          _detail:    p._detail,
-        }));
-    }
-
-    async function fetchPlayerAllStats(playerName, signal) {
-      const tables = Object.keys(TABLE_CONFIG);
-      const results = await Promise.allSettled(
-        tables.map(t =>
-          fetch(
-            `${SUPABASE_URL}/rest/v1/${t}?select=entry,value&entry=ilike.${encodeURIComponent(playerName)}`,
-            { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }, signal }
-          ).then(r => r.ok ? r.json() : [])
-        )
-      );
-      const stats = {};
-      let resolvedName = playerName;
-      tables.forEach((t, i) => {
-        const rows = results[i].status === 'fulfilled' ? results[i].value : [];
-        stats[t] = rows.length > 0 ? rows[0].value : null;
-        if (rows.length > 0 && rows[0].entry) resolvedName = rows[0].entry;
-      });
-      return { stats, resolvedName };
-    }
-
-    let allPlayersCache = null;
-
-    async function getAllPlayers() {
-      if (allPlayersCache) return allPlayersCache;
-      try {
-        const rows = await fetchRanking('all_kill');
-        allPlayersCache = rows.map((r, i) => ({ name: r.entry, rank: i + 1 }));
-      } catch {
-        allPlayersCache = [];
-      }
-      return allPlayersCache;
-    }
-
-    const FALLBACK_AVATAR    = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#112"/><text x="16" y="22" text-anchor="middle" fill="#66ff99" font-size="16">?</text></svg>');
-    const FALLBACK_AVATAR_LG = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#112"/><text x="32" y="44" text-anchor="middle" fill="#66ff99" font-size="32">?</text></svg>');
-
-    function avatarUrl(name)   { return `https://mc-heads.net/avatar/${encodeURIComponent(name)}/32`; }
-    function avatarUrlLg(name) { return `https://mc-heads.net/avatar/${encodeURIComponent(name)}/64`; }
-
-    function escHtml(s) {
-      return String(s)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function highlightMatch(name, query) {
-      const idx = name.toLowerCase().indexOf(query.toLowerCase());
-      if (idx < 0) return escHtml(name);
-      return escHtml(name.slice(0, idx))
-        + `<mark>${escHtml(name.slice(idx, idx + query.length))}</mark>`
-        + escHtml(name.slice(idx + query.length));
-    }
-
-    function showToast(msg, icon = '✅', duration = 3000) {
-      const c = document.getElementById('toast-container');
-      if (!c) return;
-      const el = document.createElement('div');
-      el.className = 'toast';
-      el.innerHTML = `<span>${icon}</span><span>${escHtml(msg)}</span>`;
-      c.appendChild(el);
-      setTimeout(() => {
-        el.classList.add('toast-out');
-        el.addEventListener('animationend', () => el.remove(), { once: true });
-      }, duration);
-    }
-
-    /* ══ 자동완성 ══ */
-    const suggestEl   = document.getElementById('search-suggestions');
-    const searchInput = document.getElementById('search-input');
-    let suggestFocusIdx = -1;
-    let suggestItems    = [];
-    let suggestDebounce = null;
-
-    function positionSuggestions() {
-      const rect = searchInput.getBoundingClientRect();
-      suggestEl.style.top   = (rect.bottom + window.scrollY + 6) + 'px';
-      suggestEl.style.left  = (rect.left  + window.scrollX)      + 'px';
-      suggestEl.style.width = rect.width + 'px';
-    }
-
-    function closeSuggestions() {
-      suggestEl.classList.remove('open');
-      suggestEl.innerHTML = '';
-      suggestFocusIdx = -1;
-      suggestItems    = [];
-      searchInput.setAttribute('aria-expanded', 'false');
-    }
-
-    function moveFocus(dir) {
-      const items = suggestEl.querySelectorAll('.suggest-item');
-      if (!items.length) return;
-      if (suggestFocusIdx >= 0) items[suggestFocusIdx].classList.remove('focused');
-      suggestFocusIdx = (suggestFocusIdx + dir + items.length) % items.length;
-      items[suggestFocusIdx].classList.add('focused');
-      items[suggestFocusIdx].scrollIntoView({ block: 'nearest' });
-    }
-
-    async function updateSuggestions(query) {
-      const q = query.trim();
-      if (!q) { closeSuggestions(); return; }
-
-      const players = await getAllPlayers();
-      const filtered = players
-        .filter(p => p.name.toLowerCase().includes(q.toLowerCase()))
-        .sort((a, b) => {
-          const aS = a.name.toLowerCase().startsWith(q.toLowerCase());
-          const bS = b.name.toLowerCase().startsWith(q.toLowerCase());
-          return (aS === bS) ? a.rank - b.rank : aS ? -1 : 1;
-        })
-        .slice(0, 8);
-
-      if (!filtered.length) {
-        suggestEl.innerHTML = `<div class="suggest-empty">🔍 "${escHtml(q)}"와 일치하는 플레이어가 없습니다</div>`;
-        positionSuggestions();
-        suggestEl.classList.add('open');
-        searchInput.setAttribute('aria-expanded', 'true');
-        suggestItems = [];
-        return;
+      /* ── 카운트업 애니메이션 ── */
+      function countUp(el, target, isFloat, duration) {
+        const start    = performance.now();
+        const isNum    = !isNaN(parseFloat(target));
+        if (!isNum) { el.textContent = target; return; }
+        const numTarget = parseFloat(target);
+        const suffix    = target.replace(/[\d.,]+/, '').trim();
+        const tick = now => {
+          const t    = Math.min((now - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - t, 3);
+          const val  = numTarget * ease;
+          el.textContent = (isFloat ? val.toFixed(isFloat) : Math.round(val).toLocaleString()) + (suffix ? ' ' + suffix : '');
+          if (t < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
       }
 
-      suggestEl.innerHTML = filtered.map((p, i) => `
-        <div class="suggest-item" role="option" data-name="${escHtml(p.name)}" data-idx="${i}" tabindex="-1">
-          <img class="suggest-avatar" src="${avatarUrl(p.name)}" alt=""
-            onerror="this.src='${FALLBACK_AVATAR}'" loading="lazy">
-          <span class="suggest-name">${highlightMatch(p.name, q)}</span>
-          <span class="suggest-rank">#${p.rank}</span>
-        </div>
-      `).join('');
-
-      suggestItems = filtered.map(p => p.name);
-      suggestFocusIdx = -1;
-
-      suggestEl.querySelectorAll('.suggest-item').forEach(item => {
-        item.addEventListener('mousedown', e => {
-          e.preventDefault();
-          selectSuggestion(item.dataset.name);
+      /* ── 스탯 박스 스태거 + 카운트업 ── */
+      function animateStatBoxes() {
+        document.querySelectorAll('.stat-box').forEach((box, i) => {
+          setTimeout(() => {
+            box.classList.add('revealed');
+            const valEl = box.querySelector('.stat-value');
+            if (!valEl) return;
+            const raw = valEl.dataset.raw || valEl.textContent;
+            valEl.dataset.raw = raw;
+            const numPart = raw.match(/[\d.]+/);
+            if (!numPart) return;
+            const isFloat = raw.includes('.') ? (raw.split('.')[1]?.replace(/\D/g,'').length || 1) : false;
+            countUp(valEl, raw, isFloat, 600);
+          }, i * 60);
         });
-      });
-
-      positionSuggestions();
-      suggestEl.classList.add('open');
-      searchInput.setAttribute('aria-expanded', 'true');
-    }
-
-    function selectSuggestion(name) {
-      searchInput.value = name;
-      closeSuggestions();
-      searchPlayer(name);
-    }
-
-    /* ══ RANKING RENDER ══ */
-    let currentTable  = 'score';
-    let rankCache     = {};
-    let scoreMaxCache = null;
-    let rankAbortCtrl = null;
-
-    async function loadRanking(table) {
-      if (rankAbortCtrl) rankAbortCtrl.abort();
-      rankAbortCtrl = new AbortController();
-      const signal  = rankAbortCtrl.signal;
-
-      currentTable = table;
-
-      const tbody    = document.getElementById('rank-tbody');
-      const top3     = document.getElementById('top3-grid');
-      const colLabel = document.getElementById('rank-col-label');
-      const updated  = document.getElementById('rank-updated');
-      const cfg      = TABLE_CONFIG[table];
-
-      colLabel.textContent = cfg.label;
-
-      if (rankCache[table]) {
-        renderRanking(rankCache[table], table, cfg);
-        return;
       }
 
-      tbody.style.transition = 'opacity 0.15s ease';
-      top3.style.transition  = 'opacity 0.15s ease';
-      tbody.style.opacity = '0';
-      top3.style.opacity  = '0';
-      await new Promise(r => setTimeout(r, 150));
+      /* ── Supabase 조회 ── */
+      async function fetchTable(table) {
+        const url = `${SUPABASE_URL}/rest/v1/${table}?select=entry,value&order=value.desc&limit=200`;
+        const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
+        if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + table);
+        return res.json();
+      }
 
-      tbody.innerHTML = Array(10).fill('<tr><td colspan="3"><div class="skeleton-row skeleton"></div></td></tr>').join('');
-      top3.innerHTML  = Array(3).fill('<div class="skeleton-card skeleton"></div>').join('');
-      tbody.style.opacity = '1';
-      top3.style.opacity  = '1';
+      async function loadData(force = false) {
+        if (fetching) return;
+        if (allPlayers && !force) return;
+        fetching = true;
+        showSkeletons();
+        try {
+          const tables  = ['all_kill','all_death','kill_assist_all','win_count','round_count','playTime_H'];
+          const settled = await Promise.allSettled(tables.map(t => fetchTable(t)));
+          const [killR, deathR, assistR, winR, roundR, ptR] =
+            settled.map(r => r.status === 'fulfilled' ? r.value : []);
 
-      try {
-        const rows = table === 'score' ? await fetchScoreRanking(signal)
-          : table === 'kda'   ? await fetchKdaRanking(signal)
-          : await fetchRanking(table, signal);
-        if (signal.aborted) return;
+          const map = {};
+          const ensure = n => { if (!map[n]) map[n] = { name:n, kills:0, deaths:0, assists:0, wins:0, rounds:0, playtime:0 }; };
+          killR?.forEach(r   => { ensure(r.entry); map[r.entry].kills    = +r.value; });
+          deathR?.forEach(r  => { ensure(r.entry); map[r.entry].deaths   = +r.value; });
+          assistR?.forEach(r => { ensure(r.entry); map[r.entry].assists  = +r.value; });
+          winR?.forEach(r    => { ensure(r.entry); map[r.entry].wins     = +r.value; });
+          roundR?.forEach(r  => { ensure(r.entry); map[r.entry].rounds   = +r.value; });
+          ptR?.forEach(r     => { ensure(r.entry); map[r.entry].playtime = +r.value; });
 
-        rankCache[table] = rows;
-        if (table === 'all_kill') {
-          allPlayersCache = rows.map((r, i) => ({ name: r.entry, rank: i + 1 }));
+          const players = Object.values(map).filter(p => p.rounds > 0 || p.kills > 0);
+          players.forEach(p => {
+            p.kda     = p.deaths > 0 ? (p.kills + p.assists) / p.deaths : (p.kills + p.assists);
+            p.winRate = p.rounds > 0 ? (p.wins / p.rounds) * 100 : 0;
+          });
+
+          const maxKda     = Math.max(1, ...players.map(p => p.kda));
+          const maxWinRate = Math.max(1, ...players.map(p => p.winRate));
+          const maxRounds  = Math.max(1, ...players.map(p => p.rounds));
+          const maxPt      = Math.max(1, ...players.map(p => p.playtime));
+          players.forEach(p => {
+            p.score = Math.round(
+              ((p.kda / maxKda) * 40 + (p.winRate / maxWinRate) * 30 +
+               (p.rounds / maxRounds) * 20 + (p.playtime / maxPt) * 10) * 10
+            ) / 10;
+          });
+
+          allPlayers = players;
+
+          const now = new Date();
+          lbUpdated.textContent = '· ' + now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) + ' 기준';
+          lbCountBadge.textContent = players.length + '명';
+          lbCountBadge.style.display = '';
+
+          renderTable(currentTab);
+          if (searchedName) performSearch(searchedName, false);
+        } catch (err) {
+          showTableError(err.message);
+          console.error('[Ranking] loadData error:', err);
+        } finally {
+          fetching = false;
+          setRefreshState(false);
         }
-        if (table === 'score' && !allPlayersCache) {
-          allPlayersCache = rows.map((r, i) => ({ name: r.entry, rank: i + 1 }));
-        }
-
-        renderRanking(rows, table, cfg);
-
-      } catch (err) {
-        if (signal.aborted) return;
-        tbody.innerHTML = `<tr><td colspan="3"><div class="rank-empty"><span class="rank-empty-icon">⚠️</span>데이터를 불러오지 못했습니다.</div></td></tr>`;
-        top3.innerHTML  = '';
-        updated.textContent = '로딩 실패';
-        console.error('Ranking fetch error:', err);
-        showToast('랭킹 데이터를 불러오지 못했습니다.', '⚠️');
-      }
-    }
-
-    function updateRankHeader(table) {
-      const cfg    = TABLE_CONFIG[table];
-      const inner  = document.getElementById('rank-header-inner');
-      const icon   = document.getElementById('rank-header-icon');
-      const label  = document.getElementById('rank-header-label');
-      const unit   = document.getElementById('rank-header-unit');
-      const desc   = document.getElementById('rank-header-desc');
-      if (!inner) return;
-
-      inner.classList.remove('rank-header-inner');
-      void inner.offsetWidth;
-      inner.classList.add('rank-header-inner');
-
-      icon.textContent  = cfg.icon  || '📊';
-      label.textContent = cfg.label || table;
-      unit.textContent  = 'RANKING';
-      desc.textContent  = cfg.desc  || '';
-    }
-
-    function renderRanking(rows, table, cfg) {
-      updateRankHeader(table);
-      const tbody   = document.getElementById('rank-tbody');
-      const top3    = document.getElementById('top3-grid');
-      const updated = document.getElementById('rank-updated');
-
-      if (!rows || rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3"><div class="rank-empty"><span class="rank-empty-icon">📊</span>데이터가 없습니다.</div></td></tr>`;
-        top3.innerHTML  = '';
-        updated.textContent = '데이터 없음';
-        return;
       }
 
-      if (rows[0]?.updated_at) {
-        updated.textContent = `마지막 갱신: ${new Date(rows[0].updated_at).toLocaleString('ko-KR')}`;
-      }
+      function renderTable(tab) {
+        currentTab = tab;
+        if (!allPlayers) return;
 
-      const medals      = ['🥇', '🥈', '🥉'];
-      const rankClasses = ['rank-1', 'rank-2', 'rank-3'];
-      const delays      = [0, 100, 200];
-      const top3Data    = rows.slice(0, 3);
-      const displayOrder = [top3Data[1], top3Data[0], top3Data[2]].filter(Boolean);
+        const cfg = TAB_CFG[tab];
+        lbColLabel.textContent = cfg.col;
 
-      top3.innerHTML = displayOrder.map(row => {
-        const oi = rows.indexOf(row);
-        return `
-          <div class="top3-card ${rankClasses[oi]}"
-            role="button" tabindex="0"
-            data-player="${escHtml(row.entry)}"
-            style="animation-delay:${delays[oi]}ms">
-            <span class="top3-medal" aria-hidden="true">${medals[oi]}</span>
-            <img class="top3-avatar" src="${avatarUrl(row.entry)}" alt="${escHtml(row.entry)}"
-              onerror="this.src='${FALLBACK_AVATAR}'">
-            <div class="top3-name">${escHtml(row.entry)}</div>
-            <div class="top3-value">${cfg.format(row.value)}${cfg.unit}</div>
-            ${row._detail ? `<div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:4px;letter-spacing:0.5px">${escHtml(row._detail)}</div>` : ''}
-          </div>`;
-      }).join('');
+        const key = { score:'score', all_kill:'kills', all_death:'deaths',
+                      kill_assist_all:'assists', round_count:'rounds',
+                      win_count:'wins', playTime_H:'playtime', kda:'kda' }[tab];
+        const sorted   = [...allPlayers].sort((a, b) => b[key] - a[key]);
+        const medals   = ['🥇','🥈','🥉'];
+        const topClass = ['rank-top1','rank-top2','rank-top3'];
+        const lowSearch = searchedName.toLowerCase();
 
-      requestAnimationFrame(() => {
-        top3.querySelectorAll('.top3-card').forEach(c => c.classList.add('animate-in'));
-      });
+        lbTbody.innerHTML = sorted.map((p, i) => {
+          const val       = p[key];
+          const rankHtml  = i < 3
+            ? `<span class="rank-medal">${medals[i]}</span>`
+            : `<span class="rank-pos">${i + 1}</span>`;
+          const safeName  = escHtml(p.name);
+          const isSearched = lowSearch && p.name.toLowerCase() === lowSearch;
+          const nameClass  = isSearched ? 'player-cell-name is-searched' : 'player-cell-name';
+          const rowExtra   = [
+            isSearched ? 'row-highlighted' : '',
+            i < 3 ? topClass[i] : '',
+          ].filter(Boolean).join(' ');
 
-      if (rows.length <= 3) {
-        tbody.innerHTML = `<tr><td colspan="3"><div class="rank-empty" style="padding:24px 0"><span style="color:var(--text-dim);font-family:var(--mono);font-size:11px;letter-spacing:1px">상위 3명만 존재합니다</span></div></td></tr>`;
-        return;
-      }
+          /* 행 진입 delay */
+          const delay = Math.min(i * 28, 400);
 
-      tbody.innerHTML = rows.slice(3).map((row, i) => {
-        const rank  = i + 4;
-        const delay = Math.min(i * 25, 300);
-        return `
-          <tr class="rank-row-anim" style="animation-delay:${delay}ms">
-            <td><span class="rank-num">${rank}</span></td>
+          return `<tr class="${rowExtra}" data-player="${safeName}" style="animation-delay:${delay}ms">
+            <td class="col-rank">${rankHtml}</td>
             <td>
-              <div class="player-cell" role="button" tabindex="0" data-player="${escHtml(row.entry)}">
-                <img class="player-avatar" src="${avatarUrl(row.entry)}" alt="${escHtml(row.entry)}"
-                  onerror="this.src='${FALLBACK_AVATAR}'" loading="lazy">
-                <span class="player-name">${escHtml(row.entry)}</span>
+              <div class="player-cell">
+                <img src="https://mc-heads.net/avatar/${encodeURIComponent(p.name)}/32"
+                     alt="${safeName}" onerror="this.src='${FALLBACK_AV}'" loading="lazy">
+                <span class="${nameClass}">${safeName}</span>
               </div>
             </td>
-            <td>
-              <span style="font-size:20px">${cfg.format(row.value)}</span>
-              <span style="font-family:var(--mono);font-size:14px;color:var(--text-dim);margin-left:3px">${cfg.unit}</span>
-              ${row._detail ? `<div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:2px">${escHtml(row._detail)}</div>` : ''}
-            </td>
+            <td class="col-val">${cfg.fmt(val)}</td>
           </tr>`;
-      }).join('');
-    }
+        }).join('');
 
-    /* ══ PLAYER SEARCH ══ */
-    let searchAbortCtrl = null;
+        lbTbody.querySelectorAll('tr[data-player]').forEach(row => {
+          row.addEventListener('click', () => {
+            const name = row.dataset.player;
+            searchInput.value = name;
+            searchClear.classList.add('visible');
+            performSearch(name, true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        });
+      }
 
-    async function searchPlayer(name) {
-      name = name.trim();
-      if (!name) return;
-
-      if (searchAbortCtrl) searchAbortCtrl.abort();
-      searchAbortCtrl = new AbortController();
-      const signal    = searchAbortCtrl.signal;
-
-      const panel    = document.getElementById('profile-panel');
-      const notFound = document.getElementById('search-not-found');
-      const statsEl  = document.getElementById('profile-stats');
-      const nameEl   = document.getElementById('profile-name');
-      const subEl    = document.getElementById('profile-sub');
-      const avatarEl = document.getElementById('profile-avatar');
-      const headerEl = document.querySelector('.profile-header');
-
-      searchInput.value = name;
-      closeSuggestions();
-
-      notFound.classList.remove('visible');
-      panel.classList.remove('visible', 'closing');
-
-      nameEl.textContent  = name;
-      subEl.textContent   = '불러오는 중...';
-      avatarEl.src        = FALLBACK_AVATAR_LG;
-      statsEl.innerHTML   = Array(8).fill('<div class="stat-card skeleton" style="height:80px;border:none"></div>').join('');
-
-      headerEl.classList.add('loading');
-      panel.classList.add('visible', 'loading');
-
-      try {
-        const { stats, resolvedName } = await fetchPlayerAllStats(name, signal);
-        if (signal.aborted) return;
-
-        const hasAny = Object.values(stats).some(v => v !== null);
-
-        if (!hasAny) {
-          headerEl.classList.remove('loading');
-          panel.classList.remove('visible', 'loading');
-          notFound.classList.add('visible');
+      function performSearch(name, triggerScroll) {
+        name = name.trim();
+        if (!name) {
+          playerCard.classList.remove('visible');
+          playerNF.classList.remove('visible');
+          searchedName = '';
+          searchClear.classList.remove('visible');
+          if (allPlayers) renderTable(currentTab);
           return;
         }
+        searchedName = name;
+        searchClear.classList.add('visible');
+        if (!allPlayers) return;
 
-        const newAvatar = new Image();
-        newAvatar.src     = avatarUrlLg(resolvedName);
-        const onAvatarDone = () => headerEl.classList.remove('loading');
-        newAvatar.onload  = () => { if (!signal.aborted) { avatarEl.src = newAvatar.src; onAvatarDone(); } };
-        newAvatar.onerror = onAvatarDone;
-
-        searchInput.value  = resolvedName;
-        nameEl.textContent = resolvedName;
-
-        const wins    = stats['win_count']       ?? 0;
-        const rounds  = stats['round_count']     ?? 0;
-        const kills   = stats['all_kill']         ?? 0;
-        const deaths  = stats['all_death']        ?? 0;
-        const assists = stats['kill_assist_all']  ?? 0;
-
-        const winRate = rounds > 0 ? ((wins / rounds) * 100).toFixed(1) : '—';
-        const kd      = deaths > 0 ? (kills / deaths).toFixed(2) : kills > 0 ? '∞' : '—';
-
-        const ptRaw  = stats['playTime_H'];
-        const ptFmt  = ptRaw !== null ? TABLE_CONFIG['playTime_H'].format(ptRaw) + 'h' : '—';
-
-        /* [FIX] COMBAT RATING 계산 — scoreMaxCache 활용, 단위 CR */
-        let scoreVal = '—';
-        let scoreSub = 'COMBAT RATING';
-        if (scoreMaxCache && (rounds > 0 || kills > 0)) {
-          const kdaRaw     = deaths > 0 ? (kills + assists) / deaths : (kills + assists);
-          const winRateRaw = rounds > 0 ? (wins / rounds) * 100 : 0;
-          const ptRaw2     = stats['playTime_H'] ?? 0;
-          const computed   = (kdaRaw / scoreMaxCache.maxKda) * 40
-                           + (winRateRaw / scoreMaxCache.maxWinRate) * 30
-                           + (rounds / scoreMaxCache.maxRounds) * 20
-                           + (ptRaw2 / scoreMaxCache.maxPt) * 10;
-          scoreVal = (Math.round(computed * 10) / 10).toFixed(1) + ' CR';
-
-          if (rankCache['score']) {
-            const idx = rankCache['score'].findIndex(r => r.entry.toLowerCase() === resolvedName.toLowerCase());
-            if (idx >= 0) scoreSub = `전체 ${idx + 1}위`;
-          }
+        const found = allPlayers.find(p => p.name.toLowerCase() === name.toLowerCase());
+        if (found) {
+          renderPlayerCard(found);
+          playerNF.classList.remove('visible');
+          if (triggerScroll) playerCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          playerCard.classList.remove('visible');
+          playerNF.classList.add('visible');
         }
+        renderTable(currentTab);
+      }
 
-        const statDefs = [
-          { label: 'CR',        value: scoreVal,                  cls: 'gold', sub: scoreSub },
-          { label: 'Kill',      value: kills.toLocaleString(),    cls: 'red',  sub: '총 킬' },
-          { label: 'Death',     value: deaths.toLocaleString(),   cls: '',     sub: '총 데스' },
-          { label: 'Assist',    value: assists.toLocaleString(),  cls: 'blue', sub: '총 어시스트' },
-          { label: 'K/D',       value: kd,                        cls: 'gold', sub: '킬/데스 비율' },
-          { label: 'Wins',      value: wins.toLocaleString(),     cls: 'gold', sub: '승리' },
-          { label: 'Rounds',    value: rounds.toLocaleString(),   cls: '',     sub: '총 플레이 수' },
-          { label: 'Win Rate',  value: winRate !== '—' ? `${winRate}%` : '—',
-            cls: winRate !== '—' && parseFloat(winRate) >= 50 ? 'gold' : '', sub: '승률' },
-          { label: 'Play Time', value: ptFmt, cls: 'blue', sub: '총 플레이타임' },
-        ];
+      function renderPlayerCard(p) {
+        const scoreRank = [...allPlayers].sort((a, b) => b.score - a.score)
+                                         .findIndex(x => x.name === p.name) + 1;
+        const wr = p.rounds > 0 ? (p.wins / p.rounds * 100).toFixed(1) : '0.0';
 
-        statsEl.innerHTML = statDefs.map((s, i) => `
-          <div class="stat-card" role="listitem"
-            style="animation: statCardIn 0.28s ${i * 45}ms cubic-bezier(0.23,1,0.32,1) both">
-            <div class="stat-label">${escHtml(s.label)}</div>
-            <div class="stat-value ${s.cls}">${escHtml(String(s.value))}</div>
-            <div class="stat-sub">${escHtml(s.sub)}</div>
+        $('player-avatar').src = `https://mc-heads.net/avatar/${encodeURIComponent(p.name)}/100`;
+        $('player-avatar').onerror = function() { this.src = FALLBACK_AV; };
+        $('player-name').textContent = p.name;
+        $('player-cr').textContent   = `COMBAT RATING · ${p.score.toFixed(1)} CR`;
+        $('player-wr').textContent   = `WIN RATE · ${wr}%  (${p.wins}W / ${p.rounds}G)`;
+        $('player-rank-badge').textContent = scoreRank > 0 ? '#' + scoreRank : '';
+
+        /* stat-box — data-raw 속성으로 카운트업 원본값 보존 */
+        $('player-stats-grid').innerHTML = [
+          { label:'킬',       val: p.kills.toLocaleString(),   raw: p.kills,           cls:''       },
+          { label:'데스',     val: p.deaths.toLocaleString(),  raw: p.deaths,           cls:''       },
+          { label:'어시스트', val: p.assists.toLocaleString(), raw: p.assists,          cls:''       },
+          { label:'KDA',      val: p.kda.toFixed(2),           raw: p.kda.toFixed(2),   cls:'kda-val'},
+          { label:'승률',     val: wr + '%',                   raw: wr,                 cls:'wr-val' },
+          { label:'플레이',   val: p.rounds + ' 판',           raw: p.rounds,           cls:''       },
+          { label:'승리',     val: p.wins + ' 승',             raw: p.wins,             cls:''       },
+          { label:'타임',     val: p.playtime + ' h',          raw: p.playtime,         cls:''       },
+          { label:'CR',       val: p.score.toFixed(1),         raw: p.score.toFixed(1), cls:'cr-val' },
+        ].map(s => `
+          <div class="stat-box">
+            <div class="stat-label">${s.label}</div>
+            <div class="stat-value ${s.cls}" data-raw="${s.raw}">${s.val}</div>
           </div>`).join('');
 
-        subEl.textContent = '마지막 갱신 데이터 기준';
-        panel.classList.remove('loading');
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-      } catch (err) {
-        if (signal.aborted) return;
-        panel.classList.remove('visible', 'loading');
-        notFound.classList.add('visible');
-        console.error('Search error:', err);
+        playerCard.classList.add('visible');
+        /* 카드가 DOM에 붙은 뒤 애니메이션 실행 */
+        requestAnimationFrame(() => requestAnimationFrame(animateStatBoxes));
       }
-    }
 
-    function highlightPlayerInTable(playerName) {
-      const top3Cards = document.querySelectorAll('#top3-grid .top3-card');
-      let found = false;
-      top3Cards.forEach(card => {
-        if (card.querySelector('.top3-name')?.textContent.trim().toLowerCase() === playerName.toLowerCase()) {
-          card.classList.add('card-highlight');
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          found = true;
-          setTimeout(() => card.classList.remove('card-highlight'), 2200);
+      function showSkeletons() {
+        lbTbody.innerHTML = Array(10).fill('').map(() => `
+          <tr class="skel-row">
+            <td><div class="skeleton skeleton-cell" style="width:28px"></div></td>
+            <td><div class="skeleton skeleton-cell" style="width:min(180px,50%)"></div></td>
+            <td style="text-align:right"><div class="skeleton skeleton-cell" style="width:60px;margin-left:auto"></div></td>
+          </tr>`).join('');
+      }
+
+      function showTableError(msg) {
+        lbTbody.innerHTML = `<tr class="skel-row"><td colspan="3"><div class="lb-empty">
+          <span class="lb-empty-icon">⚠️</span>
+          <p class="lb-empty-text">데이터를 불러오지 못했습니다</p>
+          <p class="lb-empty-sub">${escHtml(msg)}</p>
+        </div></td></tr>`;
+      }
+
+      function setRefreshState(on) {
+        refreshBtn.disabled = on;
+        refreshBtn.classList.toggle('spinning', on);
+      }
+
+      function escHtml(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function handleUrlParams() {
+        const params = new URLSearchParams(location.search);
+        const tab    = params.get('tab');
+        const player = params.get('player');
+        if (tab && TAB_CFG[tab]) {
+          document.querySelectorAll('.lb-tab').forEach(t => {
+            const active = t.dataset.tab === tab;
+            t.classList.toggle('active', active);
+            t.setAttribute('aria-selected', String(active));
+          });
+          currentTab = tab;
         }
-      });
-      if (found) return;
-
-      document.querySelectorAll('#rank-tbody tr').forEach(row => {
-        if (row.querySelector('.player-name')?.textContent.trim().toLowerCase() === playerName.toLowerCase()) {
-          row.classList.add('rank-row-highlight');
-          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          setTimeout(() => row.classList.remove('rank-row-highlight'), 2200);
+        if (player) {
+          searchInput.value = player;
+          searchedName = player;
+          searchClear.classList.add('visible');
         }
-      });
-    }
+      }
 
-    function handleUrlParams() {
-      const params = new URLSearchParams(location.search);
-      const player = params.get('player');
-      const tab    = params.get('tab');
-      if (!player) return;
-
-      const targetTab = tab && TABLE_CONFIG[tab] ? tab : 'score';
-
-      document.querySelectorAll('.rank-tab').forEach(t => {
-        const active = t.dataset.table === targetTab;
-        t.classList.toggle('active', active);
-        t.setAttribute('aria-selected', String(active));
-      });
-
-      loadRanking(targetTab).then(() => {
-        searchPlayer(player).then(() => setTimeout(() => highlightPlayerInTable(player), 400));
-      });
-    }
-
-    function initScrollProgress() {
-      const bar = document.getElementById('scroll-progress');
-      if (!bar) return;
-      window.addEventListener('scroll', () => {
-        const docH = document.documentElement.scrollHeight - innerHeight;
-        bar.style.width = (docH > 0 ? (scrollY / docH) * 100 : 0) + '%';
-      }, { passive: true });
-    }
-
-    function initParticles() {
-      const canvas = document.createElement('canvas');
-      canvas.setAttribute('aria-hidden', 'true');
-      canvas.style.cssText = 'position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.35;';
-      document.body.insertBefore(canvas, document.body.firstChild);
-      const ctx = canvas.getContext('2d');
-      let W, H, pts;
-      const resize = () => { W = canvas.width = innerWidth; H = canvas.height = innerHeight; };
-      resize();
-      pts = Array.from({ length: Math.min(Math.floor((innerWidth * innerHeight) / 14000), 60) }, () => ({
-        x: Math.random() * innerWidth, y: Math.random() * innerHeight,
-        vx: (Math.random() - 0.5) * 0.25, vy: (Math.random() - 0.5) * 0.25,
-        r: Math.random() * 1.2 + 0.3, alpha: Math.random() * 0.4 + 0.1,
-      }));
-      let rafId;
-      const draw = () => {
-        ctx.clearRect(0, 0, W, H);
-        pts.forEach(p => {
-          p.x += p.vx; p.y += p.vy;
-          if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-          if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(34,197,94,${p.alpha})`;
-          ctx.fill();
-        });
-        rafId = requestAnimationFrame(draw);
-      };
-      draw();
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) cancelAnimationFrame(rafId);
-        else draw();
-      });
-      window.addEventListener('resize', resize, { passive: true });
-    }
-
-    function initAurora() {
-      const el = document.createElement('div');
-      el.setAttribute('aria-hidden', 'true');
-      el.style.cssText = `position:fixed;width:500px;height:500px;border-radius:50%;
-        pointer-events:none;z-index:0;transform:translate(-50%,-50%);
-        background:radial-gradient(circle,rgba(34,197,94,0.06) 0%,transparent 70%);
-        will-change:transform;`;
-      document.body.appendChild(el);
-      let ax = innerWidth / 2, ay = innerHeight / 2, tx = ax, ty = ay;
-      window.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; }, { passive: true });
-      (function tick() {
-        ax += (tx - ax) * 0.06; ay += (ty - ay) * 0.06;
-        el.style.left = ax + 'px'; el.style.top = ay + 'px';
-        requestAnimationFrame(tick);
-      })();
-    }
-
-    function initCursor() {
-      const ring = document.getElementById('cursor-ring');
-      if (!ring || window.matchMedia('(pointer: coarse)').matches) return;
-      let rx = 0, ry = 0, mx = 0, my = 0;
-      const HOVER_TARGETS = 'a,button,[role="button"],[tabindex="0"]';
-      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-      document.addEventListener('mousedown', () => ring.classList.add('state-click'));
-      document.addEventListener('mouseup',   () => ring.classList.remove('state-click'));
-      document.addEventListener('mouseover', e => {
-        if (e.target.closest(HOVER_TARGETS)) ring.classList.add('state-hover');
-      });
-      document.addEventListener('mouseout', e => {
-        if (e.target.closest(HOVER_TARGETS)) ring.classList.remove('state-hover');
-      });
-      (function loop() {
-        rx += (mx - rx) * 0.13; ry += (my - ry) * 0.13;
-        ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
-        requestAnimationFrame(loop);
-      })();
-    }
-
-    /* ══ INIT ══ */
-    document.addEventListener('DOMContentLoaded', () => {
-
-      document.getElementById('rank-tabs').addEventListener('click', e => {
-        const tab = e.target.closest('.rank-tab');
-        if (!tab) return;
-        if (tab.classList.contains('active') && rankCache[tab.dataset.table]) return;
-        document.querySelectorAll('.rank-tab').forEach(t => {
+      /* 탭 전환 */
+      $('lb-tab-bar').addEventListener('click', e => {
+        const tab = e.target.closest('.lb-tab');
+        if (!tab || tab.classList.contains('active')) return;
+        document.querySelectorAll('.lb-tab').forEach(t => {
           t.classList.remove('active');
           t.setAttribute('aria-selected', 'false');
         });
         tab.classList.add('active');
         tab.setAttribute('aria-selected', 'true');
-        loadRanking(tab.dataset.table);
+        renderTable(tab.dataset.tab);
       });
 
-      document.getElementById('top3-grid').addEventListener('click', e => {
-        const card = e.target.closest('[data-player]');
-        if (card) searchPlayer(card.dataset.player);
-      });
-      document.getElementById('top3-grid').addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          const card = e.target.closest('[data-player]');
-          if (card) { e.preventDefault(); searchPlayer(card.dataset.player); }
-        }
-      });
-      document.getElementById('rank-tbody').addEventListener('click', e => {
-        const cell = e.target.closest('[data-player]');
-        if (cell) searchPlayer(cell.dataset.player);
-      });
-      document.getElementById('rank-tbody').addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          const cell = e.target.closest('[data-player]');
-          if (cell) { e.preventDefault(); searchPlayer(cell.dataset.player); }
-        }
+      /* 새로고침 */
+      refreshBtn.addEventListener('click', () => {
+        if (refreshLocked) return;
+        refreshLocked = true;
+        setRefreshState(true);
+        allPlayers = null;
+        loadData(true).finally(() => {
+          setTimeout(() => { refreshLocked = false; }, 8000);
+        });
       });
 
-      document.getElementById('search-btn').addEventListener('click', () => {
-        if (suggestFocusIdx >= 0 && suggestItems[suggestFocusIdx]) {
-          selectSuggestion(suggestItems[suggestFocusIdx]);
-        } else if (suggestItems.length > 0) {
-          selectSuggestion(suggestItems[0]);
-        } else {
-          const v = searchInput.value.trim();
-          if (v) searchPlayer(v);
-        }
-      });
-
-      searchInput.addEventListener('input', () => {
-        clearTimeout(suggestDebounce);
-        suggestDebounce = setTimeout(() => updateSuggestions(searchInput.value), 180);
-      });
-
+      /* 검색 */
+      searchBtn.addEventListener('click', () => performSearch(searchInput.value, true));
       searchInput.addEventListener('keydown', e => {
-        if (suggestEl.classList.contains('open')) {
-          if (e.key === 'ArrowDown') { e.preventDefault(); moveFocus(1);  return; }
-          if (e.key === 'ArrowUp')   { e.preventDefault(); moveFocus(-1); return; }
-          if (e.key === 'Escape')    { closeSuggestions(); return; }
-          if (e.key === 'Enter' && suggestFocusIdx >= 0 && suggestItems[suggestFocusIdx]) {
-            e.preventDefault();
-            selectSuggestion(suggestItems[suggestFocusIdx]);
-            return;
-          }
-        }
-        if (e.key === 'Enter') {
-          const v = searchInput.value.trim();
-          if (suggestItems.length > 0) selectSuggestion(suggestItems[0]);
-          else if (v) searchPlayer(v);
-        }
+        if (e.key === 'Enter') performSearch(searchInput.value, true);
+        if (e.key === 'Escape') { searchInput.value = ''; performSearch('', false); }
+      });
+      searchInput.addEventListener('input', () => {
+        searchClear.classList.toggle('visible', searchInput.value.length > 0);
+      });
+      searchClear.addEventListener('click', () => {
+        searchInput.value = '';
+        performSearch('', false);
+        searchInput.focus();
       });
 
-      document.addEventListener('click', e => {
-        if (!e.target.closest('.search-input-wrap')) closeSuggestions();
-      });
 
-      window.addEventListener('scroll', () => {
-        if (suggestEl.classList.contains('open')) closeSuggestions();
-      }, { passive: true });
+      /* ════════════════════════════════════════
+         SEARCH SUGGESTIONS
+      ════════════════════════════════════════ */
+      const suggestionsBox  = $('search-suggestions');
+      const suggestionsList = $('suggestions-list');
+      const suggHint        = $('sugg-hint');
+      const FALLBACK_AV_SUGG = FALLBACK_AV;
+      let suggActive = -1;   // 키보드 포커스 인덱스
+      let suggItems  = [];   // 현재 표시된 항목들
 
-      window.addEventListener('resize', () => {
-        if (suggestEl.classList.contains('open')) positionSuggestions();
-      }, { passive: true });
+      function positionSuggestions() {
+        const rect = searchInput.closest('.search-input-wrap').getBoundingClientRect();
+        suggestionsBox.style.top   = (rect.bottom + 6) + 'px';
+        suggestionsBox.style.left  = rect.left + 'px';
+        suggestionsBox.style.width = rect.width + 'px';
+      }
+      function openSuggestions() {
+        positionSuggestions();
+        suggestionsBox.classList.add('open');
+        if (suggItems.length > 0) suggHint.style.display = '';
+      }
+      window.addEventListener('resize', () => { if (suggestionsBox.classList.contains('open')) positionSuggestions(); }, { passive: true });
+      window.addEventListener('scroll', () => { if (suggestionsBox.classList.contains('open')) positionSuggestions(); }, { passive: true });
+      function closeSuggestions() {
+        suggestionsBox.classList.remove('open');
+        suggActive = -1;
+        suggItems  = [];
+      }
 
-      searchInput.addEventListener('focus', () => {
-        if (searchInput.value.trim()) updateSuggestions(searchInput.value);
-      });
+      function renderSuggestions(query) {
+        if (!allPlayers || !query) { closeSuggestions(); return; }
 
-      document.getElementById('profile-close').addEventListener('click', () => {
-        const panel    = document.getElementById('profile-panel');
-        const headerEl = document.querySelector('.profile-header');
-        panel.classList.add('closing');
-        panel.classList.remove('visible');
-        setTimeout(() => {
-          panel.classList.remove('loading', 'closing');
-          document.getElementById('search-not-found').classList.remove('visible');
-          headerEl.classList.remove('loading');
-          searchInput.value = '';
-          closeSuggestions();
-          if (searchAbortCtrl) { searchAbortCtrl.abort(); searchAbortCtrl = null; }
-          document.getElementById('profile-stats').innerHTML = '';
-        }, 400);
-      });
+        const q   = query.toLowerCase();
+        const hits = allPlayers
+          .filter(p => p.name.toLowerCase().includes(q))
+          .sort((a, b) => {
+            /* 시작 일치를 위로 */
+            const aStart = a.name.toLowerCase().startsWith(q);
+            const bStart = b.name.toLowerCase().startsWith(q);
+            if (aStart && !bStart) return -1;
+            if (!aStart && bStart) return 1;
+            return b.score - a.score;
+          })
+          .slice(0, 8);
 
-      const refreshBtn = document.getElementById('rank-refresh-btn');
-      if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
-          rankCache       = {};
-          allPlayersCache = null;
-          scoreMaxCache   = null;
-          refreshBtn.classList.add('spinning');
-          refreshBtn.disabled = true;
-          loadRanking(currentTable).finally(() => {
-            refreshBtn.classList.remove('spinning');
-            refreshBtn.disabled = false;
+        if (!hits.length) { closeSuggestions(); return; }
+
+        suggItems  = hits;
+        suggActive = -1;
+
+        suggestionsList.innerHTML = hits.map((p, i) => {
+          /* 매칭 부분 하이라이트 */
+          const idx  = p.name.toLowerCase().indexOf(q);
+          const name = idx >= 0
+            ? escHtml(p.name.slice(0, idx)) +
+              '<mark>' + escHtml(p.name.slice(idx, idx + q.length)) + '</mark>' +
+              escHtml(p.name.slice(idx + q.length))
+            : escHtml(p.name);
+
+          return `<li class="suggestion-item" role="option" data-idx="${i}" style="animation-delay:${i*30}ms">
+            <img class="sugg-avatar"
+              src="https://mc-heads.net/avatar/${encodeURIComponent(p.name)}/26"
+              alt="" onerror="this.src='${FALLBACK_AV_SUGG}'" loading="lazy">
+            <span class="sugg-name">${name}</span>
+            <span class="sugg-score">${p.score.toFixed(1)} CR</span>
+          </li>`;
+        }).join('');
+
+        /* 클릭 이벤트 */
+        suggestionsList.querySelectorAll('.suggestion-item').forEach(item => {
+          item.addEventListener('mousedown', e => {
+            e.preventDefault(); // blur 방지
+            const idx  = +item.dataset.idx;
+            const name = suggItems[idx]?.name;
+            if (!name) return;
+            searchInput.value = name;
+            searchClear.classList.add('visible');
+            closeSuggestions();
+            performSearch(name, true);
           });
         });
+
+        openSuggestions();
       }
 
-      document.querySelectorAll('.card').forEach((card, i) => {
-        card.style.cssText += ';opacity:0;transform:translateY(20px);transition:opacity 0.5s cubic-bezier(0.23,1,0.32,1),transform 0.5s cubic-bezier(0.23,1,0.32,1)';
-        setTimeout(() => {
-          card.style.opacity   = '1';
-          card.style.transform = 'translateY(0)';
-        }, 80 + i * 80);
+      function moveSuggestion(dir) {
+        if (!suggItems.length) return;
+        const items = suggestionsList.querySelectorAll('.suggestion-item');
+        if (suggActive >= 0) items[suggActive]?.classList.remove('active');
+        suggActive = Math.max(0, Math.min(suggItems.length - 1, suggActive + dir));
+        const active = items[suggActive];
+        active?.classList.add('active');
+        active?.scrollIntoView({ block: 'nearest' });
+        /* 입력창에 미리보기 */
+        searchInput.value = suggItems[suggActive]?.name || searchInput.value;
+      }
+
+      function selectTopSuggestion() {
+        if (suggItems.length === 0) return false;
+        const idx  = suggActive >= 0 ? suggActive : 0;
+        const name = suggItems[idx]?.name;
+        if (!name) return false;
+        searchInput.value = name;
+        searchClear.classList.add('visible');
+        closeSuggestions();
+        performSearch(name, true);
+        return true;
+      }
+
+      /* 기존 input 이벤트에 suggestion 연동 */
+      searchInput.addEventListener('input', () => {
+        searchClear.classList.toggle('visible', searchInput.value.length > 0);
+        renderSuggestions(searchInput.value.trim());
       });
 
-      initScrollProgress();
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        initParticles();
-        initAurora();
-      }
-      initCursor();
+      /* 기존 keydown 이벤트 교체 — Enter 시 suggestion 우선 */
+      searchInput.removeEventListener('keydown', null); // 기존 제거 불가, 새로 override
+      searchInput.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); moveSuggestion(1); return; }
+        if (e.key === 'ArrowUp')   { e.preventDefault(); moveSuggestion(-1); return; }
+        if (e.key === 'Enter') {
+          if (suggestionsBox.classList.contains('open')) {
+            e.preventDefault();
+            if (!selectTopSuggestion()) performSearch(searchInput.value, true);
+          } else {
+            performSearch(searchInput.value, true);
+          }
+          return;
+        }
+        if (e.key === 'Escape') {
+          if (suggestionsBox.classList.contains('open')) { closeSuggestions(); }
+          else { searchInput.value = ''; performSearch('', false); }
+        }
+      }, true); // capture — 기존 listener보다 먼저 실행
 
-      if (new URLSearchParams(location.search).get('player')) {
-        handleUrlParams();
-      } else {
-        loadRanking('score');
-      }
-    });
+      /* 바깥 클릭 시 닫기 */
+      document.addEventListener('click', e => {
+        if (!searchInput.closest('.search-input-wrap').contains(e.target)) closeSuggestions();
+      });
+
+      /* 포커스 시 기존 쿼리로 다시 열기 */
+      searchInput.addEventListener('focus', () => {
+        if (searchInput.value.trim()) renderSuggestions(searchInput.value.trim());
+      });
+
+      handleUrlParams();
+      loadData();
+    })();
   </script>
 </body>
-
 </html>

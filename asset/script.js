@@ -418,7 +418,7 @@ const slider = (() => {
 
     for (let i = 1; i <= total; i++) {
       const img = document.createElement('img');
-      img.src = `image/${i}.png`;
+      img.src = `screenshot/${i}.png`;
       img.alt = `스크린샷 ${i}`;
       img.loading = i === 1 ? 'eager' : 'lazy';
       img.onerror = () => {
