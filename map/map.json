@@ -1,0 +1,319 @@
+[
+    {
+        "index": 0,
+        "title": "루인스",
+        "value": "옛날에 건설된 건축물을 재활용한 맵입니다. 중앙을 둘러싸고있는 다리들이 이맵에 큰 특징이죠.",
+        "by": "THaru_81(타루)",
+        "mapSize": "30 X 30",
+        "CombatDistance": "중거리",
+        "createData": "출시초기",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/1/1.png",
+            "map/1/2.png",
+            "map/1/3.png",
+            "map/1/4.png",
+            "map/1/5.png",
+            "map/1/6.png"
+        ]
+    },
+    {
+        "index": 1,
+        "title": "패스처",
+        "value": "초원을 바탕으로한 맵입니다. 중앙에 강이있고 양 팀쪽에 큰 타워가 있는것이 특징입니다.",
+        "by": "Gam_bler",
+        "mapSize": "50 X 50",
+        "CombatDistance": "근거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/2/1.png",
+            "map/2/2.png",
+            "map/2/3.png",
+            "map/2/4.png",
+            "map/2/5.png"
+        ]
+    },
+    {
+        "index": 2,
+        "title": "필드데스",
+        "value": "잔디가 존나 많은 맵입니다.",
+        "by": "Gam_bler",
+        "mapSize": "60 X 60",
+        "CombatDistance": "근거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/3/1.png",
+            "map/3/2.png",
+            "map/3/3.png",
+            "map/3/4.png",
+            "map/3/5.png"
+        ]
+    },
+    {
+        "index": 3,
+        "title": "데이저트",
+        "value": "사막을 바탕으로 제작된 맵입니다. 우물 주변에 있는 타워들과 엄페물이 많은것이 특징입니다.",
+        "by": "Gam_bler",
+        "mapSize": "60 X 60",
+        "CombatDistance": "근거리, 장거리, 중거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/4/1.png",
+            "map/4/2.png",
+            "map/4/3.png",
+            "map/4/4.png",
+            "map/4/5.png"
+        ]
+    },
+    {
+        "index": 4,
+        "title": "데저트워",
+        "value": "아메리칸 스나이퍼를 모티브로 제작된 맵입니다. 높고 낮은 지형으로 인해 근거리 전투가 자주 일어납니다.",
+        "by": "Cryptic_MC",
+        "mapSize": "55X55",
+        "CombatDistance": "근거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/5/1.png",
+            "map/5/2.png",
+            "map/5/3.png",
+            "map/5/4.png",
+            "map/5/5.png"
+        ]
+    },
+    {
+        "index": 5,
+        "title": "블랙호크다운",
+        "value": "배를 배경으로 제작된 맵입니다. 크기에 비해 매우 좁은 것과 물에 떨어지기 쉬운 맵입니다.",
+        "by": "Cryptic_MC",
+        "mapSize": "50 X 50",
+        "CombatDistance": "근거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/6/1.png",
+            "map/6/2.png",
+            "map/6/3.png",
+            "map/6/4.png",
+            "map/6/5.png"
+        ]
+    },
+    {
+        "index": 6,
+        "title": "툰드라",
+        "value": "러시아 남쪽을 배경으로 한 맵입니다. 나무들이 많고 폭발로 인해 땅이 많이 파손 되어 있는 것이 특징입니다.",
+        "by": "Cryptic_MC",
+        "mapSize": "60 X 60",
+        "CombatDistance": "장거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/7/1.png",
+            "map/7/2.png",
+            "map/7/3.png",
+            "map/7/4.png",
+            "map/7/5.png"
+        ]
+    },
+    {
+        "index": 7,
+        "title": "킹앤퀸",
+        "value": "체스라는 보드 게임을 바탕으로 제작된 맵입니다.",
+        "by": "5star55555(5스타)",
+        "mapSize": "40 X 40",
+        "CombatDistance": "중거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/8/1.png",
+            "map/8/2.png",
+            "map/8/3.png",
+            "map/8/4.png",
+            "map/8/5.png"
+        ]
+    },
+    {
+        "index": 8,
+        "title": "워제트",
+        "value": "알 수 없음",
+        "by": "Cryptic_MC",
+        "mapSize": "70 X 70",
+        "CombatDistance": "장거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": []
+    },
+    {
+        "index": 9,
+        "title": "크래쉬",
+        "value": "비행기가 추락한 정글입니다. 나무 위로 올라가거나, 숨어있을 수 있는 곳이 많은 것이 특징입니다.",
+        "by": "Cryptic_MC",
+        "mapSize": "50 X 50",
+        "CombatDistance": "근거리",
+        "createData": "알 수 없음",
+        "gamemode": "게인 데스메치",
+        "image": [
+            "map/10/1.png",
+            "map/10/2.png",
+            "map/10/3.png",
+            "map/10/4.png"
+        ]
+    },
+    {
+        "index": 10,
+        "title": "워스쿨",
+        "value": "폐허가 된 학교를 배경으로 한 맵입니다. 매우 크고, 떨어질 수 있는 구멍이 많은 것이 특징입니다.",
+        "by": "THaru_81(타루), 가져옴",
+        "mapSize": "약 200 X 125",
+        "CombatDistance": "근거리, 장거리, 중거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/11/1.png",
+            "map/11/2.png",
+            "map/11/3.png",
+            "map/11/4.png",
+            "map/11/5.png"
+        ]
+    },
+    {
+        "index": 11,
+        "title": "에어포스",
+        "value": "작은 공항입니다. 맵이 길고 존 버 자리와 각이 많아 항상 주위를 둘러봐야 합니다. 그래서 이 맵은 총 게임에서 공포 게임을 체험할 수 있습니다.",
+        "by": "Cryptic_MC",
+        "mapSize": "130X64",
+        "CombatDistance": "근거리, 중거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/12/1.png",
+            "map/12/2.png",
+            "map/12/3.png",
+            "map/12/4.png",
+            "map/12/5.png"
+        ]
+    },
+    {
+        "index": 12,
+        "title": "네바다",
+        "value": "옛날 미국 서부시대 배경으로 제작된 맵입니다. 지형이 많이 부셔져있고 뚫려있는 각이 많아 나쁜말로 ㅈ같아 보이는 맵입니다.",
+        "by": "Cryptic_MC",
+        "mapSize": "60X60",
+        "CombatDistance": "장거리, 중거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/13/1.png",
+            "map/13/2.png",
+            "map/13/3.png",
+            "map/13/4.png",
+            "map/13/5.png"
+        ]
+    },
+    {
+        "index": 13,
+        "title": "마인",
+        "value": "리지널 마인크래프트 광산으로 제작된 맵입니다. 맵 곳곳에 재미있는 요소가 있으니 찾아보세요!",
+        "by": "Roland_zero",
+        "mapSize": "60X60",
+        "CombatDistance": "중거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/14/1.png",
+            "map/14/2.png",
+            "map/14/3.png",
+            "map/14/4.png",
+            "map/14/5.png"
+        ]
+    },
+    {
+        "index": 14,
+        "title": "데스폴",
+        "value": "전쟁으로 인해 사람이 살 수 없는 도시가 되어버진 맵입니다. 전장에 불이 많으니 주의하세요!",
+        "by": "bradskGA",
+        "mapSize": "60X60",
+        "CombatDistance": "장거리, 중거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/15/1.png",
+            "map/15/2.png",
+            "map/15/3.png",
+            "map/15/4.png",
+            "map/15/5.png"
+        ]
+    },
+    {
+        "index": 15,
+        "title": "딜리버리",
+        "value": "바다 신전을 배경으로 제작된 맵입니다. 건물 곳곳에 작은 구멍들이 많아 의문사를 당할 수도 있느니 주의하세요!",
+        "by": "iliiililillliili",
+        "mapSize": "70 X 70",
+        "CombatDistance": "장거리, 중거리, 근거리",
+        "createData": "알 수 없음",
+        "gamemode": "게인 데스메치",
+        "image": [
+            "map/16/1.png",
+            "map/16/2.png",
+            "map/16/3.png",
+            "map/16/4.png",
+            "map/16/5.png"
+        ]
+    },
+    {
+        "index": 16,
+        "title": "포보스시티(1단지) - 마켓플레이스",
+        "value": "한때 번영하던 도시, 그러나 치명적 바이러스가 퍼진 후 이름 없는 잿더미만이 남았다.",
+        "by": "Artie21 (외부에서 가져옴)",
+        "mapSize": "230x235",
+        "CombatDistance": "장거리, 중거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/17/1.png",
+            "map/17/2.png",
+            "map/17/3.png",
+            "map/17/4.png",
+            "map/17/5.png"
+        ]
+    },
+    {
+        "index": 17,
+        "title": "포보스시티(2단지) - 파이어브릭 아카데미",
+        "value": "포보스시티 시리스중 2단지 맵입니다. 크게 학교가 있고, 근처에 다양한 건물들이 있습니다.",
+        "by": "Artie21 (외부에서 가져옴)",
+        "mapSize": "215x250",
+        "CombatDistance": "장거리, 중거리",
+        "createData": "알 수 없음",
+        "gamemode": "게인 데스메치",
+        "image": [
+            "map/18/1.png",
+            "map/18/2.png",
+            "map/18/3.png",
+            "map/18/4.png",
+            "map/18/5.png"
+        ]
+    },
+    {
+        "index": 18,
+        "title": "포보스시티(3단지) - 주거단지",
+        "value": "포보스시티 시리스중 3단지 맵입니다. 대부분 모든 건물들이 주거지 이고, 건물들이 많습니다.",
+        "by": "Artie21 (외부에서 가져옴)",
+        "mapSize": "260x260",
+        "CombatDistance": "장거리, 중거리, 근거리",
+        "createData": "알 수 없음",
+        "gamemode": "팀 데스메치",
+        "image": [
+            "map/19/1.png",
+            "map/19/2.png",
+            "map/19/3.png",
+            "map/19/4.png",
+            "map/19/5.png"
+        ]
+    }
+]

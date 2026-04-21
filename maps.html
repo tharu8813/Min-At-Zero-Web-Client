@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maps — Min. At. Zero</title>
+  <meta name="description" content="Min. At. Zero 서버에서 플레이 가능한 다양한 전투 맵을 소개합니다.">
+  <meta name="theme-color" content="#22c55e">
+  <link rel="icon" type="image/png" href="asset/image/icon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="asset/style.css">
+  <style>
+    .page-hero { padding: 44px 0 32px; }
+    .page-title { font-family: 'Rajdhani', sans-serif; font-size: clamp(32px, 8vw, 52px); font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+    .page-title span { color: var(--blue); }
+    .controls-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 30px; gap: 20px; flex-wrap: wrap; animation: fadeInDown 0.6s both; }
+    .view-switcher { display: flex; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 4px; gap: 4px; }
+    .view-btn { width: 38px; height: 38px; border: none; background: none; color: var(--text-dim); cursor: pointer; border-radius: 9px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+    .view-btn.active { background: var(--blue); color: #fff; box-shadow: 0 4px 15px rgba(59,130,246,0.4); }
+    .maps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; margin-top: 20px; transition: opacity 0.3s; }
+    .map-card { padding: 0; cursor: pointer; border-radius: 20px; overflow: hidden; position: relative; background: var(--bg-card); opacity: 0; transform: translateY(30px); transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+    .map-card.revealed { opacity: 1; transform: translateY(0); }
+    .map-thumb-wrap { width: 100%; aspect-ratio: 16/9; overflow: hidden; background: #000; position: relative; }
+    .map-thumb { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s; }
+    .map-card:hover .map-thumb { transform: scale(1.1); }
+    .map-info { padding: 24px; }
+    .map-card-title { font-family: 'Rajdhani', sans-serif; font-size: 24px; font-weight: 700; color: var(--text-primary); }
+    .tag-badge { font-family: var(--mono); font-size: 10px; padding: 3px 9px; border-radius: 5px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-dim); text-transform: uppercase; }
+    .tag-mode { border-color: var(--blue-border); color: #93c5fd; background: var(--blue-glow); }
+    .tag-distance { border-color: var(--green-border); color: var(--green); background: var(--green-glow); }
+    .map-modal-bg { position: fixed; inset: 0; background: rgba(4, 8, 14, 0.95); z-index: 100000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); opacity: 0; visibility: hidden; transition: 0.4s; padding: 20px; }
+    .map-modal-bg.active { opacity: 1; visibility: visible; }
+    .map-modal { background: var(--bg-card); border: 1px solid var(--blue-border); border-radius: 28px; width: 100%; max-width: 850px; max-height: 92vh; overflow-y: auto; position: relative; transform: scale(0.9) translateY(30px); transition: 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
+    .map-modal-bg.active .map-modal { transform: scale(1) translateY(0); }
+    .modal-close { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; font-size: 18px; transition: all 0.3s; }
+    .modal-hero { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; overflow: hidden; }
+    .modal-slider-wrapper { display: flex; width: 100%; height: 100%; transition: transform 0.5s; }
+    .modal-slider-wrapper img { width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; }
+    .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(0,0,0,0.4); color: #fff; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 5; }
+    .modal-hero:hover .slider-btn { display: flex; }
+    .slider-dots { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+    .slider-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: 0.3s; cursor: pointer; }
+    .slider-dot.active { background: var(--blue); width: 20px; border-radius: 3px; }
+    .modal-body { padding: 32px; }
+    .modal-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin: 24px 0; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 20px 0; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-label { font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-transform: uppercase; }
+    .meta-value { font-size: 14px; font-weight: 600; color: var(--blue); }
+    .modal-desc { font-size: 15px; color: var(--text-muted); line-height: 1.8; white-space: pre-line; }
+
+    /* List View Modifier */
+    .maps-grid.view-list { grid-template-columns: 1fr; gap: 16px; }
+    .maps-grid.view-list .map-card { display: flex; align-items: stretch; height: 180px; }
+    .maps-grid.view-list .map-thumb-wrap { width: 320px; aspect-ratio: unset; flex-shrink: 0; }
+    .maps-grid.view-list .map-info { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 32px; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-radial" aria-hidden="true"></div>
+  <div id="scroll-progress" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <header id="header-root" class="header"></header>
+
+    <section class="page-hero">
+      <h2 class="page-title">Battle <span>Maps</span></h2>
+      <p class="page-desc" style="color:var(--text-muted); margin-top:10px;">전용 클라이언트에서 즐길 수 있는 커스텀 전장 목록입니다.</p>
+      
+      <div class="controls-bar">
+        <p style="font-family:var(--mono); font-size:12px; color:var(--text-dim); letter-spacing:1px;">TOTAL <span id="map-count" style="color:var(--blue); font-weight:700;">0</span> MAPS</p>
+        <div class="view-switcher">
+          <button class="view-btn active" id="btn-grid"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></button>
+          <button class="view-btn" id="btn-list"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <div class="maps-grid" id="maps-container">
+      <div class="skeleton-mini-row skeleton" style="height: 320px; border-radius: 20px;"></div>
+    </div>
+
+    <footer id="footer-root" class="footer"></footer>
+  </div>
+
+  <div class="map-modal-bg" id="map-modal">
+    <div class="map-modal">
+      <button class="modal-close" id="modal-close">✕</button>
+      <div class="modal-hero">
+        <div class="modal-slider-wrapper" id="modal-slider"></div>
+        <button class="slider-btn" id="slider-prev" style="left:15px">◀</button>
+        <button class="slider-btn" id="slider-next" style="right:15px">▶</button>
+        <div class="slider-dots" id="slider-dots"></div>
+      </div>
+      <div class="modal-body">
+        <h2 class="modal-title" id="modal-title"></h2>
+        <div class="modal-meta-grid">
+          <div class="meta-item"><span class="meta-label">Created By</span><span class="meta-value" id="modal-by"></span></div>
+          <div class="meta-item"><span class="meta-label">Game Mode</span><span class="meta-value" id="modal-mode"></span></div>
+          <div class="meta-item"><span class="meta-label">Combat Distance</span><span class="meta-value" id="modal-distance"></span></div>
+          <div class="meta-item"><span class="meta-label">Map Size</span><span class="meta-value" id="modal-size"></span></div>
+          <div class="meta-item"><span class="meta-label">Release Date</span><span class="meta-value" id="modal-date"></span></div>
+        </div>
+        <p class="modal-desc" id="modal-desc"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="asset/script.js"></script>
+  <script>
+    (function() {
+      const container = document.getElementById('maps-container');
+      const modal = document.getElementById('map-modal');
+      const modalSlider = document.getElementById('modal-slider');
+      const sliderDots = document.getElementById('slider-dots');
+      
+      let currentSlide = 0, totalSlides = 0, mapData = [];
+
+      function updateSlider() {
+        modalSlider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        document.querySelectorAll('.slider-dot').forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
+      }
+
+      async function loadMaps() {
+        try {
+          const res = await fetch('./map/map.json');
+          mapData = (await res.json()).reverse();
+          document.getElementById('map-count').textContent = mapData.length;
+          container.innerHTML = '';
+          const buster = `?v=${Date.now()}`;
+          mapData.forEach((map, i) => {
+            const card = document.createElement('article');
+            card.className = 'card map-card';
+            setTimeout(() => card.classList.add('revealed'), i * 60);
+            card.innerHTML = `<div class="card-top-bar blue"></div><div class="map-thumb-wrap"><img class="map-thumb" src="${map.image[0]}${buster}"><div class="map-overlay"><span class="map-hint">🔍 VIEW DETAILS</span></div></div><div class="map-info"><h3 class="map-card-title">${map.title}</h3><div class="map-card-by">By ${map.by}</div><div class="tags-row"><span class="tag-badge tag-mode">${map.gamemode}</span><span class="tag-badge tag-distance">${map.CombatDistance}</span><span class="tag-badge">${map.mapSize}</span></div></div>`;
+            card.onclick = () => openModal(map, buster);
+            container.appendChild(card);
+          });
+        } catch (e) { container.innerHTML = 'Error loading maps'; }
+      }
+
+      function openModal(map, buster) {
+        currentSlide = 0; totalSlides = map.image.length;
+        modalSlider.innerHTML = map.image.map(src => `<img src="${src}${buster}">`).join('');
+        sliderDots.innerHTML = map.image.map((_, i) => `<div class="slider-dot ${i===0?'active':''}" onclick="event.stopPropagation();"></div>`).join('');
+        sliderDots.querySelectorAll('.slider-dot').forEach((d, i) => d.onclick = (e) => { e.stopPropagation(); currentSlide=i; updateSlider(); });
+        document.getElementById('modal-title').textContent = map.title;
+        document.getElementById('modal-by').textContent = map.by;
+        document.getElementById('modal-mode').textContent = map.gamemode;
+        document.getElementById('modal-distance').textContent = map.CombatDistance;
+        document.getElementById('modal-size').textContent = map.mapSize;
+        document.getElementById('modal-date').textContent = map.createData;
+        document.getElementById('modal-desc').textContent = map.value;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        updateSlider();
+      }
+
+      document.getElementById('modal-close').onclick = () => { modal.classList.remove('active'); document.body.style.overflow = ''; };
+      document.getElementById('slider-prev').onclick = (e) => { e.stopPropagation(); currentSlide=(currentSlide-1+totalSlides)%totalSlides; updateSlider(); };
+      document.getElementById('slider-next').onclick = (e) => { e.stopPropagation(); currentSlide=(currentSlide+1)%totalSlides; updateSlider(); };
+      document.getElementById('btn-grid').onclick = () => { container.classList.remove('view-list'); document.getElementById('btn-grid').classList.add('active'); document.getElementById('btn-list').classList.remove('active'); };
+      document.getElementById('btn-list').onclick = () => { container.classList.add('view-list'); document.getElementById('btn-list').classList.add('active'); document.getElementById('btn-grid').classList.remove('active'); };
+      
+      document.addEventListener('DOMContentLoaded', loadMaps);
+    })();
+  </script>
+</body>
+</html>

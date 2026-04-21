@@ -1529,9 +1529,43 @@ const download = (() => {
 })();
 
 /* ════════════════════════════════════════════
+   LAYOUT LOADER
+════════════════════════════════════════════ */
+const layout = (() => {
+  async function load() {
+    const headerRoot = utils.$('header-root');
+    const footerRoot = utils.$('footer-root');
+
+    if (headerRoot) {
+      try {
+        const res = await fetch('asset/header.html');
+        if (res.ok) {
+          headerRoot.innerHTML = await res.text();
+          const page = window.location.pathname.split('/').pop().split('.')[0] || 'index';
+          const activeLink = headerRoot.querySelector(`[data-nav="${page}"]`);
+          if (activeLink) activeLink.style.color = 'var(--green)';
+        }
+      } catch (e) { console.error('Header load error:', e); }
+    }
+
+    if (footerRoot) {
+      try {
+        const res = await fetch('asset/footer.html');
+        if (res.ok) footerRoot.innerHTML = await res.text();
+      } catch (e) { console.error('Footer load error:', e); }
+    }
+  }
+
+  return { load };
+})();
+
+/* ════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════ */
 (async () => {
+  // 레이아웃 먼저 로드
+  await layout.load();
+
   document.documentElement.classList.add('js-ready');
 
   visibilityManager.init();

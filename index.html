@@ -36,52 +36,11 @@
 
   <div class="wrap">
 
-    <!-- ══ HEADER ══ -->
-    <header class="header">
-      <div class="logo-box">
-        <img src="asset/image/icon.png" alt="Min. At. Zero 로고"
-          onerror="this.style.display='none';this.parentElement.insertAdjacentHTML('beforeend','<div class=\'logo-fallback\'>M</div>')">
-      </div>
-      <div class="header-text">
-        <h1 class="site-title">Min. At. <span>Zero</span></h1>
-        <div class="site-meta" aria-label="서버 정보">
-          <span class="meta-tag">1.20.1</span>
-          <span class="meta-tag">FPS / PVP</span>
-          <span class="meta-tag">TCZ</span>
-        </div>
-        <p class="site-desc">기존 Timeless and Classics Guns(1.16.5) 모다 더욱 좋아진 Timeless and Classics Zero(1.20.1) 모드
-          기반으로<br>제작된 마인크래프트 FPS게임 서버입니다. 맵과 무기를 선택하고 여러가지 맵을 선택해 유저들과 싸워보세요!</p>
-      </div>
-      <nav class="header-links" aria-label="페이지 내비게이션">
-        <a href="#download-card" class="hdr-link-nav">DOWNLOAD</a>
-        <a href="#showcase-slider-section" class="hdr-link-nav">GALLERY</a>
-        <a href="#faq-section" class="hdr-link-nav">FAQ</a>
-        <a href="ranking.html" class="hdr-link-nav">RANKING</a>
-        <div class="status-sep" style="height:24px;margin:0 4px" aria-hidden="true"></div>
-        <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
-          target="_blank" rel="noopener noreferrer" class="hdr-link" aria-label="게임 가이드 (Notion, 새 탭에서 열림)">📖</a>
-        <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer" class="hdr-link"
-          aria-label="디스코드 서버 (새 탭에서 열림)">💬</a>
-      </nav>
-      <!-- 모바일 햄버거 버튼 -->
-      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="메뉴 열기" aria-expanded="false"
-        aria-controls="mobile-nav">
-        <span></span><span></span><span></span>
-      </button>
-    </header>
+    <!-- ══ HEADER (Dynamic) ══ -->
+    <header id="header-root" class="header"></header>
 
-    <!-- 모바일 내비게이션 드로어 -->
-    <nav id="mobile-nav" class="mobile-nav" aria-label="모바일 내비게이션" aria-hidden="true">
-      <a href="#download-card" class="mobile-nav-link">⬇️ DOWNLOAD</a>
-      <a href="#showcase-slider-section" class="mobile-nav-link">🖼️ GALLERY</a>
-      <a href="#faq-section" class="mobile-nav-link">❓ FAQ</a>
-      <a href="ranking.html" class="mobile-nav-link">🏆 RANKING</a>
-      <div class="mobile-nav-divider"></div>
-      <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
-        target="_blank" rel="noopener noreferrer" class="mobile-nav-link">📖 게임 가이드</a>
-      <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer" class="mobile-nav-link">💬
-        디스코드</a>
-    </nav>
+    <p class="site-desc">기존 Timeless and Classics Guns(1.16.5) 모다 더욱 좋아진 Timeless and Classics Zero(1.20.1) 모드
+      기반으로<br>제작된 마인크래프트 FPS게임 서버입니다. 맵과 무기를 선택하고 여러가지 맵을 선택해 유저들과 싸워보세요!</p>
 
     <!-- ══ STATUS BAR ══ -->
     <div class="status-bar" role="status" aria-label="서버 현재 상태">
@@ -465,45 +424,8 @@
     </div><!-- /main-grid -->
   </div><!-- /wrap -->
 
-  <!-- ══ FOOTER ══ -->
-  <footer class="footer">
-    <div class="wrap" style="padding-bottom:0">
-      <div class="footer-grid">
-        <div>
-          <div class="footer-col-title">Min. At. Zero</div>
-          <p class="footer-text">
-            Minecraft 1.20.1 · FPS / PvP<br>
-            TACZ (Timeless and Classics Zero) 기반<br>
-            전용 클라이언트 필요
-          </p>
-        </div>
-        <nav aria-label="Footer 링크">
-          <div class="footer-col-title">Links</div>
-          <a href="https://github.com/tharu8813" target="_blank" rel="noopener noreferrer" class="footer-link">
-            <span class="footer-link-dot" aria-hidden="true"></span>GitHub Repository
-          </a>
-          <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer" class="footer-link">
-            <span class="footer-link-dot" aria-hidden="true"></span>Discord 서버
-          </a>
-          <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
-            target="_blank" rel="noopener noreferrer" class="footer-link">
-            <span class="footer-link-dot" aria-hidden="true"></span>가이드 (Notion)
-          </a>
-        </nav>
-        <div>
-          <div class="footer-col-title">Site Info</div>
-          <p class="footer-text">
-            Hosted on GitHub Pages<br>
-            Site v4.1
-          </p>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <span class="footer-copy">© 2024–2026 <span>JI BAEK MIN (tharu8133)</span>. All rights reserved.</span>
-        <span class="footer-disclaimer">Minecraft는 Mojang Studios의 상표입니다. Mojang / Microsoft와는 아무런 관련이 없습니다.</span>
-      </div>
-    </div>
-  </footer>
+  <!-- ══ FOOTER (Dynamic) ══ -->
+  <footer id="footer-root" class="footer"></footer>
 
   <!-- ══ CUSTOM POPUP ══ -->
   <div class="matz-popup-overlay" id="popup-overlay" aria-hidden="true"></div>

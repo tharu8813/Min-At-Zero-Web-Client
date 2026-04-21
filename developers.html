@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developers — Min. At. Zero</title>
+  <meta name="description" content="Min. At. Zero 프로젝트 기여자 목록">
+  <meta name="theme-color" content="#22c55e">
+  <link rel="icon" type="image/png" href="asset/image/icon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="asset/style.css">
+  <style>
+    .page-hero { padding: 44px 0 32px; }
+    .page-title { font-family: 'Rajdhani', sans-serif; font-size: clamp(32px, 8vw, 52px); font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+    .page-title span { color: var(--green); }
+    .dev-section { margin-top: 60px; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .section-title { font-family: 'Rajdhani', sans-serif; font-size: 24px; font-weight: 700; color: var(--text-primary); letter-spacing: 1px; }
+    .section-count { font-family: var(--mono); font-size: 14px; color: var(--green); background: var(--green-glow); padding: 2px 8px; border-radius: 6px; }
+    .dev-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+    .dev-card { text-align: center; padding: 40px 24px 30px; }
+    .dev-avatar-wrap { position: relative; width: 100px; height: 100px; margin: 0 auto 20px; }
+    .dev-avatar { width: 100%; height: 100%; border-radius: 24px; image-rendering: pixelated; border: 2px solid var(--green-border); background: var(--bg-deep); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+    .dev-card:hover .dev-avatar { transform: scale(1.1) translateY(-5px); border-color: var(--green); }
+    .dev-name { font-family: 'Rajdhani', sans-serif; font-size: 26px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+    .dev-role { font-family: var(--mono); font-size: 12px; color: var(--green); letter-spacing: 2.5px; text-transform: uppercase; margin-top: 8px; }
+    .dev-desc { font-size: 14px; color: var(--text-muted); line-height: 1.8; margin: 20px 0; min-height: 3.6em; }
+    .dev-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .dev-tag { font-family: var(--mono); font-size: 11px; padding: 2px 10px; border-radius: 5px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-dim); }
+    .section-maps .section-count { color: var(--blue); background: var(--blue-glow); }
+    .section-maps .dev-avatar { border-color: var(--blue-border); }
+    .section-maps .dev-role { color: var(--blue); }
+    .section-testers .section-count { color: #a855f7; background: rgba(168,85,247,0.1); }
+    .section-testers .dev-avatar { border-color: rgba(168,85,247,0.3); }
+    .section-testers .dev-role { color: #c084fc; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-radial" aria-hidden="true"></div>
+  <div class="bg-lines" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <header id="header-root" class="header"></header>
+
+    <section class="page-hero">
+      <h2 class="page-title">Project <span>Team</span></h2>
+      <p class="page-desc">Min. At. Zero 서버를 기획하고 전장을 설계하며, 완벽한 플레이 환경을 위해 노력하는 기여자들을 소개합니다.</p>
+    </section>
+
+    <div id="dev-content">
+      <div class="skeleton-mini-row skeleton" style="height: 300px; border-radius: 16px; margin-top:40px;"></div>
+    </div>
+
+    <footer id="footer-root" class="footer"></footer>
+  </div>
+
+  <script src="asset/script.js"></script>
+  <script>
+    (function() {
+      const content = document.getElementById('dev-content');
+      const CATEGORIES = {
+        "총괄/기획": { icon: "👑", title: "CORE & PLANNING", class: "section-core" },
+        "맵 디자이너": { icon: "🗺️", title: "MAP DESIGNERS", class: "section-maps" },
+        "테스터": { icon: "🧪", title: "BETA TESTERS", class: "section-testers" }
+      };
+
+      async function loadDevelopers() {
+        try {
+          const response = await fetch('./developer/developer.json');
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          
+          content.innerHTML = '';
+          const groups = data.reduce((acc, dev) => {
+            if (!acc[dev.type]) acc[dev.type] = [];
+            acc[dev.type].push(dev);
+            return acc;
+          }, {});
+
+          Object.keys(CATEGORIES).forEach(type => {
+            if (!groups[type]) return;
+            const config = CATEGORIES[type];
+            const section = document.createElement('section');
+            section.className = `dev-section ${config.class}`;
+            section.innerHTML = `
+              <div class="section-header">
+                <span class="section-icon">${config.icon}</span>
+                <h2 class="section-title">${config.title}</h2>
+                <span class="section-count">${groups[type].length}</span>
+              </div>
+              <div class="dev-grid"></div>
+            `;
+            const grid = section.querySelector('.dev-grid');
+            groups[type].forEach(dev => {
+              const card = document.createElement('article');
+              card.className = 'card dev-card revealed';
+              card.innerHTML = `
+                <div class="card-top-bar"></div>
+                <div class="dev-avatar-wrap">
+                  <img class="dev-avatar" src="https://mc-heads.net/avatar/${encodeURIComponent(dev.mc_id)}/100" alt="">
+                </div>
+                <h3 class="dev-name">${dev.name}</h3>
+                <p class="dev-role">${dev.role}</p>
+                <p class="dev-desc">${dev.desc}</p>
+                <div class="dev-tags">${dev.tags.map(t => `<span class="dev-tag">${t}</span>`).join('')}</div>
+              `;
+              grid.appendChild(card);
+            });
+            content.appendChild(section);
+          });
+        } catch (e) {
+          content.innerHTML = `<div style="color:var(--red); text-align:center; padding:40px;">⚠️ ERROR: ${e.message}</div>`;
+        }
+      }
+      document.addEventListener('DOMContentLoaded', loadDevelopers);
+    })();
+  </script>
+</body>
+</html>
