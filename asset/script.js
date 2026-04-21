@@ -418,12 +418,12 @@ const slider = (() => {
 
     for (let i = 1; i <= total; i++) {
       const img = document.createElement('img');
-      img.src = `screenshot/${i}.png`;
-      img.alt = `스크린샷 ${i}`;
-      img.loading = i === 1 ? 'eager' : 'lazy';
       img.onerror = () => {
         img.src = `https://placehold.co/1200x675/04080e/22c55e?text=Showcase+${i}`;
       };
+      img.src = `screenshot/${i}.png`;
+      img.alt = `스크린샷 ${i}`;
+      img.loading = i === 1 ? 'eager' : 'lazy';
       img.addEventListener('click', () => lightbox.open(img.src, img.alt));
       img.style.cursor = 'zoom-in';
       wrapper.appendChild(img);
@@ -1208,10 +1208,10 @@ const miniRanking = (() => {
 
   /* [FIX] score 탭은 scoreCalc 공유 모듈 사용, 나머지는 DB 직접 조회 */
   const TAB_CONFIG = {
-    score:       { label: 'COMBAT RATING', format: v => v.toFixed(1), unit: 'CR',  rankingTab: 'score' },
-    all_kill:    { label: '킬',            format: v => v.toLocaleString(), unit: '킬', rankingTab: 'all_kill' },
-    win_count:   { label: '승리',          format: v => v.toLocaleString(), unit: '승', rankingTab: 'win_count' },
-    playTime_H:  { label: '플레이타임',    format: v => `${v}h`, unit: 'h',          rankingTab: 'playTime_H' },
+    score: { label: 'COMBAT RATING', format: v => v.toFixed(1), unit: 'CR', rankingTab: 'score' },
+    all_kill: { label: '킬', format: v => v.toLocaleString(), unit: '킬', rankingTab: 'all_kill' },
+    win_count: { label: '승리', format: v => v.toLocaleString(), unit: '승', rankingTab: 'win_count' },
+    playTime_H: { label: '플레이타임', format: v => `${v}h`, unit: 'h', rankingTab: 'playTime_H' },
   };
 
   const FALLBACK_AV = 'data:image/svg+xml,' + encodeURIComponent(
