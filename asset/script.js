@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /* ════════════════════════════════════════════
    CONFIG
@@ -23,6 +23,8 @@ const CONFIG = Object.freeze({
   CURSOR_RING_LERP: 0.13,
   SOUND_PATH: 'asset/audio/',
   CUSTOM_PROTOCOL: 'matz-client://',
+  MINI_RANK_TTL: 5 * 60 * 1000,
+  API_CACHE_TTL: 3 * 60 * 1000,
 });
 
 /* ════════════════════════════════════════════
@@ -35,18 +37,74 @@ const utils = {
     });
   },
 
+  sanitizeText(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  },
+
+  sanitizeUrl(url) {
+    const trimmed = url.trim();
+    if (/^https?:\/\//i.test(trimmed) || /^\//.test(trimmed) || /^\.\.?\//.test(trimmed)) {
+      return trimmed.replace(/"/g, '%22').replace(/'/g, '%27');
+    }
+    return '#';
+  },
+
   fmtMd(md) {
     if (!md) return '';
-    return md
+
+    const tokens = [];
+    const tokenize = (str) =>
+      str.replace(/!\[([^\]]*)\]\(([^)]+)\)|(?<!!)\[([^\]]+)\]\(([^)]+)\)/g, (_, iAlt, iUrl, lText, lUrl) => {
+        const id = `\x00T${tokens.length}\x00`;
+        if (iUrl !== undefined) {
+          const safeUrl = utils.sanitizeUrl(iUrl);
+          const safeAlt = utils.sanitizeText(iAlt || '');
+          tokens.push(
+            `<img src="${safeUrl}" alt="${safeAlt}" loading="lazy"` +
+            ` style="max-width:100%;border-radius:8px;margin:10px 0;display:block;` +
+            `border:1px solid var(--border);cursor:zoom-in;` +
+            `transition:opacity 0.4s,transform 0.3s;opacity:0;transform:scale(0.97)"` +
+            ` onload="this.style.opacity='1';this.style.transform='scale(1)'"` +
+            ` onerror="this.style.display='none'"` +
+            ` onclick="lightbox.open(this.src,this.alt)">`
+          );
+        } else {
+          const safeUrl = utils.sanitizeUrl(lUrl);
+          const safeText = utils.sanitizeText(lText || '');
+          const isExt = /^https?:\/\//i.test(safeUrl);
+          tokens.push(
+            `<a href="${safeUrl}" ${isExt ? 'target="_blank" rel="noopener noreferrer"' : ''}` +
+            ` style="color:var(--blue);text-decoration:underline;text-underline-offset:2px">${safeText}</a>`
+          );
+        }
+        return id;
+      });
+
+    const escaped = tokenize(md);
+
+    const htmlEscaped = escaped
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\x00T(\d+)\x00/g, (_, i) => tokens[Number(i)]);
+
+    const processed = htmlEscaped
       .replace(/^### (.+)$/gm, '<h4 style="color:var(--green);font-size:13px;font-weight:600;margin:14px 0 6px">$1</h4>')
       .replace(/^## (.+)$/gm, '<h3 style="color:var(--green);font-size:14px;font-weight:600;margin:14px 0 6px">$1</h3>')
       .replace(/^# (.+)$/gm, '<h2 style="color:var(--green);font-size:15px;font-weight:700;margin:14px 0 6px">$1</h2>')
       .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text-primary);font-weight:600">$1</strong>')
       .replace(/`([^`]+)`/g, '<code style="background:rgba(59,130,246,0.12);padding:1px 6px;border-radius:4px;font-family:monospace;color:#60a5fa;font-size:12px">$1</code>')
-      .replace(/^[\*\-] (.+)$/gm, '<li style="margin:4px 0 4px 16px;color:var(--text-muted)">$1</li>')
-      .replace(/(<li[^>]*>.*<\/li>)+/gs, m => `<ul style="margin:6px 0;list-style:disc">${m}</ul>`)
-      .replace(/\n\n/g, '</p><p style="margin:6px 0">')
+      .replace(/^[*\-] (.+)$/gm, '<li style="margin:4px 0 4px 16px;color:var(--text-muted)">$1</li>')
+      .replace(/(<li[^>]*>[\s\S]*?<\/li>(\s*<li[^>]*>[\s\S]*?<\/li>)*)/g, m => `<ul style="margin:6px 0;list-style:disc">${m}</ul>`)
+      .replace(/\n\n+/g, '</p><p style="margin:6px 0">')
       .replace(/\n/g, '<br>');
+
+    return `<p style="margin:6px 0">${processed}</p>`;
   },
 
   animateText(el, newText) {
@@ -71,23 +129,41 @@ const utils = {
    TOAST
 ════════════════════════════════════════════ */
 const toast = (() => {
+  const active = new Map();
+
   function show(msg, icon = '✅', duration = 3000) {
     const container = utils.$('toast-container');
     if (!container) return;
 
+    if (active.has(msg)) {
+      const existing = active.get(msg);
+      const bar = existing.querySelector('.toast-progress');
+      if (bar) {
+        bar.style.animation = 'none';
+        void bar.offsetWidth;
+        bar.style.animationDuration = `${duration}ms`;
+        bar.style.animation = '';
+      }
+      return;
+    }
+
     const el = document.createElement('div');
     el.className = 'toast';
     el.setAttribute('role', 'alert');
-    el.innerHTML = `
-      <span class="toast-icon" aria-hidden="true">${icon}</span>
-      <span class="toast-msg">${msg}</span>
-      <div class="toast-progress" style="animation-duration:${duration}ms"></div>
-    `;
-    container.appendChild(el);
+    el.innerHTML =
+      `<span class="toast-icon" aria-hidden="true">${icon}</span>` +
+      `<span class="toast-msg">${utils.sanitizeText(msg)}</span>` +
+      `<div class="toast-progress" style="animation-duration:${duration}ms"></div>`;
+
+    container.prepend(el);
+    active.set(msg, el);
 
     const remove = () => {
       el.classList.add('toast-out');
-      el.addEventListener('animationend', () => el.remove(), { once: true });
+      el.addEventListener('animationend', () => {
+        el.remove();
+        active.delete(msg);
+      }, { once: true });
     };
     setTimeout(remove, duration);
   }
@@ -101,24 +177,27 @@ const toast = (() => {
 const api = {
   async fetchRelease(type) {
     const key = `release_${type}`;
-    const cached = localStorage.getItem(key);
+    let cached = null;
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) cached = JSON.parse(raw);
+    } catch { cached = null; }
 
-    if (cached) {
-      const { data, time } = JSON.parse(cached);
-      if (Date.now() - time < 3 * 60 * 1000) { // 3분 캐시
-        return data;
-      }
+    if (cached && Date.now() - cached.time < CONFIG.API_CACHE_TTL) {
+      return cached.data;
     }
 
     try {
       const r = await fetch(`https://api.github.com/repos/${CONFIG.REPOS[type]}/releases/latest`);
-      if (!r.ok) return null;
+      if (!r.ok) return cached?.data ?? null;
 
       const data = await r.json();
-      localStorage.setItem(key, JSON.stringify({ data, time: Date.now() }));
+      try {
+        localStorage.setItem(key, JSON.stringify({ data, time: Date.now() }));
+      } catch { }
       return data;
     } catch {
-      return null;
+      return cached?.data ?? null;
     }
   },
 };
@@ -130,7 +209,11 @@ const ui = {
   updateClientInfo(data) {
     const tag = data?.tag_name ?? '1.0.0';
 
-    utils.setText('client-version-bar', `v${tag}`);
+    const verBar = utils.$('client-version-bar');
+    if (verBar) {
+      verBar.classList.remove('skeleton-text');
+      verBar.textContent = `v${tag}`;
+    }
     utils.setText('dl-version-text', `v${tag}`);
     utils.setText('dl-sub-ver', `Client v${tag}`);
 
@@ -151,11 +234,11 @@ const ui = {
       wrap.innerHTML = `
         <div class="client-update-box">
           <div class="client-update-header">
-            <span style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--blue);text-transform:uppercase">Client Update</span>
-            <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">v${tag} · ${utils.fmtDate(data.published_at)}</span>
+            <span style="font-family:var(--mono);font-size:16px;letter-spacing:2px;color:var(--blue);text-transform:uppercase">Client Update</span>
+            <span style="font-family:var(--mono);font-size:14px;color:var(--text-dim)">v${utils.sanitizeText(tag)} · ${utils.fmtDate(data.published_at)}</span>
           </div>
           <div class="patch-body" style="border-color:rgba(59,130,246,0.1)">${utils.fmtMd(data.body)}</div>
-          ${data.html_url ? `<a href="${data.html_url}" target="_blank" rel="noopener noreferrer" class="patch-link" style="color:var(--blue)">GitHub에서 보기 →</a>` : ''}
+          ${data.html_url ? `<a href="${utils.sanitizeUrl(data.html_url)}" target="_blank" rel="noopener noreferrer" class="patch-link" style="color:var(--blue)">GitHub에서 보기 →</a>` : ''}
         </div>`;
     }
   },
@@ -168,8 +251,16 @@ const ui = {
 
     const tag = data.tag_name ?? '';
     card.hidden = false;
+
     if (!card.classList.contains('revealed')) {
-      card.classList.add('revealed');
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(-12px)';
+      card.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.23,1,0.32,1)';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+        card.classList.add('revealed');
+      }));
     }
 
     utils.setText('game-patch-title', data.name || `최신 게임 업데이트 (v${tag})`);
@@ -227,7 +318,7 @@ const serverStatus = (() => {
     } catch { return ''; }
   }
 
-  async function fetch() {
+  async function checkServer() {
     const dot = utils.$('status-dot');
     const txt = utils.$('server-status-text');
     const players = utils.$('server-players');
@@ -235,9 +326,16 @@ const serverStatus = (() => {
     [txt, players].forEach(el => el?.classList.remove('skeleton-text'));
 
     try {
-      const res = await window.fetch(`https://api.mcsrvstat.us/3/${CONFIG.SERVER_IP}`);
-      if (!res.ok) throw new Error('network');
-      const data = await res.json();
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 10_000);
+      let data;
+      try {
+        const res = await fetch(`https://api.mcsrvstat.us/3/${CONFIG.SERVER_IP}`, { signal: ctrl.signal });
+        if (!res.ok) throw new Error('network');
+        data = await res.json();
+      } finally {
+        clearTimeout(timer);
+      }
 
       if (data.online) {
         clearDowntime();
@@ -247,9 +345,13 @@ const serverStatus = (() => {
           dot.style.background = '#22c55e';
           dot.style.boxShadow = '0 0 8px #22c55e';
         }
-        utils.animateText(txt, '온라인');
+        utils.animateText(txt, 'Online');
         if (players && data.players) {
-          ui.countUpText(players, data.players.online, data.players.max);
+          const online = data.players.online ?? 0;
+          const max = data.players.max ?? '?';
+          ui.countUpText(players, online, max);
+        } else if (players) {
+          utils.animateText(players, '— / —');
         }
       } else {
         saveDowntime();
@@ -258,7 +360,7 @@ const serverStatus = (() => {
           dot.style.background = '#ef4444';
           dot.style.boxShadow = '0 0 8px #ef4444';
         }
-        utils.animateText(txt, '오프라인');
+        utils.animateText(txt, 'Offline');
         utils.animateText(players, '— / —');
 
         const lbl = getDowntimeLabel();
@@ -273,25 +375,26 @@ const serverStatus = (() => {
           dtEl.textContent = lbl;
         }
       }
-    } catch {
-      utils.animateText(txt, '확인 불가');
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        utils.animateText(txt, '응답 없음');
+      } else {
+        utils.animateText(txt, '확인 불가');
+      }
     }
   }
 
   function start() {
-    fetch();
-    intervalId = setInterval(fetch, CONFIG.STATUS_INTERVAL);
+    checkServer();
+    intervalId = setInterval(checkServer, CONFIG.STATUS_INTERVAL);
     window.addEventListener('beforeunload', () => {
       if (intervalId) clearInterval(intervalId);
     }, { once: true });
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        clearInterval(intervalId);
-      } else {
-        fetch();
-        intervalId = setInterval(fetch, CONFIG.STATUS_INTERVAL);
-      }
-    });
+
+    visibilityManager.register(
+      () => { clearInterval(intervalId); intervalId = null; },
+      () => { checkServer(); intervalId = setInterval(checkServer, CONFIG.STATUS_INTERVAL); }
+    );
   }
 
   return { start };
@@ -343,12 +446,28 @@ const slider = (() => {
     utils.$('slider-prev')?.addEventListener('click', () => { move(-1); sound.play('click'); });
     utils.$('slider-next')?.addEventListener('click', () => { move(1); sound.play('click'); });
 
+    let touchStartX = 0;
+    const sliderOuter = wrapper.closest('.slider-outer');
+    if (sliderOuter) {
+      sliderOuter.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+      sliderOuter.addEventListener('touchend', e => {
+        const diff = touchStartX - e.changedTouches[0].screenX;
+        if (Math.abs(diff) > 40) { move(diff > 0 ? 1 : -1); }
+      }, { passive: true });
+    }
+
     document.addEventListener('keydown', e => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
       if (e.key === 'ArrowLeft') { move(-1); sound.play('click'); }
       if (e.key === 'ArrowRight') { move(1); sound.play('click'); }
     });
 
     isInit = true;
+    const firstImg = wrapper.querySelector('img');
+    if (firstImg) firstImg.classList.add('is-active');
     startAuto();
   }
 
@@ -364,7 +483,12 @@ const slider = (() => {
     if (!isInit || total === 0) return;
     current = ((n % total) + total) % total;
     const wrapper = utils.$('showcase-slider');
-    if (wrapper) wrapper.style.transform = `translateX(-${current * 100}%)`;
+    if (wrapper) {
+      wrapper.style.transform = `translateX(-${current * 100}%)`;
+      wrapper.querySelectorAll('img').forEach((img, i) => {
+        img.classList.toggle('is-active', i === current);
+      });
+    }
     updateDots();
   }
 
@@ -415,35 +539,37 @@ const lightbox = (() => {
     if (!overlay) return;
     overlay.classList.remove('active');
     overlay.setAttribute('aria-hidden', 'true');
+    setTimeout(() => { if (img) img.src = ''; }, 300);
   }
 
   return { init, open, close };
 })();
 
 /* ════════════════════════════════════════════
-   SOUND
+   VISIBILITY MANAGER
 ════════════════════════════════════════════ */
-const sound = (() => {
-  const cache = {};
-  let canPlay = true;
+const visibilityManager = (() => {
+  const handlers = [];
 
-  function preload(types) {
-    types.forEach(type => {
-      const audio = new Audio(`${CONFIG.SOUND_PATH}${type}.mp3`);
-      audio.preload = 'auto';
-      audio.addEventListener('error', () => { canPlay = false; });
-      cache[type] = audio;
+  function register(onHide, onShow) {
+    handlers.push({ onHide, onShow });
+  }
+
+  function init() {
+    document.addEventListener('visibilitychange', () => {
+      const hidden = document.hidden;
+      handlers.forEach(({ onHide, onShow }) => {
+        try {
+          if (hidden) onHide?.();
+          else onShow?.();
+        } catch (e) {
+          console.error('visibilityManager handler error:', e);
+        }
+      });
     });
   }
 
-  function play(type) {
-    if (!canPlay) return;
-    const s = cache[type];
-    if (!s) return;
-    try { s.currentTime = 0; s.play().catch(() => { }); } catch { }
-  }
-
-  return { preload, play };
+  return { register, init };
 })();
 
 /* ════════════════════════════════════════════
@@ -471,13 +597,10 @@ const particles = (() => {
 
     window.addEventListener('resize', debounceResize, { passive: true });
 
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        cancelAnimationFrame(rafId);
-      } else {
-        draw();
-      }
-    });
+    visibilityManager.register(
+      () => cancelAnimationFrame(rafId),
+      () => { rafId = requestAnimationFrame(drawLoop); }
+    );
   }
 
   let resizeTimer;
@@ -544,6 +667,10 @@ const particles = (() => {
     });
   }
 
+  function drawLoop() {
+    draw();
+  }
+
   function draw() {
     ctx.clearRect(0, 0, W, H);
     const R = CONFIG.PARTICLES_MOUSE_R;
@@ -563,10 +690,8 @@ const particles = (() => {
       p.x += p.vx;
       p.y += p.vy;
 
-      if (p.x < 0) p.x = W;
-      if (p.x > W) p.x = 0;
-      if (p.y < 0) p.y = H;
-      if (p.y > H) p.y = 0;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
@@ -605,6 +730,9 @@ const aurora = (() => {
 
     window.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; }, { passive: true });
 
+    el.style.left = `${ax}px`;
+    el.style.top = `${ay}px`;
+
     const tick = () => {
       ax += (tx - ax) * CONFIG.AURORA_LERP;
       ay += (ty - ay) * CONFIG.AURORA_LERP;
@@ -614,10 +742,10 @@ const aurora = (() => {
     };
     tick();
 
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) cancelAnimationFrame(rafId);
-      else tick();
-    });
+    visibilityManager.register(
+      () => cancelAnimationFrame(rafId),
+      () => { rafId = requestAnimationFrame(tick); }
+    );
   }
 
   return { init };
@@ -664,12 +792,23 @@ const cardTilt = (() => {
    SCROLL REVEAL
 ════════════════════════════════════════════ */
 const scrollReveal = (() => {
+  function getDir(el) {
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const vw = window.innerWidth;
+    if (cx < vw * 0.25) return 'from-left';
+    if (cx > vw * 0.75) return 'from-right';
+    return 'from-bottom';
+  }
+
   function init() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry, i) => {
         if (!entry.isIntersecting) return;
+        const dir = getDir(entry.target);
+        entry.target.dataset.revealDir = dir;
         setTimeout(() => {
-          entry.target.classList.add('revealed');
+          entry.target.classList.add('revealed', dir);
           cardTilt.attach(entry.target);
         }, i * 60);
         observer.unobserve(entry.target);
@@ -749,10 +888,10 @@ const buttonFX = (() => {
 })();
 
 /* ════════════════════════════════════════════
-   CUSTOM CURSOR — ring only, always on
+   CUSTOM CURSOR
 ════════════════════════════════════════════ */
 const customCursor = (() => {
-  const HOVER_SEL = 'a, button, .btn, .comm-btn, .slider-btn, .dot, .faq-q, .faq-copy-btn, .hdr-link, .dl-btn, [role="button"]';
+  const HOVER_SEL = 'a, button, .btn, .comm-btn, .slider-btn, .dot, .faq-q, .faq-copy-btn, .hdr-link, .dl-btn, .mini-rank-row, [role="button"], [tabindex="0"]';
 
   function init() {
     if (window.matchMedia('(pointer: coarse)').matches) return;
@@ -762,7 +901,6 @@ const customCursor = (() => {
     ring.setAttribute('aria-hidden', 'true');
     document.body.append(ring);
 
-    /* 항상 커스텀 커서 활성화 */
     document.documentElement.classList.add('use-custom-cursor');
 
     let mx = window.innerWidth / 2;
@@ -775,7 +913,6 @@ const customCursor = (() => {
       my = e.clientY;
     }, { passive: true });
 
-    /* transform 대신 left/top 사용 — 초기 위치 보장 */
     ring.style.left = rx + 'px';
     ring.style.top = ry + 'px';
 
@@ -799,6 +936,12 @@ const customCursor = (() => {
       setState(e.target.closest(HOVER_SEL) ? 'hover' : '');
     }, { passive: true });
 
+    document.addEventListener('mouseout', e => {
+      if (!e.relatedTarget || !e.relatedTarget.closest?.(HOVER_SEL)) {
+        setState('');
+      }
+    }, { passive: true });
+
     document.addEventListener('mousedown', () => setState('click'));
 
     document.addEventListener('mouseup', () => {
@@ -809,10 +952,10 @@ const customCursor = (() => {
     document.addEventListener('mouseleave', () => { ring.style.opacity = '0'; });
     document.addEventListener('mouseenter', () => { ring.style.opacity = '1'; });
 
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) cancelAnimationFrame(rafId);
-      else animRing();
-    });
+    visibilityManager.register(
+      () => cancelAnimationFrame(rafId),
+      () => { rafId = requestAnimationFrame(animRing); }
+    );
   }
 
   return { init };
@@ -953,26 +1096,268 @@ const popup = (() => {
 
   function init() {
     utils.$('popup-cancel')?.addEventListener('click', close);
-
     utils.$('popup-confirm')?.addEventListener('click', () => {
       const action = pendingAction;
       close();
       if (action) setTimeout(action, 100);
     });
-
     overlayEl()?.addEventListener('click', close);
-
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') close();
     });
-
-    window.addEventListener('scroll', () => {
+    const repos = () => {
       const pEl = popupEl();
       if (pEl?.classList.contains('show') && triggerBtn) reposition(pEl, triggerBtn);
-    }, { passive: true });
+    };
+    window.addEventListener('scroll', repos, { passive: true });
+    window.addEventListener('resize', repos, { passive: true });
   }
 
   return { init, show, close };
+})();
+
+/* ════════════════════════════════════════════
+   SCORE CALCULATOR
+   두 페이지에서 동일한 로직으로 COMBAT RATING 계산
+════════════════════════════════════════════ */
+const scoreCalc = (() => {
+  const SUPABASE_URL = 'https://mcojlhiycruiifrcaxam.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_motLaW6vYM8bLPov6QTYMg_LxfbSXfr';
+
+  let globalCache = null;
+  let globalCacheTime = 0;
+  const CACHE_TTL = 5 * 60 * 1000;
+
+  async function fetchTable(t) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10_000);
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/${t}?select=entry,value&order=value.desc&limit=100`;
+      const res = await fetch(url, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+        signal: ctrl.signal,
+      });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch { return []; }
+    finally { clearTimeout(timer); }
+  }
+
+  async function computeAll() {
+    if (globalCache && Date.now() - globalCacheTime < CACHE_TTL) return globalCache;
+
+    const tables = ['all_kill', 'all_death', 'kill_assist_all', 'win_count', 'round_count', 'playTime_H'];
+    const results = await Promise.allSettled(tables.map(t => fetchTable(t)));
+    const [killRows, deathRows, assistRows, winRows, roundRows, ptRows] =
+      results.map(r => r.status === 'fulfilled' ? (r.value ?? []) : []);
+
+    const map = {};
+    const ensure = n => { if (!map[n]) map[n] = { entry: n, kills: 0, deaths: 0, assists: 0, wins: 0, rounds: 0, playtime: 0 }; };
+
+    killRows.forEach(r => { ensure(r.entry); map[r.entry].kills = r.value; });
+    deathRows.forEach(r => { ensure(r.entry); map[r.entry].deaths = r.value; });
+    assistRows.forEach(r => { ensure(r.entry); map[r.entry].assists = r.value; });
+    winRows.forEach(r => { ensure(r.entry); map[r.entry].wins = r.value; });
+    roundRows.forEach(r => { ensure(r.entry); map[r.entry].rounds = r.value; });
+    ptRows.forEach(r => { ensure(r.entry); map[r.entry].playtime = r.value; });
+
+    const players = Object.values(map).filter(p => p.rounds > 0 || p.kills > 0);
+    if (!players.length) return [];
+
+    players.forEach(p => {
+      p.kda = p.deaths > 0 ? (p.kills + p.assists) / p.deaths : (p.kills + p.assists);
+      p.winRate = p.rounds > 0 ? (p.wins / p.rounds) * 100 : 0;
+    });
+
+    const maxKda = players.reduce((m, p) => Math.max(m, p.kda), 1);
+    const maxWinRate = players.reduce((m, p) => Math.max(m, p.winRate), 1);
+    const maxRounds = players.reduce((m, p) => Math.max(m, p.rounds), 1);
+    const maxPt = players.reduce((m, p) => Math.max(m, p.playtime), 1);
+
+    const scored = players.map(p => ({
+      entry: p.entry,
+      value: Math.round(
+        ((p.kda / maxKda) * 40 + (p.winRate / maxWinRate) * 30 + (p.rounds / maxRounds) * 20 + (p.playtime / maxPt) * 10) * 10
+      ) / 10,
+    })).sort((a, b) => b.value - a.value);
+
+    globalCache = scored;
+    globalCacheTime = Date.now();
+    return scored;
+  }
+
+  async function getTop(limit = 5) {
+    const all = await computeAll();
+    return all.slice(0, limit);
+  }
+
+  async function getPlayerScore(name) {
+    const all = await computeAll();
+    return all.find(p => p.entry.toLowerCase() === name.toLowerCase()) ?? null;
+  }
+
+  return { computeAll, getTop, getPlayerScore };
+})();
+
+/* ════════════════════════════════════════════
+   MINI RANKING CARD
+════════════════════════════════════════════ */
+const miniRanking = (() => {
+  const SUPABASE_URL = 'https://mcojlhiycruiifrcaxam.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_motLaW6vYM8bLPov6QTYMg_LxfbSXfr';
+
+  /* [FIX] score 탭은 scoreCalc 공유 모듈 사용, 나머지는 DB 직접 조회 */
+  const TAB_CONFIG = {
+    score:       { label: 'COMBAT RATING', format: v => v.toFixed(1), unit: 'CR',  rankingTab: 'score' },
+    all_kill:    { label: '킬',            format: v => v.toLocaleString(), unit: '킬', rankingTab: 'all_kill' },
+    win_count:   { label: '승리',          format: v => v.toLocaleString(), unit: '승', rankingTab: 'win_count' },
+    playTime_H:  { label: '플레이타임',    format: v => `${v}h`, unit: 'h',          rankingTab: 'playTime_H' },
+  };
+
+  const FALLBACK_AV = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" fill="#112"/><text x="12" y="17" text-anchor="middle" fill="#66ff99" font-size="12">?</text></svg>'
+  );
+
+  let cache = {};
+
+  function isCacheValid(table) {
+    if (!cache[table]) return false;
+    return Date.now() - cache[table].time < CONFIG.MINI_RANK_TTL;
+  }
+
+  async function fetchTop(table) {
+    /* [FIX] score는 항상 공유 scoreCalc 사용 → 랭킹 페이지와 동일한 값 보장 */
+    if (table === 'score') return scoreCalc.getTop(5);
+
+    if (isCacheValid(table)) return cache[table].data;
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10_000);
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/${table}?select=entry,value&order=value.desc&limit=5`;
+      const res = await fetch(url, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+        signal: ctrl.signal,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      cache[table] = { data, time: Date.now() };
+      return data;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function render(table) {
+    const listEl = utils.$('mini-rank-list');
+    if (!listEl) return;
+
+    listEl.innerHTML = Array(5).fill('<div class="skeleton-mini-row skeleton"></div>').join('');
+
+    const loadingTimeout = setTimeout(() => {
+      if (listEl.querySelector('.skeleton')) {
+        listEl.innerHTML = `<div class="mini-rank-loading" style="color:var(--text-dim);padding:20px 0">⏳ 불러오는 중...</div>`;
+      }
+    }, 8000);
+
+    try {
+      const rows = await fetchTop(table);
+      clearTimeout(loadingTimeout);
+
+      const cfg = TAB_CONFIG[table];
+      const medals = ['🥇', '🥈', '🥉'];
+
+      if (!rows || !rows.length) {
+        listEl.innerHTML = `<div class="mini-rank-loading" style="color:var(--text-dim);padding:20px 0">데이터 없음</div>`;
+        return;
+      }
+
+      listEl.innerHTML = rows.map((row, i) => {
+        const isTop3 = i < 3;
+        const pos = isTop3 ? medals[i] : String(i + 1);
+        const posClass = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
+        const delay = i * 60;
+        const safeName = utils.sanitizeText(row.entry);
+        const rankingUrl = `ranking.html?player=${encodeURIComponent(row.entry)}&tab=${encodeURIComponent(cfg.rankingTab)}`;
+
+        return `
+          <a class="mini-rank-row" href="${rankingUrl}"
+            aria-label="${pos} ${safeName} — ${cfg.format(row.value)} ${cfg.unit}"
+            style="animation-delay:${delay}ms">
+            <span class="mini-rank-pos ${posClass}">${pos}</span>
+            <img class="mini-rank-avatar"
+              src="https://mc-heads.net/avatar/${encodeURIComponent(row.entry)}/24"
+              alt="" onerror="this.src='${FALLBACK_AV}'" loading="lazy">
+            <span class="mini-rank-name">${safeName}</span>
+            <span class="mini-rank-val">${cfg.format(row.value)}</span>
+          </a>`;
+      }).join('');
+
+    } catch (err) {
+      listEl.innerHTML = `<div class="mini-rank-loading" style="color:#fca5a5">⚠️ 불러오기 실패</div>`;
+      console.error('Mini ranking error:', err);
+    }
+  }
+
+  function init() {
+    const tabsEl = utils.$('mini-rank-tabs');
+    if (!tabsEl) return;
+
+    tabsEl.addEventListener('click', e => {
+      const tab = e.target.closest('.mini-rank-tab');
+      if (!tab) return;
+      tabsEl.querySelectorAll('.mini-rank-tab').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      render(tab.dataset.table);
+    });
+
+    render('score');
+  }
+
+  return { init };
+})();
+
+/* ════════════════════════════════════════════
+   MOBILE MENU
+════════════════════════════════════════════ */
+const mobileMenu = (() => {
+  function init() {
+    const btn = utils.$('mobile-menu-btn');
+    const nav = utils.$('mobile-nav');
+    if (!btn || !nav) return;
+
+    btn.addEventListener('click', () => {
+      const isOpen = btn.classList.toggle('open');
+      nav.classList.toggle('open', isOpen);
+      btn.setAttribute('aria-expanded', String(isOpen));
+      nav.setAttribute('aria-hidden', String(!isOpen));
+      sound.play('click');
+    });
+
+    nav.querySelectorAll('.mobile-nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        btn.classList.remove('open');
+        nav.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        nav.setAttribute('aria-hidden', 'true');
+      });
+    });
+
+    document.addEventListener('click', e => {
+      if (!btn.contains(e.target) && !nav.contains(e.target)) {
+        btn.classList.remove('open');
+        nav.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        nav.setAttribute('aria-hidden', 'true');
+      }
+    });
+  }
+
+  return { init };
 })();
 
 /* ════════════════════════════════════════════
@@ -980,10 +1365,10 @@ const popup = (() => {
 ════════════════════════════════════════════ */
 const faq = (() => {
   function init() {
+    initFaqHidden();
     document.querySelectorAll('[data-faq]').forEach(btn => {
       btn.addEventListener('click', () => toggle(btn));
     });
-
     utils.$('copy-ip-btn')?.addEventListener('click', e => {
       e.stopPropagation();
       copyIP(e.currentTarget);
@@ -999,29 +1384,52 @@ const faq = (() => {
 
     document.querySelectorAll('.faq-item.faq-open').forEach(i => {
       i.classList.remove('faq-open');
-      const a = i.querySelector('.faq-a');
-      if (a) { a.hidden = true; }
       i.querySelector('.faq-q')?.setAttribute('aria-expanded', 'false');
     });
 
     if (!isOpen) {
       item.classList.add('faq-open');
-      answer.hidden = false;
       btn.setAttribute('aria-expanded', 'true');
+      setTimeout(() => {
+        answer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
     }
   }
 
+  function initFaqHidden() {
+    document.querySelectorAll('.faq-a').forEach(a => { a.removeAttribute('hidden'); });
+  }
+
   function copyIP(btn) {
-    navigator.clipboard.writeText(CONFIG.SERVER_IP)
-      .then(() => {
-        const prev = btn.textContent;
-        btn.textContent = '완료!';
-        toast.show('서버 IP가 클립보드에 복사되었습니다', '📋', 2500);
-        setTimeout(() => { btn.textContent = prev; }, 1500);
-      })
-      .catch(() => {
-        toast.show('복사에 실패했습니다. IP: ' + CONFIG.SERVER_IP, '⚠️', 3000);
-      });
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(CONFIG.SERVER_IP)
+        .then(() => _copySuccess(btn))
+        .catch(() => _copyFallback(btn));
+    } else {
+      _copyFallback(btn);
+    }
+  }
+
+  function _copySuccess(btn) {
+    const prev = btn.textContent;
+    btn.textContent = '완료!';
+    toast.show('서버 IP가 클립보드에 복사되었습니다', '📋', 2500);
+    setTimeout(() => { btn.textContent = prev; }, 1500);
+  }
+
+  function _copyFallback(btn) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = CONFIG.SERVER_IP;
+      ta.style.cssText = 'position:fixed;opacity:0;';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      _copySuccess(btn);
+    } catch {
+      toast.show('복사에 실패했습니다. IP: ' + CONFIG.SERVER_IP, '⚠️', 3000);
+    }
   }
 
   return { init };
@@ -1031,16 +1439,26 @@ const faq = (() => {
    LAUNCHER
 ════════════════════════════════════════════ */
 const launcher = (() => {
+  const timers = new WeakMap();
+
   function setLoading(btn, msg, duration = 2000) {
     const textEl = btn.querySelector('.btn-text');
     if (!textEl) return;
+
+    if (timers.has(btn)) {
+      clearTimeout(timers.get(btn));
+    }
+
     const original = textEl.textContent;
     textEl.textContent = msg;
     btn.disabled = true;
-    return setTimeout(() => {
+
+    const id = setTimeout(() => {
       textEl.textContent = original;
       btn.disabled = false;
+      timers.delete(btn);
     }, duration);
+    timers.set(btn, id);
   }
 
   function invokeProtocol(path, bool = true) {
@@ -1060,24 +1478,16 @@ const launcher = (() => {
       setLoading(e.currentTarget, '⏳ 실행 준비 중...');
       setTimeout(() => invokeProtocol('start'), 100);
     });
-
     utils.$('btn-login-info')?.addEventListener('click', e => {
       setLoading(e.currentTarget, '⏳ 여는 중...');
       setTimeout(() => invokeProtocol('login-info'), 100);
     });
-
     utils.$('btn-replay-folder')?.addEventListener('click', e => {
       setLoading(e.currentTarget, '⏳ 폴더 여는 중...');
       setTimeout(() => invokeProtocol('replay', false), 100);
     });
-
-    utils.$('btn-reset')?.addEventListener('click', e => {
-      popup.show(e.currentTarget, 'reset');
-    });
-
-    utils.$('btn-uninstall')?.addEventListener('click', e => {
-      popup.show(e.currentTarget, 'uninstall');
-    });
+    utils.$('btn-reset')?.addEventListener('click', e => { popup.show(e.currentTarget, 'reset'); });
+    utils.$('btn-uninstall')?.addEventListener('click', e => { popup.show(e.currentTarget, 'uninstall'); });
   }
 
   return { init };
@@ -1124,9 +1534,13 @@ const download = (() => {
 (async () => {
   document.documentElement.classList.add('js-ready');
 
+  visibilityManager.init();
+
   popup.init();
   faq.init();
   launcher.init();
+  mobileMenu.init();
+  miniRanking.init();
   lightbox.init();
 
   scrollProgress.init();
@@ -1143,8 +1557,6 @@ const download = (() => {
 
   slider.build();
 
-  sound.preload(['hover', 'click']);
-
   const [clientData, gameData] = await Promise.all([
     api.fetchRelease('client'),
     api.fetchRelease('game'),
@@ -1153,7 +1565,11 @@ const download = (() => {
   if (clientData) {
     ui.updateClientInfo(clientData);
   } else {
-    utils.setText('client-version-bar', '최신 버전');
+    const verBar = utils.$('client-version-bar');
+    if (verBar) {
+      verBar.classList.remove('skeleton-text');
+      verBar.textContent = '최신 버전';
+    }
     const btn = utils.$('download-btn');
     if (btn) btn.href = CONFIG.FALLBACK.clientUrl;
     toast.show('버전 정보를 불러오지 못했습니다. 링크는 최신 페이지로 연결됩니다.', '⚠️', 4000);

@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Min. At. Zero Web Client</title>
+  <meta name="description" content="Min. At. Zero — Minecraft 1.20.1 FPS/PvP 서버. TCZ 기반 전용 클라이언트로 즐기는 FPS 게임 서버.">
+  <meta name="theme-color" content="#22c55e">
   <link rel="icon" type="image/png" href="asset/image/icon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -21,7 +23,8 @@
   <div class="bg-lines" aria-hidden="true"></div>
 
   <!-- 라이트박스 -->
-  <div id="lightbox-overlay" class="lightbox-overlay" role="dialog" aria-modal="true" aria-label="이미지 확대보기" aria-hidden="true">
+  <div id="lightbox-overlay" class="lightbox-overlay" role="dialog" aria-modal="true" aria-label="이미지 확대보기"
+    aria-hidden="true">
     <div class="lightbox-content">
       <img id="lightbox-img" src="" alt="">
       <button class="lightbox-close" id="lightbox-close" aria-label="닫기">×</button>
@@ -46,26 +49,46 @@
           <span class="meta-tag">FPS / PVP</span>
           <span class="meta-tag">TCZ</span>
         </div>
-        <p class="site-desc">기존 Timeless and Classics Guns(1.16.5) 모다 더욱 좋아진 Timeless and Classics Zero(1.20.1) 모드 기반으로<br>제작된 마인크래프트 FPS게임 서버입니다. 맵과 무기를 선택하고 여러가지 맵을 선택해 유저들과 싸워보세요!</p>
+        <p class="site-desc">기존 Timeless and Classics Guns(1.16.5) 모다 더욱 좋아진 Timeless and Classics Zero(1.20.1) 모드
+          기반으로<br>제작된 마인크래프트 FPS게임 서버입니다. 맵과 무기를 선택하고 여러가지 맵을 선택해 유저들과 싸워보세요!</p>
       </div>
       <nav class="header-links" aria-label="페이지 내비게이션">
         <a href="#download-card" class="hdr-link-nav">DOWNLOAD</a>
         <a href="#showcase-slider-section" class="hdr-link-nav">GALLERY</a>
         <a href="#faq-section" class="hdr-link-nav">FAQ</a>
+        <a href="ranking.html" class="hdr-link-nav">RANKING</a>
         <div class="status-sep" style="height:24px;margin:0 4px" aria-hidden="true"></div>
         <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
           target="_blank" rel="noopener noreferrer" class="hdr-link" aria-label="게임 가이드 (Notion, 새 탭에서 열림)">📖</a>
-        <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer"
-          class="hdr-link" aria-label="디스코드 서버 (새 탭에서 열림)">💬</a>
+        <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer" class="hdr-link"
+          aria-label="디스코드 서버 (새 탭에서 열림)">💬</a>
       </nav>
+      <!-- 모바일 햄버거 버튼 -->
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="메뉴 열기" aria-expanded="false"
+        aria-controls="mobile-nav">
+        <span></span><span></span><span></span>
+      </button>
     </header>
+
+    <!-- 모바일 내비게이션 드로어 -->
+    <nav id="mobile-nav" class="mobile-nav" aria-label="모바일 내비게이션" aria-hidden="true">
+      <a href="#download-card" class="mobile-nav-link">⬇️ DOWNLOAD</a>
+      <a href="#showcase-slider-section" class="mobile-nav-link">🖼️ GALLERY</a>
+      <a href="#faq-section" class="mobile-nav-link">❓ FAQ</a>
+      <a href="ranking.html" class="mobile-nav-link">🏆 RANKING</a>
+      <div class="mobile-nav-divider"></div>
+      <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
+        target="_blank" rel="noopener noreferrer" class="mobile-nav-link">📖 게임 가이드</a>
+      <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer" class="mobile-nav-link">💬
+        디스코드</a>
+    </nav>
 
     <!-- ══ STATUS BAR ══ -->
     <div class="status-bar" role="status" aria-label="서버 현재 상태">
       <div class="status-item">
         <div class="pulse-dot" id="status-dot" aria-hidden="true"></div>
         <span class="label">STATUS</span>
-        <span class="value skeleton-text" id="server-status-text">확인중...</span>
+        <span class="value skeleton-text" id="server-status-text">Checking...</span>
       </div>
       <div class="status-sep" aria-hidden="true"></div>
       <div class="status-item">
@@ -134,12 +157,42 @@
               target="_blank" rel="noopener noreferrer" class="comm-btn notion" aria-label="게임 가이드 (Notion)">
               <span class="comm-icon" aria-hidden="true">📖</span> Guide
             </a>
-            <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer"
-              class="comm-btn discord" aria-label="디스코드 서버">
+            <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer" class="comm-btn discord"
+              aria-label="디스코드 서버">
               <span class="comm-icon" aria-hidden="true">💬</span> Discord
             </a>
           </div>
         </div>
+
+        <!-- 랭킹 미리보기 카드 -->
+        <div class="card">
+          <div class="card-top-bar"></div>
+          <div class="card-label">🏆 RANKING</div>
+
+          <!-- 탭 -->
+          <div class="mini-rank-tabs" id="mini-rank-tabs" role="tablist">
+            <button class="mini-rank-tab active" data-table="score" role="tab" aria-selected="true">🏅 종합</button>
+            <button class="mini-rank-tab" data-table="all_kill" role="tab" aria-selected="false">⚔️ 킬</button>
+            <button class="mini-rank-tab" data-table="win_count" role="tab" aria-selected="false">🏆 승리</button>
+            <button class="mini-rank-tab" data-table="playTime_H" role="tab" aria-selected="false">⏱️ 시간</button>
+          </div>
+
+          <!-- 랭킹 리스트 -->
+          <div class="mini-rank-list" id="mini-rank-list" aria-live="polite">
+            <div class="skeleton-mini-row skeleton"></div>
+            <div class="skeleton-mini-row skeleton"></div>
+            <div class="skeleton-mini-row skeleton"></div>
+            <div class="skeleton-mini-row skeleton"></div>
+            <div class="skeleton-mini-row skeleton"></div>
+          </div>
+
+          <!-- 전체보기 버튼 -->
+          <a href="ranking.html" class="mini-rank-more-btn">
+            전체 랭킹 보기
+            <span class="mini-rank-more-arrow">→</span>
+          </a>
+        </div>
+
 
         <!-- 권장 사양 카드 -->
         <div class="card">
@@ -176,10 +229,6 @@
                 <dt class="req-key">STORAGE</dt>
                 <dd class="req-val-min" style="grid-column:span 2;color:var(--text-primary)">2 GB 이상</dd>
               </div>
-              <div class="req-item req-item-table">
-                <dt class="req-key">JAVA</dt>
-                <dd class="req-val-min" style="grid-column:span 2;color:var(--text-primary)">Java 17 (x64)</dd>
-              </div>
             </dl>
           </div>
         </div>
@@ -194,8 +243,8 @@
           <div class="card-top-bar"></div>
           <div class="card-label">Official Trailer</div>
           <div class="video-wrap">
-            <iframe src="https://www.youtube.com/embed/qqqMY-6juJo?rel=0&modestbranding=1"
-              title="Min. At. Zero 공식 트레일러" allowfullscreen loading="lazy"></iframe>
+            <iframe src="https://www.youtube.com/embed/qqqMY-6juJo?rel=0&modestbranding=1" title="Min. At. Zero 공식 트레일러"
+              allowfullscreen loading="lazy"></iframe>
           </div>
         </div>
 
@@ -247,7 +296,8 @@
               <div class="step-num-box" aria-hidden="true">01</div>
               <div class="step-body">
                 <div class="step-title">클라이언트 다운로드</div>
-                <div class="step-desc">이 페이지 하단의 <strong>Download</strong> 섹션에서 Windows 클라이언트 설치 파일(.exe)을 다운로드합니다.</div>
+                <div class="step-desc">이 페이지 하단의 <strong>Download</strong> 섹션에서 Windows 클라이언트 설치 파일(.exe)을 다운로드합니다.
+                </div>
                 <span class="step-tag">Windows 전용</span>
               </div>
             </li>
@@ -255,7 +305,9 @@
               <div class="step-num-box" aria-hidden="true">02</div>
               <div class="step-body">
                 <div class="step-title">설치 파일 실행</div>
-                <div class="step-desc">다운로드된 <strong>.exe 파일</strong>을 실행합니다. 설치 마법사가 시작되면 화면의 안내에 따라 <strong>다음(Next)</strong>을 눌러 진행하세요.</div>
+                <div class="step-desc">다운로드된 <strong>.exe 파일</strong>을 실행합니다. 설치 마법사가 시작되면 화면의 안내에 따라
+                  <strong>다음(Next)</strong>을 눌러 진행하세요.
+                </div>
                 <span class="step-tag">화면 안내대로 진행</span>
               </div>
             </li>
@@ -270,15 +322,19 @@
               <div class="step-num-box" aria-hidden="true">04</div>
               <div class="step-body">
                 <div class="step-title">정품 계정으로 로그인</div>
-                <div class="step-desc">클라이언트 실행 후 <strong>정품 Microsoft / Minecraft 계정</strong>으로 로그인합니다. 정품 계정 없이는 게임 시작이 불가합니다.</div>
-                <span class="step-tag" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#fca5a5;">정품 계정 필수</span>
+                <div class="step-desc">상단에 Launcher에서 계정 관리자을 클릭해서 클라이언트 실행 후 <strong>정품 Microsoft / Minecraft
+                    계정</strong>으로 로그인합니다. 정품 계정 없이는 게임 시작이 불가합니다.</div>
+                <span class="step-tag"
+                  style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#fca5a5;">정품 계정
+                  필수</span>
               </div>
             </li>
             <li class="step-item">
               <div class="step-num-box" aria-hidden="true">05</div>
               <div class="step-body">
                 <div class="step-title">이 페이지에서 게임 시작</div>
-                <div class="step-desc">설치 이후 게임 시작, 계정 관리, 리플레이 폴더 열기 등 모든 기능은 <strong>이 사이트의 런처 버튼</strong>을 통해 이용할 수 있습니다.</div>
+                <div class="step-desc">설치 이후 게임 시작, 계정 관리, 리플레이 폴더 열기 등 모든 기능은 <strong>이 사이트의 런처 버튼</strong>을 통해 이용할 수
+                  있습니다.</div>
                 <span class="step-tag">사이트 런처 이용</span>
               </div>
             </li>
@@ -338,7 +394,7 @@
                 서버 IP 주소가 뭔가요?
               </button>
               <dd class="faq-a" hidden>
-                클라이언트를 설치하면 마인크래프트 시작 화면이 바뀌며, 시작하기 버튼을 누르면 자동으로 서버에 접속됩니다. IP를 직접 입력하고 싶다면 아래 주소를 사용하세요.<br><br>
+                클라이언트를 설치하면 마인크래프트 시작 화면이 바뀌며, 시작하기 버튼을 누르면 자동으로 서버에 접속됩니다. IP를 직접 입력하고 싶다면 아래 주소를 사용하세요.<br>
                 <span class="faq-ip-box">
                   tharu81.kro.kr
                   <button class="faq-copy-btn" id="copy-ip-btn" aria-label="서버 IP 복사">복사</button>
@@ -352,7 +408,8 @@
                 Mac / Linux에서도 플레이 가능한가요?
                 <span class="faq-badge badge-red">미지원</span>
               </button>
-              <dd class="faq-a" hidden>마인크래프트 자체는 Mac/Linux에서도 실행되지만, 전용 클라이언트가 현재 Windows만 지원합니다. Mac/Linux에서는 플레이가 불가합니다.</dd>
+              <dd class="faq-a" hidden>마인크래프트 자체는 Mac/Linux에서도 실행되지만, 전용 클라이언트가 현재 Windows만 지원합니다. Mac/Linux에서는 플레이가
+                불가합니다.</dd>
             </div>
 
             <div class="faq-item">
@@ -361,7 +418,8 @@
                 MultiMC 등 다른 런처로 접속할 수 있나요?
                 <span class="faq-badge badge-red">불가</span>
               </button>
-              <dd class="faq-a" hidden>불가합니다. 서버 플레이에 필요한 모드팩은 전용 클라이언트를 통해서만 설치·다운로드할 수 있습니다. 또한 부정행위 방지를 위해 전용 클라이언트 외 접속은 허용되지 않습니다.</dd>
+              <dd class="faq-a" hidden>불가합니다. 서버 플레이에 필요한 모드팩은 전용 클라이언트를 통해서만 설치·다운로드할 수 있습니다. 또한 부정행위 방지를 위해 전용 클라이언트 외
+                접속은 허용되지 않습니다.</dd>
             </div>
 
             <div class="faq-item">
@@ -369,7 +427,8 @@
                 <span class="faq-icon" aria-hidden="true">+</span>
                 게임이 버벅이거나 렉이 심할 때는 어떻게 하나요?
               </button>
-              <dd class="faq-a" hidden>설치되는 모드팩에 다양한 최적화 모드가 이미 포함되어 있습니다. 그래도 성능이 낮다면 게임 내 그래픽 설정(렌더 거리, 그래픽 품질 등)을 낮춰 보시기를 권장합니다.</dd>
+              <dd class="faq-a" hidden>설치되는 모드팩에 다양한 최적화 모드가 이미 포함되어 있습니다. 그래도 성능이 낮다면 게임 내 그래픽 설정(렌더 거리, 그래픽 품질 등)을 낮춰
+                보시기를 권장합니다.</dd>
             </div>
 
             <div class="faq-item">
@@ -378,7 +437,8 @@
                 모드를 추가로 설치해도 되나요?
                 <span class="faq-badge badge-red">금지</span>
               </button>
-              <dd class="faq-a" hidden>부정행위 방지를 위해 추가 모드 설치는 엄격히 금지되어 있습니다. 클라이언트는 설치된 모드에 대해 무결성 검사를 진행하므로 임의로 추가된 모드는 감지됩니다.</dd>
+              <dd class="faq-a" hidden>부정행위 방지를 위해 추가 모드 설치는 엄격히 금지되어 있습니다. 클라이언트는 설치된 모드에 대해 무결성 검사를 진행하므로 임의로 추가된 모드는
+                감지됩니다.</dd>
             </div>
 
             <div class="faq-item">
@@ -447,7 +507,8 @@
 
   <!-- ══ CUSTOM POPUP ══ -->
   <div class="matz-popup-overlay" id="popup-overlay" aria-hidden="true"></div>
-  <div class="matz-popup" id="matz-popup" role="dialog" aria-modal="true" aria-labelledby="popup-title" aria-hidden="true">
+  <div class="matz-popup" id="matz-popup" role="dialog" aria-modal="true" aria-labelledby="popup-title"
+    aria-hidden="true">
     <div class="matz-popup-bar"></div>
     <div class="matz-popup-inner">
       <div class="matz-popup-header">
