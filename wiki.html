@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wiki — Min. At. Zero</title>
+  <meta name="description" content="Min. At. Zero 서버 위키 문서">
+  <meta name="theme-color" content="#22c55e">
+  <meta property="og:title" content="Wiki — Min. At. Zero">
+  <meta property="og:description" content="Min. At. Zero 서버 공략, 규칙, 무기 정보 등 모든 것을 담은 공식 위키">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/png" href="asset/image/icon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="asset/style.css">
+  <!-- marked.js : 마크다운 파서 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.0/marked.min.js"></script>
+
+  <style>
+  /* ══════════════════════════════════════════════
+     ROOT VARS
+  ══════════════════════════════════════════════ */
+  :root {
+    --sidebar-w: 288px;
+    --wiki-accent: var(--green);
+    --content-pad-x: 64px;
+    --content-pad-y: 52px;
+    --content-max: 880px;
+    --radius-card: 12px;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  /* ══════════════════════════════════════════════
+     LAYOUT  ·  outer margin으로 여백감 부여
+  ══════════════════════════════════════════════ */
+  .wiki-layout {
+    display: flex;
+    min-height: calc(100vh - 70px);
+    gap: 0;
+    position: relative;
+    /* 상단 여백 */
+    padding-top: 4px;
+  }
+
+  /* ══════════════════════════════════════════════
+     SIDEBAR
+  ══════════════════════════════════════════════ */
+  .wiki-sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    background: rgba(4,8,14,0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: sticky;
+    top: 70px;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(34,197,94,0.2) transparent;
+    transition: transform 0.38s var(--ease-out), box-shadow 0.38s;
+    z-index: 20;
+  }
+  .wiki-sidebar::-webkit-scrollbar { width: 3px; }
+  .wiki-sidebar::-webkit-scrollbar-thumb { background: rgba(34,197,94,0.25); border-radius: 2px; }
+
+  .sidebar-inner { padding: 20px 0 48px; }
+
+  /* ── 사이드바 검색 ──
+     wrap을 flex + align-items:center로 고정
+     → top:50% 트릭 없이 아이콘이 항상 input 수직 중앙에 위치
+  */
+  .sidebar-search-wrap {
+    padding: 0 14px 0;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  .sidebar-search-icon {
+    position: absolute;
+    left: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+  }
+  .sidebar-search-icon svg { width: 14px; height: 14px; display: block; }
+  .sidebar-search {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 9px;
+    padding: 8px 12px 8px 34px;
+    color: var(--text-primary);
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.22s, background 0.22s, box-shadow 0.22s;
+    box-sizing: border-box;
+  }
+  .sidebar-search::placeholder { color: var(--text-dim); }
+  .sidebar-search:focus {
+    border-color: rgba(34,197,94,0.4);
+    background: rgba(34,197,94,0.04);
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.08);
+  }
+
+  /* 사이드바 헤더 라벨 */
+  .sidebar-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+    color: var(--text-dim); text-transform: uppercase;
+    padding: 0 16px 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .sidebar-label::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.05);
+  }
+
+  /* ── 트리 노드 ── */
+  .tree-node { position: relative; }
+
+  .tree-item {
+    display: flex; align-items: center; gap: 0;
+    width: 100%; background: none; border: none; text-align: left;
+    cursor: pointer; padding: 0;
+    color: var(--text-muted);
+    transition: color 0.18s, background 0.18s;
+    position: relative;
+  }
+
+  /* depth별 들여쓰기 */
+  .tree-indent { display: flex; align-items: stretch; flex-shrink: 0; }
+  .tree-indent-unit {
+    width: 20px; flex-shrink: 0; position: relative;
+  }
+  .tree-indent-unit::before {
+    content: '';
+    position: absolute; left: 9px; top: 0; bottom: 0; width: 1px;
+    background: rgba(255,255,255,0.07);
+  }
+  .tree-indent-unit:last-child::before { display: none; }
+
+  /* 토글 화살표 */
+  .tree-toggle {
+    width: 20px; height: 36px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim);
+    transition: transform 0.24s var(--ease-out), color 0.18s;
+    font-size: 10px;
+  }
+  .tree-toggle svg { width: 10px; height: 10px; }
+  .tree-node.open > .tree-item .tree-toggle { transform: rotate(90deg); }
+  .tree-node.leaf > .tree-item .tree-toggle { visibility: hidden; }
+
+  /* 문서 아이콘 */
+  .tree-doc-icon {
+    width: 15px; height: 15px; flex-shrink: 0; margin-right: 7px;
+    color: var(--text-dim); transition: color 0.18s;
+  }
+  .tree-doc-icon svg { width: 100%; height: 100%; }
+
+  /* 라벨 텍스트 */
+  .tree-label-wrap {
+    flex: 1; min-width: 0; padding: 9px 14px 9px 0; line-height: 1.3;
+  }
+  .tree-label {
+    font-size: 13px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: block;
+  }
+  .tree-label em {
+    font-style: normal;
+    background: rgba(34,197,94,0.22); border-radius: 2px;
+    padding: 0 2px; color: var(--green);
+  }
+
+  /* 액티브 상태 */
+  .tree-item.active { color: var(--green); background: rgba(34,197,94,0.05); }
+  .tree-item.active .tree-doc-icon { color: var(--green); }
+  .tree-item.active .tree-toggle { color: var(--green); }
+  .tree-item.active .tree-label-wrap { font-weight: 600; }
+  .tree-item::before {
+    content: ''; position: absolute; left: 0; top: 5px; bottom: 5px; width: 2px;
+    background: var(--green); border-radius: 0 2px 2px 0;
+    opacity: 0; transform: scaleY(0);
+    transition: opacity 0.2s, transform 0.22s var(--ease-out);
+  }
+  .tree-item.active::before { opacity: 1; transform: scaleY(1); }
+
+  /* 호버 */
+  .tree-item:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); }
+  .tree-item:hover .tree-doc-icon { color: var(--text-muted); }
+
+  /* 자식 영역 */
+  .tree-children {
+    overflow: hidden; max-height: 0;
+    transition: max-height 0.34s var(--ease-out);
+  }
+  .tree-node.open > .tree-children { max-height: 2000px; }
+
+  /* 검색 숨김 */
+  .tree-node.hidden { display: none; }
+
+  /* 모바일 사이드바 토글 */
+  .sidebar-toggle-btn {
+    display: none;
+    position: fixed; bottom: 24px; right: 24px;
+    width: 50px; height: 50px; border-radius: 50%;
+    background: var(--green); color: #000;
+    border: none; cursor: pointer; z-index: 200;
+    align-items: center; justify-content: center;
+    box-shadow: 0 8px 28px rgba(34,197,94,0.45);
+    transition: transform 0.22s, box-shadow 0.22s;
+  }
+  .sidebar-toggle-btn:hover { transform: scale(1.1); box-shadow: 0 12px 36px rgba(34,197,94,0.55); }
+  .sidebar-toggle-btn svg { width: 20px; height: 20px; }
+
+  /* ══════════════════════════════════════════════
+     MAIN CONTENT  · 넉넉한 여백 + 최대 폭 제한
+  ══════════════════════════════════════════════ */
+  .wiki-main {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+    /* 메인 콘텐츠 영역 자체에도 좌우 여백 */
+    padding: 0 24px;
+  }
+
+  .wiki-content-wrap {
+    flex: 1;
+    padding: var(--content-pad-y) var(--content-pad-x) 96px;
+    max-width: var(--content-max);
+    width: 100%;
+    /* 좌우 자동 마진으로 콘텐츠 중앙 정렬 */
+    margin: 0 auto;
+    animation: wikiPageIn 0.48s var(--ease-out) both;
+  }
+  @keyframes wikiPageIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 브레드크럼 */
+  .wiki-breadcrumb {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px;
+    color: var(--text-dim); margin-bottom: 28px;
+  }
+  .breadcrumb-sep { color: rgba(255,255,255,0.18); }
+  .breadcrumb-item { cursor: pointer; transition: color 0.18s; }
+  .breadcrumb-item:hover { color: var(--green); }
+  .breadcrumb-item.current { color: var(--text-muted); cursor: default; }
+
+  /* 문서 제목 */
+  .wiki-doc-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(28px, 5vw, 46px); font-weight: 700;
+    color: var(--text-primary); line-height: 1.05;
+    margin-bottom: 10px;
+    /* 제목 텍스트에 미세 글로우 */
+    text-shadow: 0 0 40px rgba(34,197,94,0.12);
+  }
+  .wiki-doc-meta {
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+    margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .wiki-doc-meta-sep { color: rgba(255,255,255,0.12); }
+  .wiki-doc-divider {
+    height: 1px;
+    background: linear-gradient(to right, rgba(34,197,94,0.3), rgba(34,197,94,0.05), transparent);
+    margin-bottom: 40px;
+  }
+
+  /* ── 목차 (TOC) ── */
+  .wiki-toc {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-left: 3px solid var(--green);
+    border-radius: 0 var(--radius-card) var(--radius-card) 0;
+    padding: 18px 22px; margin-bottom: 36px;
+    max-width: 440px;
+    transition: border-color 0.2s;
+  }
+  .wiki-toc:hover { border-color: rgba(34,197,94,0.25); }
+  .wiki-toc-title {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 2.5px;
+    color: var(--green); text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .wiki-toc-title::after { content:''; flex:1; height:1px; background: rgba(34,197,94,0.15); }
+  .wiki-toc-list { list-style: none; padding: 0; margin: 0; }
+  .wiki-toc-list li { padding: 3px 0; }
+  .wiki-toc-list a {
+    font-size: 13px; color: var(--text-muted); text-decoration: none;
+    transition: color 0.18s, padding-left 0.2s; display: block;
+    padding-left: calc(var(--toc-depth, 0) * 14px);
+  }
+  .wiki-toc-list a:hover { color: var(--green); padding-left: calc(var(--toc-depth, 0) * 14px + 4px); }
+
+  /* ══════════════════════════════════════════════
+     MARKDOWN / NOTION STYLE CONTENT
+  ══════════════════════════════════════════════ */
+  .wiki-body { color: var(--text-muted); line-height: 1.88; font-size: 14.5px; }
+
+  /* 제목 */
+  .wiki-body h1 {
+    font-family: 'Rajdhani', sans-serif; font-size: 34px; font-weight: 700;
+    color: var(--text-primary); margin: 44px 0 18px; line-height: 1.1;
+    border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;
+  }
+  .wiki-body h2 {
+    font-family: 'Rajdhani', sans-serif; font-size: 26px; font-weight: 700;
+    color: var(--text-primary); margin: 40px 0 14px; line-height: 1.15;
+    /* h2 좌측 액센트 */
+    padding-left: 12px;
+    border-left: 3px solid var(--green);
+  }
+  .wiki-body h3 {
+    font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 600;
+    color: var(--text-primary); margin: 30px 0 12px;
+  }
+  .wiki-body h4 { font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 24px 0 10px; }
+  .wiki-body h1:first-child, .wiki-body h2:first-child { margin-top: 0; }
+
+  /* 단락 */
+  .wiki-body p { margin: 0 0 18px; }
+
+  /* 강조 */
+  .wiki-body strong { color: var(--text-primary); font-weight: 700; }
+  .wiki-body em { color: #a5b4fc; font-style: italic; }
+
+  /* 인라인 코드 */
+  .wiki-body code {
+    font-family: var(--mono); font-size: 12.5px;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px; padding: 1px 6px; color: #93c5fd;
+  }
+
+  /* 코드 블록 */
+  .wiki-body pre {
+    background: rgba(4,8,14,0.85); border: 1px solid rgba(255,255,255,0.07);
+    border-left: 3px solid var(--blue); border-radius: 0 var(--radius-card) var(--radius-card) 0;
+    padding: 20px 22px; overflow-x: auto; margin: 24px 0;
+    scrollbar-width: thin; scrollbar-color: rgba(59,130,246,0.3) transparent;
+    position: relative;
+  }
+  .wiki-body pre code {
+    background: none; border: none; padding: 0; color: #e2e8f0;
+    font-size: 13px; line-height: 1.75;
+  }
+  .wiki-body pre::before {
+    content: attr(data-lang);
+    position: absolute; top: 10px; right: 14px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+
+  /* 리스트 */
+  .wiki-body ul, .wiki-body ol { padding-left: 24px; margin: 0 0 18px; }
+  .wiki-body li { margin-bottom: 6px; }
+  .wiki-body ul li::marker { color: var(--green); }
+  .wiki-body ol li::marker { color: var(--blue); font-family: var(--mono); font-size: 12px; }
+
+  /* 인용 */
+  .wiki-body blockquote {
+    background: rgba(34,197,94,0.05);
+    border: 1px solid rgba(34,197,94,0.15);
+    border-left: 4px solid var(--green);
+    border-radius: 0 var(--radius-card) var(--radius-card) 0;
+    padding: 14px 20px; margin: 22px 0; color: var(--text-muted);
+  }
+  .wiki-body blockquote p { margin: 0; }
+  .wiki-body blockquote strong { color: var(--green); }
+
+  /* 구분선 */
+  .wiki-body hr {
+    border: none; height: 1px;
+    background: linear-gradient(to right, rgba(255,255,255,0.08), transparent);
+    margin: 36px 0;
+  }
+
+  /* 링크 */
+  .wiki-body a {
+    color: var(--blue); text-decoration: none;
+    border-bottom: 1px solid rgba(59,130,246,0.25);
+    transition: color 0.18s, border-color 0.18s;
+  }
+  .wiki-body a:hover { color: #93c5fd; border-color: rgba(59,130,246,0.6); }
+
+  /* 테이블 */
+  .wiki-body table {
+    width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 13.5px;
+    border-radius: var(--radius-card); overflow: hidden;
+  }
+  .wiki-body th {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    padding: 11px 16px; text-align: left;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .wiki-body td {
+    border: 1px solid rgba(255,255,255,0.05); padding: 10px 16px; color: var(--text-muted);
+    transition: background 0.15s;
+  }
+  .wiki-body tr:hover td { background: rgba(255,255,255,0.025); }
+
+  /* 이미지 */
+  .wiki-body img {
+    max-width: 100%; border-radius: var(--radius-card); margin: 20px 0;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .wiki-body img:hover { transform: scale(1.01); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+
+  /* ── Notion 특수 블록 ── */
+
+  /* 📌 Callout */
+  .notion-callout {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 16px 20px; border-radius: var(--radius-card); margin: 22px 0;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    transition: border-color 0.2s;
+  }
+  .notion-callout:hover { border-color: rgba(255,255,255,0.14); }
+  .notion-callout-icon { font-size: 20px; flex-shrink: 0; line-height: 1.6; }
+  .notion-callout-body { flex: 1; font-size: 14px; color: var(--text-muted); line-height: 1.78; }
+  .notion-callout-body p { margin: 0; }
+  .notion-callout.info    { background: rgba(59,130,246,0.07);  border-color: rgba(59,130,246,0.2); }
+  .notion-callout.warning { background: rgba(245,158,11,0.07);  border-color: rgba(245,158,11,0.2); }
+  .notion-callout.danger  { background: rgba(239,68,68,0.07);   border-color: rgba(239,68,68,0.2); }
+  .notion-callout.success { background: rgba(34,197,94,0.07);   border-color: rgba(34,197,94,0.2); }
+
+  /* 📂 Toggle */
+  .notion-toggle { margin: 14px 0; }
+  .notion-toggle-head {
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; padding: 10px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    color: var(--text-primary); font-size: 14px; font-weight: 600;
+    transition: background 0.18s, border-color 0.18s;
+    user-select: none;
+  }
+  .notion-toggle-head:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
+  .notion-toggle-arrow {
+    font-size: 10px; color: var(--text-dim);
+    transition: transform 0.24s var(--ease-out);
+    flex-shrink: 0;
+  }
+  .notion-toggle.open .notion-toggle-arrow { transform: rotate(90deg); }
+  .notion-toggle-body {
+    overflow: hidden; max-height: 0;
+    transition: max-height 0.38s var(--ease-out), padding 0.22s;
+    padding: 0 14px 0 30px; color: var(--text-muted); font-size: 14px; line-height: 1.82;
+  }
+  .notion-toggle.open .notion-toggle-body { max-height: 1400px; padding: 12px 14px 12px 30px; }
+
+  /* 구분선 라벨 */
+  .notion-divider-label {
+    display: flex; align-items: center; gap: 12px; margin: 32px 0;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+  .notion-divider-label::before, .notion-divider-label::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07);
+  }
+
+  /* ── 하위 문서 카드 ── */
+  .wiki-subpages {
+    margin-top: 48px; padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .wiki-subpages-title {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 2.5px;
+    color: var(--text-dim); text-transform: uppercase; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .wiki-subpages-title::after { content:''; flex:1; height:1px; background: rgba(255,255,255,0.05); }
+  .wiki-subpages-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;
+  }
+  .wiki-subpage-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border-radius: var(--radius-card);
+    background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07);
+    cursor: pointer;
+    transition: background 0.22s, border-color 0.22s, transform 0.22s, box-shadow 0.22s;
+    animation: fadeUpCard 0.42s var(--ease-out) both;
+  }
+  .wiki-subpage-card:hover {
+    background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.22);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(34,197,94,0.1);
+  }
+  @keyframes fadeUpCard {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  .wiki-subpage-card-icon { font-size: 20px; flex-shrink: 0; }
+  .wiki-subpage-card-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .wiki-subpage-card-count { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+
+  /* ── 환영 화면 ── */
+  .wiki-welcome {
+    display: flex; flex-direction: column;
+    align-items: flex-start; justify-content: center;
+    min-height: 62vh; gap: 18px;
+    animation: wikiPageIn 0.52s var(--ease-out) both;
+  }
+  .wiki-welcome-eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 3px;
+    color: var(--green); text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .wiki-welcome-eyebrow::before { content:''; width:28px; height:1px; background:var(--green); }
+  .wiki-welcome-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(38px, 6vw, 62px); font-weight: 700;
+    color: var(--text-primary); line-height: 1.0;
+  }
+  .wiki-welcome-title span { color: var(--green); }
+  .wiki-welcome-desc { font-size: 14.5px; color: var(--text-dim); max-width: 500px; line-height: 1.88; }
+  .wiki-welcome-stats {
+    display: flex; gap: 24px; margin-top: 4px;
+  }
+  .wiki-welcome-stat {
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .wiki-welcome-stat-num {
+    font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700;
+    color: var(--green); line-height: 1;
+  }
+  .wiki-welcome-stat-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+  .wiki-welcome-hint {
+    margin-top: 4px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px; padding: 11px 18px;
+    display: flex; align-items: center; gap: 10px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .wiki-welcome-hint:hover { border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); }
+  .wiki-welcome-hint::before { content:'💡'; }
+
+  /* ══════════════════════════════════════════════
+     SKELETON LOADING
+  ══════════════════════════════════════════════ */
+  @keyframes skeletonShimmer {
+    0%   { background-position: -400% 0; }
+    100% { background-position: 400% 0; }
+  }
+  .skel {
+    background: linear-gradient(90deg,
+      rgba(255,255,255,0.03) 20%,
+      rgba(255,255,255,0.08) 50%,
+      rgba(255,255,255,0.03) 80%);
+    background-size: 400% 100%;
+    animation: skeletonShimmer 2s ease-in-out infinite;
+    border-radius: 6px;
+  }
+  /* 콘텐츠 스켈레톤 — padding은 content-wrap과 맞춤 */
+  .skel-content {
+    padding: var(--content-pad-y) var(--content-pad-x);
+    max-width: var(--content-max);
+    margin: 0 auto;
+    animation: wikiPageIn 0.3s var(--ease-out) both;
+  }
+  .skel-breadcrumb { height:13px; width:220px; margin-bottom:30px; }
+  .skel-title      { height:44px; width:58%;  margin-bottom:14px; border-radius:8px; }
+  .skel-meta       { height:11px; width:32%;  margin-bottom:34px; }
+  .skel-divider    { height:1px;  background:rgba(255,255,255,0.05); margin-bottom:40px; }
+  .skel-p1 { height:14px; width:100%; margin-bottom:9px; }
+  .skel-p2 { height:14px; width:90%;  margin-bottom:9px; }
+  .skel-p3 { height:14px; width:76%;  margin-bottom:26px; }
+  .skel-h  { height:24px; width:42%;  margin-bottom:16px; border-radius:5px; }
+  .skel-p4 { height:14px; width:100%; margin-bottom:9px; }
+  .skel-p5 { height:14px; width:94%;  margin-bottom:9px; }
+  .skel-p6 { height:14px; width:82%;  margin-bottom:9px; }
+  /* 코드블록 스켈레톤 */
+  .skel-code {
+    height: 90px; border-radius: 0 var(--radius-card) var(--radius-card) 0;
+    margin-top: 6px; margin-bottom: 24px;
+    border-left: 3px solid rgba(59,130,246,0.25);
+  }
+
+  /* 사이드바 스켈레톤 */
+  .skel-tree-item {
+    display: flex; align-items: center; gap: 8px; padding: 6px 16px;
+  }
+  .skel-tree-icon  { width:15px; height:15px; border-radius:3px; flex-shrink:0; }
+  .skel-tree-label { height:11px; border-radius:3px; }
+
+  /* ── 에러 ── */
+  .wiki-error {
+    padding: 72px 40px; text-align: center;
+    font-family: var(--mono); color: var(--red);
+  }
+
+  /* ══════════════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════════════ */
+  @media (max-width: 1024px) {
+    :root { --content-pad-x: 44px; }
+  }
+  @media (max-width: 768px) {
+    :root { --content-pad-x: 22px; --content-pad-y: 32px; }
+    .wiki-main { padding: 0 8px; }
+    .wiki-sidebar {
+      position: fixed; top: 70px; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      box-shadow: 4px 0 32px rgba(0,0,0,0.55);
+    }
+    .wiki-sidebar.open { transform: translateX(0); }
+    .sidebar-toggle-btn { display: flex; }
+    .wiki-subpages-grid { grid-template-columns: 1fr; }
+    .wiki-welcome-stats { flex-wrap: wrap; gap: 16px; }
+  }
+  @media (max-width: 480px) {
+    :root { --content-pad-x: 16px; --content-pad-y: 24px; }
+    .wiki-main { padding: 0 4px; }
+  }
+
+  /* ══════════════════════════════════════════════
+     DECORATIVE
+  ══════════════════════════════════════════════ */
+  /* 스캔라인 */
+  .scan-deco {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .scan-deco::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(34,197,94,0.08), transparent);
+    animation: scanline 9s linear infinite;
+  }
+  @keyframes scanline { from { top: -1px; } to { top: 100vh; } }
+
+  /* 페이지 전환 오버레이 */
+  .page-fade {
+    position: fixed; inset: 0; background: rgba(4,8,14,0.65);
+    pointer-events: none; opacity: 0; z-index: 9999;
+    transition: opacity 0.16s;
+  }
+  .page-fade.active { opacity: 1; }
+
+  /* ══════════════════════════════════════════════
+     MEDIA BLOCKS  (이미지 · 비디오)
+  ══════════════════════════════════════════════ */
+
+  /* 공통 미디어 래퍼 */
+  .wiki-media { margin: 28px 0; }
+  .wiki-media-inner {
+    position: relative; border-radius: var(--radius-card);
+    overflow: hidden;
+    background: rgba(4,8,14,0.6);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    transition: border-color 0.22s, box-shadow 0.22s;
+  }
+  .wiki-media-inner:hover {
+    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+
+  /* ── 이미지 ── */
+  .wiki-media-img {
+    display: block; max-width: 100%; width: 100%; height: auto;
+    border-radius: var(--radius-card);
+    cursor: zoom-in;
+    transition: transform 0.32s var(--ease-out), filter 0.32s;
+  }
+  .wiki-media-inner:hover .wiki-media-img {
+    transform: scale(1.015); filter: brightness(1.04);
+  }
+
+  /* ── 비디오 ── */
+  .wiki-media-video {
+    display: block; width: 100%; height: auto;
+    border-radius: var(--radius-card);
+    background: #000;
+    accent-color: var(--green);
+  }
+  /* 비디오 초기 재생 오버레이 */
+  .wiki-media-play-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.3);
+    opacity: 1; transition: opacity 0.25s;
+    pointer-events: none;
+    border-radius: var(--radius-card);
+  }
+  .wiki-media-play-overlay.hidden { opacity: 0; }
+  .wiki-media-play-icon {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(34,197,94,0.88);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 24px rgba(34,197,94,0.55);
+    transition: transform 0.22s, background 0.22s;
+  }
+  .wiki-media-play-icon svg { width: 26px; height: 26px; fill: #000; margin-left: 4px; }
+  .wiki-media-inner:hover .wiki-media-play-icon {
+    transform: scale(1.1); background: rgba(34,197,94,1);
+  }
+
+  /* ── 캡션 ── */
+  .wiki-media-caption {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.3px;
+    color: var(--text-dim); text-align: center;
+    padding: 10px 4px 2px; line-height: 1.5;
+  }
+
+  /* ── 라이트박스 ── */
+  .wiki-lightbox {
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(4,8,14,0.93);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.28s var(--ease-out);
+  }
+  .wiki-lightbox.open { opacity: 1; pointer-events: all; }
+  .wiki-lightbox-img {
+    max-width: min(92vw, 1280px); max-height: 88vh;
+    border-radius: var(--radius-card);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+    transform: scale(0.92);
+    transition: transform 0.34s var(--ease-out);
+    object-fit: contain;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .wiki-lightbox.open .wiki-lightbox-img { transform: scale(1); }
+  .wiki-lightbox-close {
+    position: absolute; top: 20px; right: 20px;
+    width: 42px; height: 42px; border-radius: 50%;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-primary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; transition: background 0.2s, transform 0.2s;
+    z-index: 10001;
+  }
+  .wiki-lightbox-close:hover { background: rgba(255,255,255,0.15); transform: scale(1.1); }
+  .wiki-lightbox-caption {
+    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.5);
+    background: rgba(0,0,0,0.55); padding: 6px 16px; border-radius: 20px;
+    white-space: nowrap; max-width: 80vw; overflow: hidden; text-overflow: ellipsis;
+    pointer-events: none;
+  }
+
+  /* 순수 md 이미지 fallback (미디어 래퍼 없는 경우) */
+  .wiki-body > p > img,
+  .wiki-body img:not(.wiki-media-img) {
+    max-width: 100%; border-radius: var(--radius-card); margin: 20px 0;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: zoom-in;
+    display: block;
+  }
+  .wiki-body img:not(.wiki-media-img):hover {
+    transform: scale(1.01); box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+
+  </style>
+</head>
+<body>
+  <div class="scan-deco" aria-hidden="true"></div>
+  <div class="bg-grid"   aria-hidden="true"></div>
+  <div class="bg-radial" aria-hidden="true"></div>
+  <div class="bg-lines"  aria-hidden="true"></div>
+  <div id="scroll-progress" aria-hidden="true"></div>
+  <div class="page-fade" id="page-fade"></div>
+
+  <!-- 라이트박스 -->
+  <div class="wiki-lightbox" id="wiki-lightbox" role="dialog" aria-modal="true" aria-label="이미지 확대">
+    <button class="wiki-lightbox-close" id="lightbox-close" aria-label="닫기">✕</button>
+    <img class="wiki-lightbox-img" id="lightbox-img" src="" alt="">
+    <div class="wiki-lightbox-caption" id="lightbox-caption"></div>
+  </div>
+
+  <!-- 헤더 -->
+  <header id="header-root" class="header"></header>
+
+  <!-- 위키 레이아웃 -->
+  <div class="wiki-layout">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="wiki-sidebar" id="wiki-sidebar" aria-label="문서 탐색">
+      <div class="sidebar-inner">
+
+        <!-- 검색 -->
+        <div class="sidebar-search-wrap">
+          <span class="sidebar-search-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          </span>
+          <input class="sidebar-search" id="sidebar-search" type="text" placeholder="문서 검색...">
+        </div>
+
+        <div class="sidebar-label">문서 목록</div>
+
+        <!-- 트리 렌더 영역 -->
+        <div id="wiki-tree">
+          <!-- 스켈레톤 -->
+          <div id="tree-skeleton">
+            <div class="skel-tree-item">
+              <div class="skel skel-tree-icon"></div>
+              <div class="skel skel-tree-label" style="width:110px"></div>
+            </div>
+            <div class="skel-tree-item" style="padding-left:36px">
+              <div class="skel skel-tree-icon"></div>
+              <div class="skel skel-tree-label" style="width:90px"></div>
+            </div>
+            <div class="skel-tree-item" style="padding-left:36px">
+              <div class="skel skel-tree-icon"></div>
+              <div class="skel skel-tree-label" style="width:75px"></div>
+            </div>
+            <div class="skel-tree-item" style="margin-top:8px">
+              <div class="skel skel-tree-icon"></div>
+              <div class="skel skel-tree-label" style="width:100px"></div>
+            </div>
+            <div class="skel-tree-item">
+              <div class="skel skel-tree-icon"></div>
+              <div class="skel skel-tree-label" style="width:85px"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="wiki-main" id="wiki-main" aria-label="위키 본문">
+      <div class="wiki-content-wrap" id="wiki-content" aria-live="polite" aria-atomic="false">
+        <!-- 초기 환영 화면 -->
+        <div class="wiki-welcome" id="wiki-welcome">
+          <p class="wiki-welcome-eyebrow">Documentation</p>
+          <h1 class="wiki-welcome-title">Min. At. Zero<br><span>Wiki</span></h1>
+          <p class="wiki-welcome-desc">서버 공략, 규칙, 무기 정보 등 모든 것을 담은 공식 위키입니다.<br>왼쪽 메뉴에서 문서를 선택하거나 검색하세요.</p>
+          <div class="wiki-welcome-stats" id="wiki-welcome-stats" style="display:none">
+            <div class="wiki-welcome-stat">
+              <span class="wiki-welcome-stat-num" id="stat-docs">—</span>
+              <span class="wiki-welcome-stat-label">문서</span>
+            </div>
+            <div class="wiki-welcome-stat">
+              <span class="wiki-welcome-stat-num" id="stat-cats">—</span>
+              <span class="wiki-welcome-stat-label">카테고리</span>
+            </div>
+          </div>
+          <div class="wiki-welcome-hint">왼쪽 트리에서 문서를 클릭하면 내용이 표시됩니다.</div>
+        </div>
+      </div>
+    </main>
+
+  </div><!-- /wiki-layout -->
+
+  <!-- 모바일 사이드바 토글 -->
+  <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="문서 목록 열기" aria-expanded="false" aria-controls="wiki-sidebar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M3 12h18M3 6h18M3 18h18"/>
+    </svg>
+  </button>
+
+  <!-- 푸터 -->
+  <footer id="footer-root" class="footer"></footer>
+
+  <script src="asset/script.js"></script>
+  <script>
+  /* ═══════════════════════════════════════════════════════════
+     MIN. AT. ZERO  ·  WIKI ENGINE
+  ═══════════════════════════════════════════════════════════ */
+  (function () {
+    'use strict';
+
+    /* ─────────────────────────────────────
+       설정
+    ───────────────────────────────────── */
+    const INDEX_URL = './wiki/index.json';  // 문서 목록 JSON
+
+    /* ─────────────────────────────────────
+       상태
+    ───────────────────────────────────── */
+    let allDocs   = [];   // { id, path, filename, keys, title, depth }
+    let treeRoot  = [];   // 트리 노드 배열
+    let currentId = null;
+
+    /* ─────────────────────────────────────
+       파일명 파싱
+       1-2-3-제목.md  →  keys=[1,2,3], title="제목"
+    ───────────────────────────────────── */
+    function parseFilename(filename) {
+      // 확장자 제거
+      const base  = filename.replace(/\.md$/i, '');
+      // 숫자-숫자-...-제목 분리
+      const match = base.match(/^([\d]+(?:-[\d]+)*)-(.+)$/);
+      if (!match) return null;
+      const keys  = match[1].split('-').map(Number);
+      const title = match[2];
+      return { keys, title, depth: keys.length };
+    }
+
+    /* ─────────────────────────────────────
+       트리 빌드
+    ───────────────────────────────────── */
+    function buildTree(docs) {
+      // keys 기준 정렬
+      const sorted = [...docs].sort((a, b) => {
+        for (let i = 0; i < Math.max(a.keys.length, b.keys.length); i++) {
+          const ak = a.keys[i] ?? 0, bk = b.keys[i] ?? 0;
+          if (ak !== bk) return ak - bk;
+        }
+        return 0;
+      });
+
+      const root = [];
+      const nodeMap = {}; // "1", "1-2", ... → node
+
+      sorted.forEach(doc => {
+        const node = { doc, children: [] };
+        const keyStr = doc.keys.join('-');
+        nodeMap[keyStr] = node;
+
+        if (doc.keys.length === 1) {
+          root.push(node);
+        } else {
+          const parentKeys = doc.keys.slice(0, -1).join('-');
+          const parent = nodeMap[parentKeys];
+          if (parent) {
+            parent.children.push(node);
+          } else {
+            // 부모 없으면 루트에 추가 (비정상 케이스)
+            root.push(node);
+          }
+        }
+      });
+
+      return root;
+    }
+
+    /* ─────────────────────────────────────
+       트리 DOM 렌더
+    ───────────────────────────────────── */
+    function renderTree(nodes, depth = 0) {
+      const wrap = document.createElement('div');
+      nodes.forEach((node, idx) => {
+        const isLeaf = node.children.length === 0;
+        const nodeEl = document.createElement('div');
+        nodeEl.className = 'tree-node' + (isLeaf ? ' leaf' : '');
+        nodeEl.dataset.id = node.doc.id;
+        nodeEl.dataset.depth = depth;
+
+        /* 들여쓰기 유닛 */
+        let indentHTML = '';
+        for (let d = 0; d < depth; d++) {
+          indentHTML += `<span class="tree-indent-unit"></span>`;
+        }
+
+        /* 문서 아이콘 SVG */
+        const docIconSVG = isLeaf
+          ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+               <polyline points="14 2 14 8 20 8"/>
+             </svg>`
+          : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+             </svg>`;
+
+        /* 토글 화살표 SVG */
+        const toggleSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>`;
+
+        nodeEl.innerHTML = `
+          <button class="tree-item" data-id="${node.doc.id}">
+            <div class="tree-indent">${indentHTML}</div>
+            <span class="tree-toggle">${toggleSVG}</span>
+            <span class="tree-doc-icon">${docIconSVG}</span>
+            <div class="tree-label-wrap">
+              <span class="tree-label" title="${node.doc.title}">${node.doc.title}</span>
+            </div>
+          </button>
+          <div class="tree-children"></div>`;
+
+        const btn     = nodeEl.querySelector('.tree-item');
+        const childWrap = nodeEl.querySelector('.tree-children');
+
+        /* 자식 렌더 */
+        if (!isLeaf) {
+          childWrap.appendChild(renderTree(node.children, depth + 1));
+        }
+
+        /* 클릭: 문서 로드 + 자식 토글 */
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          loadDoc(node.doc.id);
+          if (!isLeaf) {
+            nodeEl.classList.toggle('open');
+          }
+          // 모바일 사이드바 닫기
+          if (window.innerWidth <= 768) {
+            document.getElementById('wiki-sidebar').classList.remove('open');
+          }
+        });
+
+        // stagger 진입
+        nodeEl.style.opacity = '0';
+        nodeEl.style.transform = 'translateX(-8px)';
+        nodeEl.style.transition = 'opacity 0.35s, transform 0.35s';
+
+        wrap.appendChild(nodeEl);
+      });
+      return wrap;
+    }
+
+    /* 트리 진입 애니메이션 stagger */
+    function animateTree() {
+      const items = document.querySelectorAll('#wiki-tree .tree-node');
+      items.forEach((item, i) => {
+        setTimeout(() => {
+          item.style.opacity = '1';
+          item.style.transform = 'translateX(0)';
+        }, i * 40);
+      });
+    }
+
+    /* ─────────────────────────────────────
+       액티브 노드 표시
+    ───────────────────────────────────── */
+    function setActiveNode(id) {
+      document.querySelectorAll('.tree-item.active').forEach(el => el.classList.remove('active'));
+      const btn = document.querySelector(`.tree-item[data-id="${id}"]`);
+      if (!btn) return;
+      btn.classList.add('active');
+
+      // 부모 노드들 open 처리
+      let node = btn.closest('.tree-node');
+      while (node) {
+        const parent = node.parentElement?.closest('.tree-node');
+        if (parent) parent.classList.add('open');
+        node = parent;
+      }
+
+      // 스크롤 into view (사이드바)
+      btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    /* ─────────────────────────────────────
+       마크다운 → HTML (Notion 스타일 확장)
+    ───────────────────────────────────── */
+    const MEDIA_BASE = './wiki/';
+
+    /* 파일 확장자로 이미지/비디오 구분 */
+    const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg|avif)$/i;
+    const VIDEO_EXT = /\.(mp4|webm|mov|ogg|ogv)$/i;
+
+    function buildMediaHTML(src, alt) {
+      // 경로가 http(s):// 이면 그대로, 아니면 MEDIA_BASE 붙이기
+      // src 가 이미 media/ 로 시작하면 그대로 붙임 (wiki/media/...)
+      const url = /^https?:\/\//i.test(src) ? src : MEDIA_BASE + src;
+      const escapedAlt = alt.replace(/"/g, '&quot;');
+
+      if (VIDEO_EXT.test(src)) {
+        // ── 비디오 블록 ──
+        const ext = src.split('.').pop().toLowerCase();
+        const mimeMap = { mp4:'video/mp4', webm:'video/webm', mov:'video/mp4', ogg:'video/ogg', ogv:'video/ogg' };
+        const mime = mimeMap[ext] || 'video/mp4';
+        return `\n<div class="wiki-media">
+  <div class="wiki-media-inner">
+    <video class="wiki-media-video" controls preload="metadata" playsinline>
+      <source src="${url}" type="${mime}">
+      이 브라우저는 비디오를 지원하지 않습니다.
+    </video>
+    <div class="wiki-media-play-overlay" aria-hidden="true" style="cursor:pointer;">
+      <div class="wiki-media-play-icon">
+        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+      </div>
+    </div>
+  </div>${escapedAlt ? `\n  <div class="wiki-media-caption">${escapedAlt}</div>` : ''}
+</div>\n`;
+      } else {
+        // ── 이미지 블록 ──
+        // onerror: 경로 변형 재시도 (media/ 중복 제거 등)
+        const onerrorScript = `this.onerror=null;if(!this.dataset.retried){this.dataset.retried=1;this.src=this.src;}`;
+        return `\n<div class="wiki-media">
+  <div class="wiki-media-inner">
+    <img class="wiki-media-img" src="${url}" alt="${escapedAlt}" loading="eager" data-caption="${escapedAlt}" onerror="${onerrorScript}">
+  </div>${escapedAlt ? `\n  <div class="wiki-media-caption">${escapedAlt}</div>` : ''}
+</div>\n`;
+      }
+    }
+
+    function processMarkdown(md) {
+      /* ── 줄 끝 정규화 ── */
+      md = md.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+      /* ── callout: > [!type] (GitHub 스타일, 멀티라인 안정화) ──
+         > [!info]
+         > 내용 한 줄
+         > 내용 두 줄
+      */
+      md = md.replace(/^>\s*\[!(info|warning|danger|success|note|tip)\][ \t]*\n((?:>[ \t]?.*\n?)*)/gim, (_, type, body) => {
+        const iconMap = { info:'ℹ️', warning:'⚠️', danger:'🚨', success:'✅', note:'📝', tip:'💡' };
+        const cleanType = type === 'note' ? 'info' : type === 'tip' ? 'success' : type;
+        const icon = iconMap[type] || '📌';
+        // > 접두사 제거
+        const inner = body.replace(/^>[ \t]?/gm, '').trim();
+        return `\n<div class="notion-callout ${cleanType}"><span class="notion-callout-icon">${icon}</span><div class="notion-callout-body">\n\n${inner}\n\n</div></div>\n\n`;
+      });
+
+      /* ── toggle: +++ 제목\n내용\n+++ ── */
+      md = md.replace(/^\+\+\+(.+)\n([\s\S]*?)\n\+\+\+/gm, (_, title, body) => {
+        return `\n<div class="notion-toggle"><div class="notion-toggle-head"><span class="notion-toggle-arrow">▶</span>${title.trim()}</div><div class="notion-toggle-body">\n\n${body.trim()}\n\n</div></div>\n`;
+      });
+
+      /* ── divider label: --- 텍스트 --- ──
+         (일반 --- hr과 구분: 텍스트가 있는 경우만) */
+      md = md.replace(/^---[ \t]+(.+?)[ \t]+---$/gm, (_, text) => {
+        return `\n<div class="notion-divider-label">${text}</div>\n`;
+      });
+
+      /* ── 미디어 블록 전처리 ──
+         단독 줄의 ![alt](src) 만 블록 변환 (인라인 이미지는 그대로 유지)
+         HTML 태그 바로 뒤 줄바꿈 이슈를 막기 위해 앞뒤 빈줄 보장 */
+      md = md.replace(/^([ \t]*)!\[([^\]]*)\]\(([^)]+)\)[ \t]*$/gm, (_, indent, alt, src) => {
+        if (indent) return `${indent}![${alt}](${src})`; // 들여쓰기 있으면 인라인 유지
+        return buildMediaHTML(src.trim(), alt.trim());
+      });
+
+      /* ── 내부 문서 링크 (.md) 변환 ──
+         [텍스트](1-시작하기.md) -> [텍스트](#1)
+         [텍스트](2-1-생명.md) -> [텍스트](#2-1)
+      */
+      md = md.replace(/\[([^\]]+)\]\(([^)]*\.md)\)/g, (match, text, href) => {
+        const base = href.replace(/\.md$/i, '');
+        const m = base.match(/^(?:.*\/)?(([\d]+)(?:-([\d]+))*)-/);
+        if (m) {
+          // 파일명에서 숫자 키만 추출
+          const keys = base.replace(/^.*\//, '').match(/^([\d]+(?:-[\d]+)*)-/);
+          if (keys) return `[${text}](#${keys[1]})`;
+        }
+        return match;
+      });
+
+      return md;
+    }
+
+    /* 코드블록 언어 라벨 추가 + 미디어 블록 p 태그 정리 */
+    function postProcessHTML(html) {
+      // 코드블록 언어 라벨
+      html = html.replace(/<pre><code class="language-(\w+)">/g, (_, lang) => {
+        return `<pre data-lang="${lang}"><code class="language-${lang}">`;
+      });
+      // marked가 <div class="wiki-media">를 <p>로 감싸는 경우 제거
+      html = html.replace(/<p>\s*(<div class="wiki-media"[\s\S]*?<\/div>)\s*<\/p>/g, '$1');
+      // notion-callout, notion-toggle 등도 동일하게
+      html = html.replace(/<p>\s*(<div class="notion-(?:callout|toggle|divider)[^"]*"[\s\S]*?<\/div>)\s*<\/p>/g, '$1');
+      return html;
+    }
+
+    /* 문서 렌더 후 미디어 이벤트 바인딩 */
+    function bindMediaEvents(container) {
+      /* ── 비디오: 오버레이 클릭 재생 + Promise 에러 방지 ── */
+      container.querySelectorAll('.wiki-media-video').forEach(video => {
+        const inner = video.closest('.wiki-media-inner');
+        const overlay = inner?.querySelector('.wiki-media-play-overlay');
+        if (!overlay) return;
+
+        // CSS에서 pointer-events:none 이므로 JS에서 명시적으로 활성화
+        overlay.style.pointerEvents = 'auto';
+        overlay.style.cursor = 'pointer';
+
+        function showOverlay()  { overlay.classList.remove('hidden'); }
+        function hideOverlay()  { overlay.classList.add('hidden'); }
+
+        video.addEventListener('play',  hideOverlay);
+        video.addEventListener('pause', showOverlay);
+        video.addEventListener('ended', showOverlay);
+
+        // 오버레이 클릭 → 재생 (Promise 거부 무시)
+        overlay.addEventListener('click', () => {
+          if (video.paused) {
+            const p = video.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+
+        // video 자체 클릭도 토글
+        video.addEventListener('click', () => {
+          if (video.paused) {
+            const p = video.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      });
+
+      /* ── 이미지: 라이트박스 열기 ── */
+      container.querySelectorAll('.wiki-media-img, .wiki-body img:not(.wiki-media-img)').forEach(img => {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', () => {
+          openLightbox(img.src, img.dataset.caption || img.alt || '');
+        });
+      });
+    }
+
+    /* ─────────────────────────────────────
+       라이트박스
+    ───────────────────────────────────── */
+    function openLightbox(src, caption) {
+      const lb     = document.getElementById('wiki-lightbox');
+      const lbImg  = document.getElementById('lightbox-img');
+      const lbCap  = document.getElementById('lightbox-caption');
+      lbImg.src = src;
+      lbImg.alt = caption;
+      lbCap.textContent = caption;
+      lbCap.style.display = caption ? '' : 'none';
+      lb.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      const lb = document.getElementById('wiki-lightbox');
+      lb.classList.remove('open');
+      document.body.style.overflow = '';
+      // src 지우기는 transition 끝난 뒤
+      setTimeout(() => {
+        const lbImg = document.getElementById('lightbox-img');
+        if (!lb.classList.contains('open')) lbImg.src = '';
+      }, 300);
+    }
+
+    /* 라이트박스 이벤트 등록 (1회) */
+    (function initLightbox() {
+      document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+      document.getElementById('wiki-lightbox').addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeLightbox();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeLightbox();
+      });
+    })();
+
+    /* ─────────────────────────────────────
+       목차 (TOC) 생성
+    ───────────────────────────────────── */
+    function buildTOC(container) {
+      const headings = container.querySelectorAll('h2, h3, h4');
+      if (headings.length < 3) return '';
+
+      let html = `<div class="wiki-toc">
+        <div class="wiki-toc-title">목차</div>
+        <ul class="wiki-toc-list">`;
+
+      headings.forEach((h, i) => {
+        const id = 'heading-' + i;
+        h.id = id;
+        const depth = parseInt(h.tagName[1]) - 2;
+        html += `<li style="--toc-depth:${depth}">
+          <a href="#${id}">${h.textContent}</a></li>`;
+      });
+
+      html += '</ul></div>';
+      return html;
+    }
+
+    /* ─────────────────────────────────────
+       브레드크럼 빌드
+    ───────────────────────────────────── */
+    function buildBreadcrumb(doc) {
+      const parts = [{ label: 'Wiki', id: null }];
+      for (let d = 1; d < doc.keys.length; d++) {
+        const ancestorKeys = doc.keys.slice(0, d);
+        const ancestor = allDocs.find(x =>
+          x.keys.length === d &&
+          x.keys.every((k, i) => k === ancestorKeys[i])
+        );
+        if (ancestor) parts.push({ label: ancestor.title, id: ancestor.id });
+      }
+      parts.push({ label: doc.title, id: doc.id, current: true });
+
+      return parts.map((p, i) => {
+        const sep = i > 0 ? `<span class="breadcrumb-sep">›</span>` : '';
+        if (p.current) return `${sep}<span class="breadcrumb-item current">${p.label}</span>`;
+        const click = p.id ? `onclick="window.__wiki_load('${p.id}')"` : '';
+        return `${sep}<span class="breadcrumb-item" ${click}>${p.label}</span>`;
+      }).join('');
+    }
+
+    /* ─────────────────────────────────────
+       하위 문서 카드
+    ───────────────────────────────────── */
+    function buildSubpages(doc) {
+      const children = allDocs.filter(d =>
+        d.keys.length === doc.keys.length + 1 &&
+        doc.keys.every((k, i) => d.keys[i] === k)
+      );
+      if (!children.length) return '';
+
+      const cards = children.map((child, i) => {
+        const grandCount = allDocs.filter(d =>
+          d.keys.length === child.keys.length + 1 &&
+          child.keys.every((k, j) => d.keys[j] === k)
+        ).length;
+        const style = `animation-delay:${i * 60}ms`;
+        return `<div class="wiki-subpage-card" style="${style}" onclick="window.__wiki_load('${child.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.__wiki_load('${child.id}')}" role="button" tabindex="0">
+          <span class="wiki-subpage-card-icon" aria-hidden="true">📄</span>
+          <div>
+            <div class="wiki-subpage-card-name">${child.title}</div>
+            ${grandCount ? `<div class="wiki-subpage-card-count">${grandCount}개의 하위 문서</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+
+      return `<div class="wiki-subpages">
+        <div class="wiki-subpages-title">하위 문서</div>
+        <div class="wiki-subpages-grid">${cards}</div>
+      </div>`;
+    }
+
+    /* ─────────────────────────────────────
+       문서 로드
+    ───────────────────────────────────── */
+    async function loadDoc(id) {
+      if (id === currentId) return;
+      currentId = id;
+
+      const doc = allDocs.find(d => d.id === id);
+      if (!doc) return;
+
+      setActiveNode(id);
+
+      /* URL 업데이트 (window.location.hash 중복 제거) */
+      history.pushState({ id }, doc.title, `#${id}`);
+      document.title = `${doc.title} — Min. At. Zero Wiki`;
+
+      /* 페이지 전환 효과 */
+      const fade = document.getElementById('page-fade');
+      fade.classList.add('active');
+
+      /* 스켈레톤 표시 */
+      const content = document.getElementById('wiki-content');
+      content.innerHTML = `<div class="skel-content">
+        <div class="skel skel-breadcrumb"></div>
+        <div class="skel skel-title"></div>
+        <div class="skel skel-meta"></div>
+        <div class="skel-divider"></div>
+        <div class="skel skel-p1"></div>
+        <div class="skel skel-p2"></div>
+        <div class="skel skel-p3"></div>
+        <div class="skel skel-code"></div>
+        <div class="skel skel-h" style="margin-top:8px"></div>
+        <div class="skel skel-p4"></div>
+        <div class="skel skel-p5"></div>
+        <div class="skel skel-p6"></div>
+      </div>`;
+
+      await new Promise(r => setTimeout(r, 200));
+      fade.classList.remove('active');
+
+      try {
+        const res = await fetch(`./wiki/${doc.path}`, { cache: 'no-cache' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        let md = await res.text();
+
+        /* 마크다운 처리 */
+        md = processMarkdown(md);
+
+        /* marked 설정 — v11 API */
+        marked.use({
+          gfm: true,
+          breaks: true,
+          pedantic: false,
+        });
+        let html = marked.parse(md);
+        html = postProcessHTML(html);
+
+        /* 렌더 */
+        content.innerHTML = `
+          <div class="wiki-content-wrap">
+            <nav class="wiki-breadcrumb">${buildBreadcrumb(doc)}</nav>
+            <h1 class="wiki-doc-title">${doc.title}</h1>
+            <div class="wiki-doc-meta">
+              <span>${doc.keys.join(' › ')}</span>
+              <span class="wiki-doc-meta-sep">·</span>
+              <span>${doc.path}</span>
+            </div>
+            <div class="wiki-doc-divider"></div>
+            <div id="wiki-body" class="wiki-body">${html}</div>
+            ${buildSubpages(doc)}
+          </div>`;
+
+        /* TOC 삽입 */
+        const bodyEl = document.getElementById('wiki-body');
+        const toc    = buildTOC(bodyEl);
+        if (toc) bodyEl.insertAdjacentHTML('afterbegin', toc);
+
+        /* Toggle 이벤트 */
+        content.querySelectorAll('.notion-toggle-head').forEach(head => {
+          head.addEventListener('click', () => {
+            head.closest('.notion-toggle').classList.toggle('open');
+          });
+        });
+
+        /* 미디어 이벤트 바인딩 */
+        bindMediaEvents(content);
+
+        /* 스크롤 투 탑 */
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      } catch (err) {
+        const retryId = id;
+        content.innerHTML = `<div class="wiki-error">
+          <div style="font-size:32px;margin-bottom:16px">⚠</div>
+          <div>문서를 불러오지 못했습니다.</div>
+          <div style="margin-top:8px;font-size:12px;color:var(--text-dim)">${err.message}</div>
+          <button onclick="currentId=null;window.__wiki_load('${retryId}')" style="margin-top:20px;padding:8px 20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text-muted);cursor:pointer;font-family:var(--mono);font-size:12px">다시 시도</button>
+        </div>`;
+      }
+    }
+
+    /* 전역 노출 (브레드크럼 onclick 용) */
+    window.__wiki_load = loadDoc;
+
+    /* ─────────────────────────────────────
+       검색
+    ───────────────────────────────────── */
+    function filterTree(query) {
+      const q = query.trim().toLowerCase();
+      document.querySelectorAll('.tree-node').forEach(node => {
+        const label = node.querySelector('.tree-label');
+        if (!label) return;
+
+        // 원본 텍스트를 data 속성으로 보존 (최초 1회)
+        if (!label.dataset.orig) {
+          label.dataset.orig = label.textContent;
+        }
+        const orig = label.dataset.orig;
+        const text = orig.toLowerCase();
+
+        if (!q) {
+          node.classList.remove('hidden');
+          label.innerHTML = orig;
+          return;
+        }
+
+        const idx = text.indexOf(q);
+        if (idx >= 0) {
+          node.classList.remove('hidden');
+          label.innerHTML =
+            orig.slice(0, idx) +
+            `<em>${orig.slice(idx, idx + q.length)}</em>` +
+            orig.slice(idx + q.length);
+
+          // 부모 노드 보이기
+          let parent = node.parentElement?.closest('.tree-node');
+          while (parent) {
+            parent.classList.remove('hidden');
+            parent.classList.add('open');
+            parent = parent.parentElement?.closest('.tree-node');
+          }
+        } else {
+          node.classList.add('hidden');
+        }
+      });
+    }
+
+    /* ─────────────────────────────────────
+       초기화
+    ───────────────────────────────────── */
+    async function init() {
+      try {
+        const res  = await fetch(INDEX_URL, { cache: 'no-cache' });
+        if (!res.ok) throw new Error(`index.json을 찾을 수 없습니다 (${res.status})`);
+        const data = await res.json();
+
+        /* 파일 목록 파싱 */
+        allDocs = (data.files || []).map((filename, i) => {
+          const parsed = parseFilename(filename);
+          if (!parsed) return null;
+          return { id: parsed.keys.join('-'), path: filename, filename, ...parsed };
+        }).filter(Boolean);
+
+        /* 트리 빌드 */
+        treeRoot = buildTree(allDocs);
+
+        /* 트리 DOM 삽입 */
+        const treeSkel = document.getElementById('tree-skeleton');
+        if (treeSkel) treeSkel.remove();
+        const treeWrap = document.getElementById('wiki-tree');
+        treeWrap.appendChild(renderTree(treeRoot));
+
+        /* 진입 애니메이션 */
+        requestAnimationFrame(() => animateTree());
+
+        /* 환영 화면 stats 업데이트 */
+        const statDocs = document.getElementById('stat-docs');
+        const statCats = document.getElementById('stat-cats');
+        const statsWrap = document.getElementById('wiki-welcome-stats');
+        if (statDocs && statCats && statsWrap) {
+          const leafCount = allDocs.filter(d => !allDocs.some(x => x.keys.length === d.keys.length + 1 && d.keys.every((k,i) => x.keys[i] === k))).length;
+          const catCount  = allDocs.filter(d => d.keys.length === 1).length;
+          statDocs.textContent = allDocs.length;
+          statCats.textContent = catCount;
+          statsWrap.style.display = 'flex';
+        }
+
+        /* 검색 바인딩 (debounce 120ms) */
+        let searchTimer;
+        document.getElementById('sidebar-search').addEventListener('input', e => {
+          clearTimeout(searchTimer);
+          searchTimer = setTimeout(() => filterTree(e.target.value), 120);
+        });
+
+        /* URL hash 처리 — init() 완료 후 allDocs가 채워진 뒤 실행되므로 안전 */
+        const hash = location.hash.replace(/^#/, '');
+        if (hash && !hash.startsWith('heading-') && allDocs.find(d => d.id === hash)) {
+          currentId = null; // 새로고침 시 강제 재로드 보장
+          loadDoc(hash);
+        }
+
+      } catch (err) {
+        document.getElementById('wiki-tree').innerHTML =
+          `<div style="padding:16px;font-family:var(--mono);font-size:11px;color:var(--red)">
+            ⚠ ${err.message}
+          </div>`;
+      }
+    }
+
+    /* ─────────────────────────────────────
+       모바일 사이드바
+    ───────────────────────────────────── */
+    document.getElementById('sidebar-toggle-btn').addEventListener('click', () => {
+      const sidebar = document.getElementById('wiki-sidebar');
+      const btn = document.getElementById('sidebar-toggle-btn');
+      const isOpen = sidebar.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen);
+      btn.setAttribute('aria-label', isOpen ? '문서 목록 닫기' : '문서 목록 열기');
+    });
+
+    /* 뒤로가기 처리 및 Hash 변경 처리 */
+    window.addEventListener('popstate', e => {
+      if (e.state?.id) {
+        currentId = null;
+        loadDoc(e.state.id);
+      } else {
+        const hash = location.hash.replace('#', '');
+        if (hash) {
+          currentId = null;
+          loadDoc(hash);
+        }
+      }
+    });
+
+    // Hash가 변경될 때도 감지 (내부 링크 클릭 등)
+    window.addEventListener('hashchange', () => {
+      const hash = location.hash.replace('#', '');
+      if (hash && hash !== currentId) {
+        // 제목 앵커(heading-n)가 아닐 경우만 로드
+        if (!hash.startsWith('heading-')) {
+          loadDoc(hash);
+        }
+      }
+    });
+
+    /* script가 </body> 직전에 위치하므로 DOMContentLoaded가 이미 fired됐을 수 있음.
+       readyState로 분기하여 반드시 init()이 실행되도록 보장 */
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+  </script>
+</body>
+</html>

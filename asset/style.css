@@ -1979,23 +1979,18 @@ body::after {
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.9), 0 0 0 1px var(--green-border);
 }
 
-.lightbox-close {
-  position: absolute;
-  top: -40px;
-  right: 0;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  font-size: 20px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  transition: background var(--dur-fast);
+/* ════════════════════════════════════════
+   GLOBAL ANIMATIONS
+════════════════════════════════════════ */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .lightbox-close:hover {
