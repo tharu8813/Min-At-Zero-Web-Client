@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,138 +9,550 @@
   <meta name="theme-color" content="#22c55e">
   <link rel="icon" type="image/png" href="asset/image/icon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="asset/style.css">
   <style>
-    /* ── PAGE HERO ── */
-    .page-hero { padding: 60px 0 40px; }
+    /* ════════════════════════════════════════
+       HERO
+    ════════════════════════════════════════ */
+    .page-hero {
+      padding: 56px 0 0;
+      position: relative;
+    }
+
     .page-title {
       font-family: 'Rajdhani', sans-serif;
-      font-size: clamp(36px, 10vw, 64px);
-      font-weight: 700; color: var(--text-primary);
-      line-height: 1; text-transform: uppercase; letter-spacing: -1px;
+      font-size: clamp(32px, 8vw, 52px);
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 0.92;
+      text-transform: uppercase;
+      letter-spacing: -2px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.12s cubic-bezier(0.23, 1, 0.32, 1) forwards;
     }
-    .page-title span { color: var(--green); text-shadow: 0 0 28px rgba(34,197,94,0.5); }
+
+    .page-title .accent {
+      color: var(--green);
+      text-shadow: 0 0 40px rgba(34, 197, 94, 0.4);
+    }
+
     .page-desc {
-      font-size: 15px; color: var(--text-muted);
-      max-width: 640px; line-height: 1.8; margin-top: 16px;
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.85;
+      margin-top: 20px;
       word-break: keep-all;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
     }
 
-    /* ── HERO ENTRY ── */
-    @keyframes heroFadeUp {
-      from { opacity: 0; transform: translateY(24px); filter: blur(6px); }
-      to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+    /* 히어로 통계바 */
+    .hero-stats {
+      display: flex;
+      gap: 0;
+      margin-top: 40px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.015);
+      opacity: 0;
+      animation: fadeUp 0.7s 0.28s cubic-bezier(0.23, 1, 0.32, 1) forwards;
     }
-    .page-hero   { animation: heroFadeUp 0.7s cubic-bezier(0.23,1,0.32,1) both; }
-    .ctrl-grid   { animation: heroFadeUp 0.7s cubic-bezier(0.23,1,0.32,1) 0.15s both; }
 
-    /* ── GRID ── */
-    .ctrl-grid {
+    .hero-stat {
+      flex: 1;
+      padding: 16px 20px;
+      position: relative;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .hero-stat:last-child {
+      border-right: none;
+    }
+
+    .hero-stat-num {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .hero-stat-num.green {
+      color: var(--green);
+    }
+
+    .hero-stat-num.blue {
+      color: var(--blue);
+    }
+
+    .hero-stat-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    @media(max-width: 520px) {
+      .hero-stats {
+        flex-wrap: wrap;
+      }
+
+      .hero-stat {
+        min-width: 50%;
+      }
+    }
+
+    /* ════════════════════════════════════════
+       CONTROLS LAYOUT
+    ════════════════════════════════════════ */
+    .controls-wrap {
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      padding-bottom: 80px;
+    }
+
+    /* 섹션 헤더 */
+    .ctrl-section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .ctrl-section-header.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .ctrl-section-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .ctrl-section-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-primary);
+    }
+
+    .ctrl-section-sub {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .ctrl-section-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.07), transparent);
+    }
+
+    .ctrl-section-count {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 2px 8px;
+      border-radius: 5px;
+    }
+
+    /* 색상 테마 per section */
+    .ctrl-section.theme-green .ctrl-section-icon {
+      background: var(--green-glow);
+      border-color: var(--green-border);
+    }
+
+    .ctrl-section.theme-green .ctrl-section-title {
+      color: var(--green);
+    }
+
+    .ctrl-section.theme-blue .ctrl-section-icon {
+      background: var(--blue-glow);
+      border-color: var(--blue-border);
+    }
+
+    .ctrl-section.theme-blue .ctrl-section-title {
+      color: var(--blue);
+    }
+
+    .ctrl-section.theme-red .ctrl-section-icon {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .ctrl-section.theme-red .ctrl-section-title {
+      color: #f87171;
+    }
+
+    .ctrl-section.theme-amber .ctrl-section-icon {
+      background: rgba(245, 158, 11, 0.08);
+      border-color: rgba(245, 158, 11, 0.2);
+    }
+
+    .ctrl-section.theme-amber .ctrl-section-title {
+      color: #fbbf24;
+    }
+
+    /* ── 행 그리드 ── */
+    .ctrl-rows {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-      gap: 28px; margin-top: 48px;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 6px;
     }
-    @media(max-width: 500px) { .ctrl-grid { grid-template-columns: 1fr; } }
 
-    /* ── CARD LABEL ── */
-    .card-label {
-      font-family: var(--mono); font-size: 11px; letter-spacing: 3px;
-      color: var(--green); text-transform: uppercase; margin-bottom: 20px;
-      display: flex; align-items: center; gap: 10px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(34,197,94,0.15);
+    /* ── 단일 컨트롤 행 ── */
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 16px;
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.018);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      opacity: 0;
+      transform: translateY(10px) scale(0.99);
+      transition: opacity 0.45s cubic-bezier(0.23, 1, 0.32, 1),
+        transform 0.45s cubic-bezier(0.23, 1, 0.32, 1),
+        background 0.2s, border-color 0.2s;
     }
-    .card-label::before {
-      content: ''; width: 6px; height: 6px; border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
+
+    .ctrl-row.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* 호버 shimmer */
+    .ctrl-row::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.025) 50%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .ctrl-row:hover::before {
+      opacity: 1;
+    }
+
+    /* 섹션별 row hover 색상 */
+    .ctrl-section.theme-green .ctrl-row:hover {
+      background: rgba(34, 197, 94, 0.05);
+      border-color: rgba(34, 197, 94, 0.15);
+    }
+
+    .ctrl-section.theme-blue .ctrl-row:hover {
+      background: rgba(59, 130, 246, 0.05);
+      border-color: rgba(59, 130, 246, 0.15);
+    }
+
+    .ctrl-section.theme-red .ctrl-row:hover {
+      background: rgba(239, 68, 68, 0.05);
+      border-color: rgba(239, 68, 68, 0.15);
+    }
+
+    .ctrl-section.theme-amber .ctrl-row:hover {
+      background: rgba(245, 158, 11, 0.05);
+      border-color: rgba(245, 158, 11, 0.15);
+    }
+
+    /* 호버 시 키 올라오기 */
+    .ctrl-row:hover .key {
+      transform: translateY(-3px);
+      filter: brightness(1.3);
+    }
+
+    /* ── KEY CELL ── */
+    .key-cell {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 130px;
       flex-shrink: 0;
     }
-    .card-label.blue { color: var(--blue); border-bottom-color: rgba(59,130,246,0.15); }
-    .card-label.blue::before { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
-    .card-label::after { display: none; } /* style.css 기본 after 제거 */
 
     /* ── KEY ── */
     .key {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-width: 34px; height: 34px; padding: 0 10px;
-      background: linear-gradient(180deg, #2e2e2e 0%, #1e1e1e 100%);
-      border-radius: 5px;
-      border: 1px solid rgba(255,255,255,0.12);
-      border-bottom: 3px solid rgba(0,0,0,0.6);
-      font-family: var(--mono); font-size: 11px; font-weight: 700; color: #e8e8e8;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 32px;
+      padding: 0 9px;
+      background: linear-gradient(180deg, #333 0%, #1c1c1c 100%);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-bottom: 3px solid rgba(0, 0, 0, 0.7);
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 700;
+      color: #ddd;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1);
       text-transform: uppercase;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
-      position: relative; flex-shrink: 0;
+      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
       user-select: none;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
-    .key-wide  { min-width: 64px; }
-    .key-blue  { color: #93c5fd; border-color: rgba(59,130,246,0.3); border-bottom-color: rgba(59,130,246,0.6); }
-    .key-green { color: #4ade80; border-color: rgba(34,197,94,0.3);  border-bottom-color: rgba(34,197,94,0.6);  }
-    .key-plus  { color: var(--text-dim); font-size: 13px; font-family: var(--mono); margin: 0 2px; user-select: none; }
 
-    /* ── CTRL ROW ── */
-    .ctrl-row {
-      display: flex; align-items: center; gap: 18px; padding: 13px 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.03);
-      border-radius: 8px;
-      transition: background 0.2s, transform 0.2s;
-      /* 진입 애니메이션 초기 상태 */
-      opacity: 0; transform: translateX(-12px);
-    }
-    .ctrl-row:last-child { border-bottom: none; }
-    .ctrl-row:hover {
-      background: rgba(34,197,94,0.05);
-      transform: translateX(6px);
-    }
-    .ctrl-row:hover .key {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
-      filter: brightness(1.25);
-    }
-    /* 카드가 revealed 되면 행들 순차 등장 */
-    .card.revealed .ctrl-row {
-      opacity: 1; transform: translateX(0);
-      transition: opacity 0.4s cubic-bezier(0.23,1,0.32,1),
-                  transform 0.4s cubic-bezier(0.23,1,0.32,1),
-                  background 0.2s, filter 0.12s;
-    }
-    .card.revealed .ctrl-row:nth-child(2)  { transition-delay: 0.05s; }
-    .card.revealed .ctrl-row:nth-child(3)  { transition-delay: 0.10s; }
-    .card.revealed .ctrl-row:nth-child(4)  { transition-delay: 0.15s; }
-    .card.revealed .ctrl-row:nth-child(5)  { transition-delay: 0.20s; }
-    .card.revealed .ctrl-row:nth-child(6)  { transition-delay: 0.25s; }
-    .card.revealed .ctrl-row:nth-child(7)  { transition-delay: 0.30s; }
-    .card.revealed .ctrl-row:nth-child(8)  { transition-delay: 0.35s; }
-    .card.revealed .ctrl-row:nth-child(9)  { transition-delay: 0.40s; }
-    .card.revealed .ctrl-row:nth-child(10) { transition-delay: 0.45s; }
-
-    .key-cell  { display: flex; gap: 6px; align-items: center; min-width: 148px; flex-shrink: 0; }
-    .ctrl-info { flex: 1; }
-    .ctrl-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-    .ctrl-hint { font-size: 12px; color: var(--text-dim); margin-top: 3px; line-height: 1.5; }
-
-    /* ── TYPE BADGE ── */
-    .type-badge {
-      font-family: var(--mono); font-size: 10px; padding: 2px 7px;
-      border-radius: 4px; border: 1px solid var(--border);
-      background: rgba(255,255,255,0.02); color: var(--text-dim);
-      flex-shrink: 0; letter-spacing: 0.5px;
-    }
-    .type-tacz { border-color: var(--green-border); color: var(--green); background: var(--green-glow); }
-
-    /* ── KEY PRESS DEMO — 클릭하면 눌림 ── */
     .key:active,
     .key.pressed {
       transform: translateY(2px) !important;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,0,0,0.2) !important;
-      filter: brightness(0.9) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(0, 0, 0, 0.2) !important;
+      filter: brightness(0.85) !important;
+      border-bottom-width: 1px !important;
+    }
+
+    .key-wide {
+      min-width: 58px;
+    }
+
+    .key-xl {
+      min-width: 84px;
+    }
+
+    .key-blue {
+      color: #93c5fd;
+      border-color: rgba(59, 130, 246, 0.35);
+      border-bottom-color: rgba(59, 130, 246, 0.7);
+    }
+
+    .key-green {
+      color: #4ade80;
+      border-color: rgba(34, 197, 94, 0.35);
+      border-bottom-color: rgba(34, 197, 94, 0.7);
+    }
+
+    .key-red {
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.35);
+      border-bottom-color: rgba(239, 68, 68, 0.7);
+    }
+
+    .key-amber {
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, 0.35);
+      border-bottom-color: rgba(245, 158, 11, 0.7);
+    }
+
+    .key-plus {
+      color: var(--text-dim);
+      font-size: 13px;
+      font-family: var(--mono);
+      user-select: none;
+    }
+
+    /* ── INFO ── */
+    .ctrl-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ctrl-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ctrl-hint {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-top: 3px;
+      line-height: 1.5;
+    }
+
+    /* ── TYPE BADGE ── */
+    .type-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .badge-tacz {
+      color: var(--green);
+      border-color: var(--green-border);
+      background: var(--green-glow);
+    }
+
+    .badge-basic {
+      color: var(--blue);
+      border-color: var(--blue-border);
+      background: var(--blue-glow);
+    }
+
+    .badge-custom {
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .badge-server {
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    /* ════════════════════════════════════════
+       SKELETON
+    ════════════════════════════════════════ */
+    @keyframes skeletonShimmer {
+      0% {
+        background-position: -300% 0;
+      }
+
+      100% {
+        background-position: 300% 0;
+      }
+    }
+
+    .skel {
+      background: linear-gradient(90deg,
+          rgba(255, 255, 255, 0.04) 25%,
+          rgba(255, 255, 255, 0.09) 50%,
+          rgba(255, 255, 255, 0.04) 75%);
+      background-size: 300% 100%;
+      animation: skeletonShimmer 1.8s ease-in-out infinite;
+      border-radius: 6px;
+    }
+
+    .skel-section {
+      margin-bottom: 40px;
+    }
+
+    .skel-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .skel-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .skel-title {
+      height: 22px;
+      border-radius: 4px;
+    }
+
+    .skel-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .skel-rows {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 6px;
+    }
+
+    .skel-row {
+      height: 60px;
+      border-radius: 11px;
+    }
+
+    /* ════════════════════════════════════════
+       ANIMATIONS
+    ════════════════════════════════════════ */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ════════════════════════════════════════
+       SCAN LINE DECORATION
+    ════════════════════════════════════════ */
+    .scan-deco {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .scan-deco::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.15), transparent);
+      animation: scanline 6s linear infinite;
+    }
+
+    @keyframes scanline {
+      from {
+        top: -2px;
+      }
+
+      to {
+        top: 100vh;
+      }
     }
   </style>
 </head>
+
 <body>
+  <div class="scan-deco" aria-hidden="true"></div>
   <div class="bg-grid" aria-hidden="true"></div>
   <div class="bg-radial" aria-hidden="true"></div>
   <div class="bg-lines" aria-hidden="true"></div>
@@ -148,126 +561,53 @@
   <div class="wrap">
     <header id="header-root" class="header"></header>
 
+    <!-- HERO -->
     <section class="page-hero">
-      <h2 class="page-title">Controls & <span>Keys</span></h2>
-      <p class="page-desc">
-        Min. At. Zero의 전장을 지배하기 위한 필수 조작법입니다.<br>
-        기본 마인크래프트 조작을 기반으로 TACZ 총기 모드에 최적화된 키 설정을 확인하세요.
-      </p>
+      <h2 class="page-title">Controls &amp;<span class="accent"> Keys</span></h2>
+      <p class="page-desc">Min. At. Zero의 전장을 지배하기 위한 필수 조작법입니다. 기본 마인크래프트 조작을 기반으로 TACZ 총기 모드에 최적화된 키 설정을 확인하세요.</p>
+      <div class="hero-stats" id="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-num green" id="stat-total">—</span>
+          <span class="hero-stat-label">Total Keys</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num blue" id="stat-tacz">—</span>
+          <span class="hero-stat-label">TACZ Keys</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num" id="stat-sections">—</span>
+          <span class="hero-stat-label">Sections</span>
+        </div>
+      </div>
     </section>
 
-    <div class="ctrl-grid">
-
-      <!-- 이동 -->
-      <div class="card revealed from-bottom">
-        <div class="card-top-bar"></div>
-        <div class="card-label">이동 (MOVEMENT)</div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">움직이기</div><div class="ctrl-hint">캐릭터 전후좌우 이동</div></div>
+    <!-- CONTENT -->
+    <div class="controls-wrap" id="controls-root">
+      <!-- 스켈레톤 초기 렌더 -->
+      <div class="skel-section" id="skeleton-container">
+        <div class="skel-header">
+          <div class="skel skel-icon"></div>
+          <div class="skel skel-title" style="width:160px"></div>
+          <div class="skel-line"></div>
         </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-wide">Shift</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">달리기</div><div class="ctrl-hint">빠르게 이동</div></div>
+        <div class="skel-rows">
+          <div class="skel skel-row" style="opacity:1"></div>
+          <div class="skel skel-row" style="opacity:0.75"></div>
+          <div class="skel skel-row" style="opacity:0.5"></div>
+          <div class="skel skel-row" style="opacity:0.35"></div>
+          <div class="skel skel-row" style="opacity:0.2"></div>
         </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-wide">Ctrl</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">웅크리기</div><div class="ctrl-hint">발소리 감소 및 자세 낮추기</div></div>
+        <div class="skel-header" style="margin-top:40px">
+          <div class="skel skel-icon"></div>
+          <div class="skel skel-title" style="width:140px"></div>
+          <div class="skel-line"></div>
         </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-wide">CAPLK</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">대쉬</div><div class="ctrl-hint">순간적으로 빠르게 돌진</div></div>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-wide">Space</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">점프</div><div class="ctrl-hint">장애물 넘기</div></div>
-        </div>
-      </div>
-
-      <!-- 전투 -->
-      <div class="card blue-accent revealed from-bottom" style="transition-delay:0.1s">
-        <div class="card-top-bar blue"></div>
-        <div class="card-label blue">전투 (COMBAT)</div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-blue">LMB</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">격발</div><div class="ctrl-hint">마우스 왼쪽 클릭 (사격)</div></div>
-          <span class="type-badge">BASIC</span>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-blue">RMB</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">조준</div><div class="ctrl-hint">마우스 오른쪽 클릭 (ADS)</div></div>
-          <span class="type-badge">BASIC</span>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-blue">MMB</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">상호작용</div><div class="ctrl-hint">총기 장착 중 블록 상호작용</div></div>
-          <span class="type-badge">BASIC</span>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-green">R</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">재장전</div><div class="ctrl-hint">탄알집 교체</div></div>
-          <span class="type-badge type-tacz">TACZ</span>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-green">Alt</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">격발 모드 변경</div><div class="ctrl-hint">단발 / 점사 / 연사 전환</div></div>
-          <span class="type-badge type-tacz">TACZ</span>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-green">V</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">배율 조절</div><div class="ctrl-hint">가변 배율 스코프 조절</div></div>
-          <span class="type-badge type-tacz">TACZ</span>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-green">H</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">총기 자세히 보기</div><div class="ctrl-hint">무기 외형 및 상태 확인</div></div>
-          <span class="type-badge type-tacz">TACZ</span>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-green">X</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">핑</div><div class="ctrl-hint">팀원에게 위치 알림</div></div>
-          <span class="type-badge type-tacz">TACZ</span>
+        <div class="skel-rows">
+          <div class="skel skel-row" style="opacity:1"></div>
+          <div class="skel skel-row" style="opacity:0.75"></div>
+          <div class="skel skel-row" style="opacity:0.5"></div>
         </div>
       </div>
-
-      <!-- 기타 -->
-      <div class="card revealed from-bottom" style="transition-delay:0.2s">
-        <div class="card-top-bar"></div>
-        <div class="card-label">기타 (MISC)</div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-wide" style="font-size:10px">Backspc</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">아이템 드랍</div><div class="ctrl-hint">들고 있는 아이템 버리기</div></div>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key">F4</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">시점 변경</div><div class="ctrl-hint">1인칭 / 3인칭 전환</div></div>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key">T</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">파츠 장착 메뉴</div><div class="ctrl-hint">총기 개조 인터페이스</div></div>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-wide">Enter</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">채팅</div><div class="ctrl-hint">메시지 입력 창 열기</div></div>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell">
-            <span class="key key-wide">Ctrl</span>
-            <span class="key-plus">+</span>
-            <span class="key">F</span>
-          </div>
-          <div class="ctrl-info"><div class="ctrl-name">서버 메뉴</div><div class="ctrl-hint">웅크린 상태에서 F 키 입력</div></div>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key">E</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">인벤토리</div><div class="ctrl-hint">소지품 확인</div></div>
-        </div>
-        <div class="ctrl-row">
-          <div class="key-cell"><span class="key key-wide">Tab</span></div>
-          <div class="ctrl-info"><div class="ctrl-name">플레이어 목록</div><div class="ctrl-hint">점수판 및 핑 확인</div></div>
-        </div>
-      </div>
-
     </div>
 
     <footer id="footer-root" class="footer"></footer>
@@ -275,12 +615,167 @@
 
   <script src="asset/script.js"></script>
   <script>
-    /* 키 클릭 시 눌림 효과 */
-    document.querySelectorAll('.key').forEach(key => {
-      key.addEventListener('mousedown', () => key.classList.add('pressed'));
-      key.addEventListener('mouseup',   () => key.classList.remove('pressed'));
-      key.addEventListener('mouseleave',() => key.classList.remove('pressed'));
-    });
+    (function () {
+
+      /* ── 배지 클래스 맵 ── */
+      const BADGE_CLASS = {
+        'TACZ': 'badge-tacz',
+        'BASIC': 'badge-basic',
+        'CUSTOM': 'badge-custom',
+        'SERVER': 'badge-server',
+      };
+
+      /* ── 섹션 테마 맵 ── */
+      const THEME_CLASS = {
+        'green': 'theme-green',
+        'blue': 'theme-blue',
+        'red': 'theme-red',
+        'amber': 'theme-amber',
+      };
+
+      /* ── 키 배열 파싱 → HTML ──
+         key 배열: 문자열 or 객체 { label, style? }
+         "+" 는 구분자로 처리
+      */
+      function renderKeys(keys) {
+        return keys.map((k, i) => {
+          if (k === '+') return `<span class="key-plus">+</span>`;
+          const label = typeof k === 'string' ? k : k.label;
+          const style = (typeof k === 'object' && k.style) ? ` key-${k.style}` : '';
+          const wide = label.length > 3 ? ' key-wide' : '';
+          const xl = label.length > 6 ? ' key-xl' : '';
+          const fs = label.length > 7 ? ' style="font-size:9px"' : '';
+          return `<span class="key${style}${wide}${xl}"${fs}>${label}</span>`;
+        }).join('');
+      }
+
+      /* ── 단일 ctrl-row 빌드 ── */
+      function buildRow(item) {
+        const badge = item.badge
+          ? `<span class="type-badge ${BADGE_CLASS[item.badge] || ''}">${item.badge}</span>` : '';
+        return `
+        <div class="ctrl-row">
+          <div class="key-cell">${renderKeys(item.keys)}</div>
+          <div class="ctrl-info">
+            <div class="ctrl-name">${item.name}</div>
+            ${item.hint ? `<div class="ctrl-hint">${item.hint}</div>` : ''}
+          </div>
+          ${badge}
+        </div>`;
+      }
+
+      /* ── 섹션 빌드 ── */
+      function buildSection(section, sectionIndex) {
+        const themeClass = THEME_CLASS[section.theme] || 'theme-green';
+        const el = document.createElement('div');
+        el.className = `ctrl-section ${themeClass}`;
+        el.dataset.index = sectionIndex;
+        el.innerHTML = `
+        <div class="ctrl-section-header">
+          <div class="ctrl-section-icon">${section.icon}</div>
+          <div>
+            <div class="ctrl-section-title">${section.title}</div>
+            <div class="ctrl-section-sub">${section.sub || ''}</div>
+          </div>
+          <div class="ctrl-section-line"></div>
+          <div class="ctrl-section-count">${section.controls.length} keys</div>
+        </div>
+        <div class="ctrl-rows">
+          ${section.controls.map(buildRow).join('')}
+        </div>`;
+        return el;
+      }
+
+      /* ── 카운터 숫자 애니메이션 ── */
+      function animateCount(el, target, delay = 0) {
+        setTimeout(() => {
+          let start = 0;
+          const step = Math.ceil(target / 24);
+          const t = setInterval(() => {
+            start = Math.min(start + step, target);
+            el.textContent = start;
+            if (start >= target) clearInterval(t);
+          }, 40);
+        }, delay);
+      }
+
+      /* ── IntersectionObserver ── */
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (!e.isIntersecting) return;
+          const el = e.target;
+
+          if (el.classList.contains('ctrl-section-header')) {
+            el.classList.add('visible');
+            obs.unobserve(el);
+          }
+          if (el.classList.contains('ctrl-row')) {
+            el.classList.add('visible');
+            obs.unobserve(el);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+      /* ── 메인 로드 ── */
+      async function load() {
+        try {
+          const res = await fetch('./controls/controls.json');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json(); /* { sections: [...] } */
+
+          const root = document.getElementById('controls-root');
+
+          /* 스켈레톤 → 실제 컨텐츠 fade */
+          const skel = document.getElementById('skeleton-container');
+          skel.style.transition = 'opacity 0.35s ease';
+          skel.style.opacity = '0';
+
+          await new Promise(r => setTimeout(r, 350));
+          root.innerHTML = '';
+
+          /* 통계 */
+          let totalKeys = 0, taczKeys = 0;
+          data.sections.forEach(s => {
+            totalKeys += s.controls.length;
+            taczKeys += s.controls.filter(c => c.badge === 'TACZ').length;
+          });
+          animateCount(document.getElementById('stat-total'), totalKeys, 400);
+          animateCount(document.getElementById('stat-tacz'), taczKeys, 550);
+          animateCount(document.getElementById('stat-sections'), data.sections.length, 700);
+
+          /* 섹션 렌더 */
+          data.sections.forEach((section, si) => {
+            const el = buildSection(section, si);
+            root.appendChild(el);
+
+            /* 헤더 관찰 */
+            obs.observe(el.querySelector('.ctrl-section-header'));
+
+            /* 행 관찰 — stagger delay */
+            el.querySelectorAll('.ctrl-row').forEach((row, ri) => {
+              row.style.transitionDelay = `${ri * 45}ms`;
+              obs.observe(row);
+            });
+          });
+
+          /* 키 클릭 눌림 효과 */
+          document.querySelectorAll('.key').forEach(k => {
+            k.addEventListener('mousedown', () => k.classList.add('pressed'));
+            k.addEventListener('mouseup', () => k.classList.remove('pressed'));
+            k.addEventListener('mouseleave', () => k.classList.remove('pressed'));
+          });
+
+        } catch (err) {
+          document.getElementById('controls-root').innerHTML =
+            `<div style="color:var(--red);text-align:center;padding:60px;font-family:var(--mono)">
+            ⚠ ERROR: ${err.message}
+          </div>`;
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', load);
+    })();
   </script>
 </body>
+
 </html>

@@ -1,0 +1,128 @@
+{
+  "sections": [
+    {
+      "icon": "🚶",
+      "title": "이동",
+      "sub": "MOVEMENT",
+      "theme": "green",
+      "controls": [
+        {
+          "keys": ["W", "A", "S", "D"],
+          "name": "움직이기",
+          "hint": "캐릭터 전후좌우 이동"
+        },
+        {
+          "keys": [{ "label": "Shift", "style": "" }],
+          "name": "달리기",
+          "hint": "빠르게 이동"
+        },
+        {
+          "keys": [{ "label": "Ctrl", "style": "" }],
+          "name": "웅크리기",
+          "hint": "발소리 감소 및 자세 낮추기"
+        },
+        {
+          "keys": [{ "label": "CapsLk", "style": "" }],
+          "name": "대쉬",
+          "hint": "순간적으로 빠르게 돌진"
+        },
+        {
+          "keys": [{ "label": "Space", "style": "" }],
+          "name": "점프",
+          "hint": "장애물 넘기"
+        }
+      ]
+    },
+    {
+      "icon": "🔫",
+      "title": "전투",
+      "sub": "COMBAT",
+      "theme": "blue",
+      "controls": [
+        {
+          "keys": [{ "label": "LMB", "style": "blue" }],
+          "name": "격발",
+          "hint": "마우스 왼쪽 클릭 (사격)",
+          "badge": "BASIC"
+        },
+        {
+          "keys": [{ "label": "RMB", "style": "blue" }],
+          "name": "조준",
+          "hint": "마우스 오른쪽 클릭 (ADS)",
+          "badge": "BASIC"
+        },
+        {
+          "keys": [{ "label": "MMB", "style": "blue" }],
+          "name": "상호작용",
+          "hint": "총기 장착 중 블록 상호작용",
+          "badge": "BASIC"
+        },
+        {
+          "keys": [{ "label": "R", "style": "green" }],
+          "name": "재장전",
+          "hint": "탄알집 교체",
+          "badge": "TACZ"
+        },
+        {
+          "keys": [{ "label": "Alt", "style": "green" }],
+          "name": "격발 모드 변경",
+          "hint": "단발 / 점사 / 연사 전환",
+          "badge": "TACZ"
+        },
+        {
+          "keys": [{ "label": "V", "style": "green" }],
+          "name": "배율 조절",
+          "hint": "가변 배율 스코프 조절",
+          "badge": "TACZ"
+        },
+        {
+          "keys": [{ "label": "H", "style": "green" }],
+          "name": "총기 자세히 보기",
+          "hint": "무기 외형 및 상태 확인",
+          "badge": "TACZ"
+        },
+        {
+          "keys": [{ "label": "X", "style": "green" }],
+          "name": "핑",
+          "hint": "팀원에게 위치 알림",
+          "badge": "TACZ"
+        }
+      ]
+    },
+    {
+      "icon": "⚙️",
+      "title": "기타",
+      "sub": "MISC",
+      "theme": "amber",
+      "controls": [
+        {
+          "keys": [{ "label": "Backspc", "style": "" }],
+          "name": "아이템 드랍",
+          "hint": "들고 있는 아이템 버리기"
+        },
+        {
+          "keys": ["T"],
+          "name": "파츠 장착 메뉴",
+          "hint": "총기 개조 인터페이스",
+          "badge": "TACZ"
+        },
+        {
+          "keys": [{ "label": "Enter", "style": "" }],
+          "name": "채팅",
+          "hint": "메시지 입력 창 열기"
+        },
+        {
+          "keys": [{ "label": "Shift", "style": "" }, "+", "F"],
+          "name": "서버 메뉴",
+          "hint": "웅크린 상태에서 F 키 입력",
+          "badge": "SERVER"
+        },
+        {
+          "keys": ["E"],
+          "name": "인벤토리",
+          "hint": "소지품 확인"
+        }
+      ]
+    }
+  ]
+}

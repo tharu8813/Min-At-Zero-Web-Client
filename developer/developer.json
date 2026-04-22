@@ -5,7 +5,18 @@
     "type": "총괄/기획",
     "role": "Project Lead & Dev",
     "desc": "서버 총괄 및 플러그인 개발, 웹 클라이언트 제작을 담당하며 프로젝트의 전체적인 방향과 기획을 주도합니다.",
-    "tags": ["System Design", "Plugin Dev", "Web Dev", "Skript Plugin Dev",  "ModPack Moderator", "Management"]
+    "tags": [
+      "System Design",
+      "Plugin Dev",
+      "Web Dev",
+      "Skript Plugin Dev",
+      "ModPack Moderator",
+      "Management"
+    ],
+    "link": {
+      "youtube": "https://youtube.com/@tharu_81",
+      "github": "https://github.com/tharu8813"
+    }
   },
   {
     "name": "Cryptic_MC",
@@ -13,15 +24,23 @@
     "type": "맵 디자이너",
     "role": "Map Builder",
     "desc": "메인 맵 제작을 담당하며, 밀리터리 테마의 맵을 창의적으로 디자인하여 게임 플레이에 몰입감을 더합니다.",
-    "tags": ["Map Building", "Level Design", "Terrain"]
+    "tags": [
+      "Map Building",
+      "Level Design",
+      "Terrain"
+    ]
   },
   {
-    "name": "Gam_bler",
-    "mc_id": "Gam_bler",
+    "name": "dogyeom0424(구 Gam_bler)",
+    "mc_id": "dogyeom0424",
     "type": "맵 디자이너",
     "role": "Map Builder",
     "desc": "기타 게임의 모티브를 활용하여 다양한 장르의 맵을 제작하며, 플레이어들에게 새로운 전투 경험을 제공합니다.",
-    "tags": ["Map Building", "PvP Balance", "Interior Design"]
+    "tags": [
+      "Map Building",
+      "PvP Balance",
+      "Interior Design"
+    ]
   },
   {
     "name": "Roland_zero",
@@ -29,15 +48,23 @@
     "type": "맵 디자이너",
     "role": "Map Builder",
     "desc": "다양한 장르의 전투 환경을 연구하고 구축하며, 밸런스 잡힌 맵 디자인을 통해 최적의 PvP 경험을 제공합니다.",
-    "tags": ["Map Building", "PvP Balance", "Interior Design"]
+    "tags": [
+      "Map Building",
+      "PvP Balance",
+      "Interior Design"
+    ]
   },
   {
-    "name": "iliiililillliili",
-    "mc_id": "iliiililillliili",
+    "name": "Rasmus_gold(구 iliiililillliili)",
+    "mc_id": "Rasmus_gold",
     "type": "맵 디자이너",
     "role": "Map Builder",
     "desc": "신박하고 실험적인 맵 디자인을 통해 독특한 게임 플레이 경험을 창출하며, 플레이어들에게 새로운 도전을 제공합니다.",
-    "tags": ["Map Building", "PvP Balance", "Interior Design"]
+    "tags": [
+      "Map Building",
+      "PvP Balance",
+      "Interior Design"
+    ]
   },
   {
     "name": "bradskGA",
@@ -45,15 +72,23 @@
     "type": "맵 디자이너",
     "role": "Map Builder",
     "desc": "다양한 장르의 전투 환경을 연구하고 구축하며, 밸런스 잡힌 맵 디자인을 통해 최적의 PvP 경험을 제공합니다.",
-    "tags": ["Map Building", "PvP Balance", "Interior Design"]
+    "tags": [
+      "Map Building",
+      "PvP Balance",
+      "Interior Design"
+    ]
   },
   {
-    "name": "5star55555",
-    "mc_id": "5star55555",
+    "name": "havings5555(구 5star55555)",
+    "mc_id": "havings5555",
     "type": "테스터",
     "role": "Beta Tester",
     "desc": "업데이트 전 신규 콘텐츠의 버그를 찾아내고, 플레이어 입장에서 피드백을 전달하여 완성도를 높입니다.",
-    "tags": ["Bug Report", "Feedback", "Q&A"]
+    "tags": [
+      "Bug Report",
+      "Feedback",
+      "Q&A"
+    ]
   },
   {
     "name": "chan6428",
@@ -61,7 +96,11 @@
     "type": "테스터",
     "role": "Beta Tester",
     "desc": "업데이트 전 신규 콘텐츠의 버그를 찾아내고, 플레이어 입장에서 피드백을 전달하여 완성도를 높입니다.",
-    "tags": ["Bug Report", "Feedback", "Q&A"]
+    "tags": [
+      "Bug Report",
+      "Feedback",
+      "Q&A"
+    ]
   },
   {
     "name": "sses66528339",
@@ -69,7 +108,11 @@
     "type": "테스터",
     "role": "Beta Tester",
     "desc": "업데이트 전 신규 콘텐츠의 버그를 찾아내고, 플레이어 입장에서 피드백을 전달하여 완성도를 높입니다.",
-    "tags": ["Bug Report", "Feedback", "Q&A"]
+    "tags": [
+      "Bug Report",
+      "Feedback",
+      "Q&A"
+    ]
   },
   {
     "name": "_min_chang_",
@@ -77,6 +120,10 @@
     "type": "테스터",
     "role": "Beta Tester",
     "desc": "업데이트 전 신규 콘텐츠의 버그를 찾아내고, 플레이어 입장에서 피드백을 전달하여 완성도를 높입니다.",
-    "tags": ["Bug Report", "Feedback", "Q&A"]
+    "tags": [
+      "Bug Report",
+      "Feedback",
+      "Q&A"
+    ]
   }
 ]
