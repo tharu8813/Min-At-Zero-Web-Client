@@ -57,54 +57,153 @@ const utils = {
   fmtMd(md) {
     if (!md) return '';
 
+    // ── 0단계: CRLF → LF 정규화 (GitHub API는 \r\n 반환) ───────────────────
+    md = md.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // ── 1단계: raw HTML <img> 태그를 토큰으로 보호 ──────────────────────────
+    // GitHub 릴리즈 본문에는 ![alt](url) 대신 <img ...> 태그가 직접 오기도 함
     const tokens = [];
-    const tokenize = (str) =>
-      str.replace(/!\[([^\]]*)\]\(([^)]+)\)|(?<!!)\[([^\]]+)\]\(([^)]+)\)/g, (_, iAlt, iUrl, lText, lUrl) => {
+
+    const protectRawImg = (str) =>
+      str.replace(/<img\b([^>]*)>/gi, (full, attrs) => {
+        const srcM = attrs.match(/src=["']([^"']+)["']/i);
+        const altM = attrs.match(/alt=["']([^"']*?)["']/i);
+        if (!srcM) return full; // src 없으면 그냥 이스케이프되도록 둠
+        const safeUrl = utils.sanitizeUrl(srcM[1]);
+        const safeAlt = utils.sanitizeText(altM ? altM[1] : '');
         const id = `\x00T${tokens.length}\x00`;
-        if (iUrl !== undefined) {
-          const safeUrl = utils.sanitizeUrl(iUrl);
-          const safeAlt = utils.sanitizeText(iAlt || '');
-          tokens.push(
-            `<img src="${safeUrl}" alt="${safeAlt}" loading="lazy"` +
-            ` style="max-width:100%;border-radius:8px;margin:10px 0;display:block;` +
-            `border:1px solid var(--border);cursor:zoom-in;` +
-            `transition:opacity 0.4s,transform 0.3s;opacity:0;transform:scale(0.97)"` +
-            ` onload="this.style.opacity='1';this.style.transform='scale(1)'"` +
-            ` onerror="this.style.display='none'"` +
-            ` onclick="lightbox.open(this.src,this.alt)">`
-          );
-        } else {
-          const safeUrl = utils.sanitizeUrl(lUrl);
-          const safeText = utils.sanitizeText(lText || '');
-          const isExt = /^https?:\/\//i.test(safeUrl);
-          tokens.push(
-            `<a href="${safeUrl}" ${isExt ? 'target="_blank" rel="noopener noreferrer"' : ''}` +
-            ` style="color:var(--blue);text-decoration:underline;text-underline-offset:2px">${safeText}</a>`
-          );
-        }
+        tokens.push(
+          `<img src="${safeUrl}" alt="${safeAlt}" loading="lazy"` +
+          ` style="max-width:100%;border-radius:8px;margin:10px 0;display:block;` +
+          `border:1px solid var(--border);cursor:zoom-in;` +
+          `transition:opacity 0.4s,transform 0.3s;opacity:0;transform:scale(0.97)"` +
+          ` onload="this.style.opacity='1';this.style.transform='scale(1)'"` +
+          ` onerror="this.style.display='none'"` +
+          ` onclick="lightbox.open(this.src,this.alt)">`
+        );
         return id;
       });
 
-    const escaped = tokenize(md);
+    // ── 2단계: MD 이미지/링크를 토큰으로 치환 ───────────────────────────────
+    const protectMdInline = (str) =>
+      str.replace(
+        /!\[([^\]]*)\]\(([^)]+)\)|(?<!!)\[([^\]]*)\]\(([^)]+)\)/g,
+        (_, iAlt, iUrl, lText, lUrl) => {
+          const id = `\x00T${tokens.length}\x00`;
+          if (iUrl !== undefined) {
+            const safeUrl = utils.sanitizeUrl(iUrl);
+            const safeAlt = utils.sanitizeText(iAlt || '');
+            tokens.push(
+              `<img src="${safeUrl}" alt="${safeAlt}" loading="lazy"` +
+              ` style="max-width:100%;border-radius:8px;margin:10px 0;display:block;` +
+              `border:1px solid var(--border);cursor:zoom-in;` +
+              `transition:opacity 0.4s,transform 0.3s;opacity:0;transform:scale(0.97)"` +
+              ` onload="this.style.opacity='1';this.style.transform='scale(1)'"` +
+              ` onerror="this.style.display='none'"` +
+              ` onclick="lightbox.open(this.src,this.alt)">`
+            );
+          } else {
+            const safeUrl = utils.sanitizeUrl(lUrl);
+            const safeText = utils.sanitizeText(lText || '');
+            const isExt = /^https?:\/\//i.test(safeUrl);
+            tokens.push(
+              `<a href="${safeUrl}" ${isExt ? 'target="_blank" rel="noopener noreferrer"' : ''}` +
+              ` style="color:var(--blue);text-decoration:underline;text-underline-offset:2px">${safeText}</a>`
+            );
+          }
+          return id;
+        }
+      );
 
-    const htmlEscaped = escaped
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/\x00T(\d+)\x00/g, (_, i) => tokens[Number(i)]);
+    // ── 3단계: 줄 단위로 블록 분류 ──────────────────────────────────────────
+    const rawLines = md.split('\n');
+    const blocks = [];
 
-    const processed = htmlEscaped
-      .replace(/^### (.+)$/gm, '<h4 style="color:var(--green);font-size:13px;font-weight:600;margin:14px 0 6px">$1</h4>')
-      .replace(/^## (.+)$/gm, '<h3 style="color:var(--green);font-size:14px;font-weight:600;margin:14px 0 6px">$1</h3>')
-      .replace(/^# (.+)$/gm, '<h2 style="color:var(--green);font-size:15px;font-weight:700;margin:14px 0 6px">$1</h2>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text-primary);font-weight:600">$1</strong>')
-      .replace(/`([^`]+)`/g, '<code style="background:rgba(59,130,246,0.12);padding:1px 6px;border-radius:4px;font-family:monospace;color:#60a5fa;font-size:12px">$1</code>')
-      .replace(/^[*\-] (.+)$/gm, '<li style="margin:4px 0 4px 16px;color:var(--text-muted)">$1</li>')
-      .replace(/(<li[^>]*>[\s\S]*?<\/li>(\s*<li[^>]*>[\s\S]*?<\/li>)*)/g, m => `<ul style="margin:6px 0;list-style:disc">${m}</ul>`)
-      .replace(/\n\n+/g, '</p><p style="margin:6px 0">')
-      .replace(/\n/g, '<br>');
+    for (const rawLine of rawLines) {
+      // raw HTML img 보호 → MD 인라인 보호 순서로 처리
+      const line = protectMdInline(protectRawImg(rawLine)).trimEnd();
 
-    return `<p style="margin:6px 0">${processed}</p>`;
+      if (/^### (.+)$/.test(line))
+        blocks.push({ type: 'heading', level: 3, raw: line.replace(/^### /, '') });
+      else if (/^## (.+)$/.test(line))
+        blocks.push({ type: 'heading', level: 2, raw: line.replace(/^## /, '') });
+      else if (/^# (.+)$/.test(line))
+        blocks.push({ type: 'heading', level: 1, raw: line.replace(/^# /, '') });
+      else if (/^[*\-] (.+)$/.test(line))
+        blocks.push({ type: 'li', listStyle: 'disc', raw: line.replace(/^[*\-] /, '') });
+      else if (/^\d+\. (.+)$/.test(line))
+        blocks.push({ type: 'li', listStyle: 'decimal', raw: line.replace(/^\d+\. /, '') });
+      else if (/^\s*$/.test(line))
+        blocks.push({ type: 'blank' });
+      else
+        blocks.push({ type: 'text', raw: line });
+    }
+
+    // ── 4단계: 인라인 포맷 적용 (HTML 이스케이프 + 토큰 복원 포함) ──────────
+    const inlineFormat = (raw) => {
+      // HTML 특수문자 이스케이프 (토큰 플레이스홀더 \x00...\x00 은 건드리지 않음)
+      let s = raw.replace(/\x00T(\d+)\x00|[&<>"']/g, (m) => {
+        if (m[0] === '\x00') return m; // 토큰은 그대로
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' }[m];
+      });
+      // 토큰 복원
+      s = s.replace(/\x00T(\d+)\x00/g, (_, i) => tokens[Number(i)]);
+      // 볼드
+      s = s.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text-primary);font-weight:600">$1</strong>');
+      // 이탤릭 (볼드 처리 후)
+      s = s.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+      // 인라인 코드
+      s = s.replace(/`([^`]+)`/g, '<code style="background:rgba(59,130,246,0.12);padding:1px 6px;border-radius:4px;font-family:monospace;color:#60a5fa;font-size:12px">$1</code>');
+      return s;
+    };
+
+    // ── 5단계: 블록 → HTML 조합 ─────────────────────────────────────────────
+    const headingStyle = [
+      '',
+      'color:var(--green);font-size:15px;font-weight:700;margin:14px 0 6px',
+      'color:var(--green);font-size:14px;font-weight:600;margin:14px 0 6px',
+      'color:var(--green);font-size:13px;font-weight:600;margin:14px 0 6px',
+    ];
+    const headingTag = ['', 'h2', 'h3', 'h4'];
+
+    const parts = [];
+    let i = 0;
+
+    while (i < blocks.length) {
+      const b = blocks[i];
+
+      if (b.type === 'heading') {
+        const tag = headingTag[b.level];
+        parts.push(`<${tag} style="${headingStyle[b.level]}">${inlineFormat(b.raw)}</${tag}>`);
+        i++;
+
+      } else if (b.type === 'li') {
+        // 같은 listStyle의 연속된 li를 하나의 ul/ol로 묶음
+        const style = b.listStyle;
+        const isOrdered = style === 'decimal';
+        const tag = isOrdered ? 'ol' : 'ul';
+        const items = [];
+        while (i < blocks.length && blocks[i].type === 'li' && blocks[i].listStyle === style) {
+          items.push(`<li style="margin:4px 0 4px 16px;color:var(--text-muted)">${inlineFormat(blocks[i].raw)}</li>`);
+          i++;
+        }
+        parts.push(`<${tag} style="margin:6px 0;list-style:${style};padding-left:16px">${items.join('')}</${tag}>`);
+
+      } else if (b.type === 'blank') {
+        while (i < blocks.length && blocks[i].type === 'blank') i++;
+
+      } else {
+        // 연속 text 줄 → <br>로 이어서 <p> 하나로
+        const textLines = [];
+        while (i < blocks.length && blocks[i].type === 'text') {
+          textLines.push(inlineFormat(blocks[i].raw));
+          i++;
+        }
+        parts.push(`<p style="margin:6px 0">${textLines.join('<br>')}</p>`);
+      }
+    }
+
+    return parts.join('\n');
   },
 
   animateText(el, newText) {
