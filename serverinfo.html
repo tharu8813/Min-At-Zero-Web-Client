@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>서버 정보 | Min. At. Zero Web Client</title>
+  <meta name="description" content="Min. At. Zero 서버 상세 정보 — 버전, 모드, 플러그인, 클라이언트 정보">
+  <meta name="theme-color" content="#22c55e">
+  <link rel="icon" type="image/png" href="asset/image/icon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="asset/style.css">
+
+  <style>
+    /* ── 서버정보 전용 스타일 ── */
+
+    /* 섹션 헤딩 */
+    .si-section-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .si-section-title .icon { font-size: 20px; }
+
+    /* 기본 정보 그리드 */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 0;
+    }
+    .info-item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      transition: border-color var(--dur-fast), background var(--dur-fast);
+    }
+    .info-item:hover {
+      border-color: var(--green-border);
+      background: var(--green-glow);
+    }
+    .info-item-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .info-item-value {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .info-item-value a {
+      color: var(--blue);
+      text-decoration: none;
+      transition: color var(--dur-fast);
+    }
+    .info-item-value a:hover { color: #93c5fd; }
+    .info-item-value .green { color: var(--green); }
+
+    /* 설명 박스 (Markdown) */
+    .desc-box {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      border-radius: 0 10px 10px 0;
+      padding: 16px 20px;
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.85;
+    }
+    .desc-box a { color: var(--blue); text-decoration: underline; text-underline-offset: 2px; }
+    .desc-box a:hover { color: #93c5fd; }
+
+    /* IP 복사 박스 */
+    .ip-copy-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 18px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--green-border);
+      border-radius: 10px;
+      font-family: var(--mono);
+      font-size: 16px;
+      color: var(--green);
+      letter-spacing: 1px;
+      margin-top: 4px;
+      cursor: pointer;
+      transition: background var(--dur-fast), box-shadow var(--dur-fast);
+    }
+    .ip-copy-box:hover {
+      background: var(--green-glow);
+      box-shadow: 0 0 0 1px var(--green-border);
+    }
+    .ip-copy-btn {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 4px;
+      background: rgba(34,197,94,0.12);
+      border: 1px solid var(--green-border);
+      color: var(--green);
+      cursor: pointer;
+      transition: background var(--dur-fast);
+      white-space: nowrap;
+    }
+    .ip-copy-btn:hover { background: rgba(34,197,94,0.25); }
+
+    /* 약관 아코디언 */
+    .terms-list { display: flex; flex-direction: column; gap: 8px; }
+    .term-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color var(--dur-fast);
+    }
+    .term-item.open { border-color: var(--green-border); }
+    .term-q {
+      width: 100%;
+      background: rgba(255,255,255,0.02);
+      border: none;
+      color: var(--text-primary);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 14px 18px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: color var(--dur-fast), background var(--dur-fast);
+    }
+    .term-q:hover { color: var(--green); background: var(--green-glow); }
+    .term-icon {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: rgba(34,197,94,0.08);
+      border: 1px solid var(--green-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: var(--green);
+      transition: transform var(--dur-normal), background var(--dur-fast);
+      pointer-events: none;
+    }
+    .term-item.open .term-icon { transform: rotate(45deg); background: rgba(34,197,94,0.18); }
+    .term-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height var(--dur-normal) ease, padding var(--dur-normal);
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.85;
+      padding: 0 18px;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .term-item.open .term-body { max-height: 400px; padding: 0 18px 16px; }
+    .terms-footer {
+      margin-top: 14px;
+      padding: 12px 18px;
+      background: rgba(239,68,68,0.06);
+      border: 1px solid rgba(239,68,68,0.18);
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #fca5a5;
+      letter-spacing: 0.5px;
+      line-height: 1.7;
+    }
+
+    /* 플러그인 / 모드 테이블 */
+    .plugin-list { display: flex; flex-direction: column; gap: 6px; }
+    .plugin-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.015);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
+    }
+    .plugin-row:hover {
+      border-color: var(--green-border);
+      background: var(--green-glow);
+      transform: translateX(4px);
+    }
+    .plugin-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 600;
+      flex: 1;
+    }
+    .plugin-file {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .plugin-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .custom-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid var(--green-border);
+      color: var(--green);
+      flex-shrink: 0;
+    }
+
+    /* 모드 태그 색상 */
+    .mod-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .tag-CORE    { background: rgba(239,68,68,0.1);   border: 1px solid rgba(239,68,68,0.25);   color: #fca5a5; }
+    .tag-GAMEPLAY{ background: rgba(34,197,94,0.1);   border: 1px solid var(--green-border);    color: #4ade80; }
+    .tag-VISUAL  { background: rgba(168,85,247,0.1);  border: 1px solid rgba(168,85,247,0.25);  color: #c4b5fd; }
+    .tag-PERF    { background: rgba(59,130,246,0.1);  border: 1px solid var(--blue-border);     color: #93c5fd; }
+    .tag-UI      { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.25);  color: #fcd34d; }
+    .tag-AUDIO   { background: rgba(20,184,166,0.1);  border: 1px solid rgba(20,184,166,0.25);  color: #5eead4; }
+    .tag-QOL     { background: rgba(249,115,22,0.1);  border: 1px solid rgba(249,115,22,0.25);  color: #fdba74; }
+    .tag-SERVER  { background: rgba(255,255,255,0.05);border: 1px solid var(--border);          color: var(--text-muted); }
+
+    /* 모드 필터 버튼 */
+    .mod-filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .mod-filter-btn {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--dur-fast);
+      letter-spacing: 0.5px;
+    }
+    .mod-filter-btn:hover { border-color: var(--green-border); color: var(--green); }
+    .mod-filter-btn.active { border-color: var(--green-border); background: var(--green-glow); color: var(--green); }
+
+    /* 클라이언트 카드 */
+    .client-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .client-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+    }
+    .client-card:hover {
+      border-color: var(--blue-border);
+      box-shadow: 0 8px 32px rgba(59,130,246,0.1);
+    }
+    .client-card-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .client-card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.75;
+      margin-bottom: 14px;
+    }
+    .client-meta-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .client-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .client-meta-key {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      width: 72px;
+      flex-shrink: 0;
+    }
+    .client-meta-val {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-primary);
+    }
+    .client-libs {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .client-lib-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 12px;
+    }
+    .client-lib-name {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--blue);
+      flex-shrink: 0;
+      width: 200px;
+    }
+    .client-lib-desc { color: var(--text-muted); }
+    .feature-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 10px;
+    }
+    .feature-chip {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-muted);
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .client-card-top {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--blue) 0%, rgba(59,130,246,0.3) 60%, transparent 100%);
+    }
+    .tech-chips {
+      display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;
+    }
+    .tech-chip {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(59,130,246,0.08);
+      border: 1px solid var(--blue-border);
+      color: #93c5fd;
+    }
+
+    /* 타임라인 */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+      padding-left: 24px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px; top: 8px; bottom: 8px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--green), rgba(34,197,94,0.1));
+    }
+    .tl-item {
+      position: relative;
+      padding: 0 0 22px 20px;
+    }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-dot {
+      position: absolute;
+      left: -24px; top: 4px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--green);
+      border: 2px solid var(--bg-deep);
+      box-shadow: 0 0 8px rgba(34,197,94,0.5);
+    }
+    .tl-dot.dim {
+      background: var(--text-dim);
+      box-shadow: none;
+    }
+    .tl-date {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 3px;
+      letter-spacing: 1px;
+    }
+    .tl-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .tl-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* 모드 검색 */
+    .mod-search-wrap {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .mod-search {
+      width: 100%;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px 10px 36px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color var(--dur-fast);
+    }
+    .mod-search:focus { border-color: var(--green-border); }
+    .mod-search::placeholder { color: var(--text-dim); }
+    .mod-search-icon {
+      position: absolute;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      pointer-events: none;
+    }
+    .mod-count {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      text-align: right;
+      margin-bottom: 8px;
+    }
+    .mod-count span { color: var(--green); }
+
+    /* 빈 상태 */
+    .empty-state {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      .client-grid { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .client-lib-name { width: 140px; }
+    }
+    @media (max-width: 480px) {
+      .info-grid { grid-template-columns: 1fr; }
+      .client-lib-row { flex-direction: column; gap: 4px; }
+      .client-lib-name { width: auto; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-radial" aria-hidden="true"></div>
+  <div class="bg-lines" aria-hidden="true"></div>
+  <div id="scroll-progress" aria-hidden="true"></div>
+  <div id="cursor-ring" aria-hidden="true"></div>
+  <div id="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="wrap">
+
+    <!-- ══ HEADER ══ -->
+    <header id="header-root" class="header"></header>
+
+    <!-- ══ PAGE TITLE ══ -->
+    <div class="status-bar" role="heading" aria-level="2" style="margin-top:24px">
+      <div class="status-item">
+        <span style="font-size:16px">🖥️</span>
+        <span class="label">PAGE</span>
+        <span class="value">SERVER INFO</span>
+      </div>
+      <div class="status-sep"></div>
+      <div class="status-item">
+        <span class="label">VERSION</span>
+        <span class="value" id="si-mc-version">—</span>
+      </div>
+      <div class="status-sep"></div>
+      <div class="status-item">
+        <span class="label">ENGINE</span>
+        <span class="value" id="si-engine">—</span>
+      </div>
+      <div class="status-sep"></div>
+      <div class="status-item">
+        <div class="pulse-dot"></div>
+        <span class="label">GENRE</span>
+        <span class="value" id="si-genre">—</span>
+      </div>
+    </div>
+
+    <!-- ══ MAIN LAYOUT ══ -->
+    <div style="display:flex;flex-direction:column;gap:20px;margin-top:20px" id="si-main">
+
+      <!-- ── 기본 정보 + 타임라인 ── -->
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start" id="top-grid">
+
+        <!-- 기본 정보 카드 -->
+        <div class="card">
+          <div class="card-top-bar"></div>
+          <div class="card-label">📋 기본 정보</div>
+          <div class="info-grid" id="info-grid">
+            <!-- JS inject -->
+          </div>
+
+          <div style="margin-top:18px">
+            <div class="si-section-title" style="font-size:15px;margin-bottom:10px">
+              <span>📡</span> 서버 IP
+            </div>
+            <div class="ip-copy-box" id="ip-copy-box" role="button" tabindex="0" aria-label="서버 IP 복사">
+              <span id="si-ip-text">—</span>
+              <button class="ip-copy-btn" id="ip-copy-btn">📋 복사</button>
+            </div>
+          </div>
+
+          <div style="margin-top:20px">
+            <div class="si-section-title" style="font-size:15px;margin-bottom:10px">
+              <span>📝</span> 서버 소개
+            </div>
+            <div class="desc-box" id="si-desc">—</div>
+          </div>
+        </div>
+
+        <!-- 타임라인 카드 -->
+        <div class="card">
+          <div class="card-top-bar"></div>
+          <div class="card-label">📅 개발 히스토리</div>
+          <div class="timeline" id="si-timeline">
+            <!-- JS inject -->
+          </div>
+
+          <div style="margin-top:22px">
+            <div class="card-label" style="margin-bottom:12px">🔗 Links</div>
+            <div class="btn-stack" id="si-links">
+              <!-- JS inject -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 약관 ── -->
+      <div class="card">
+        <div class="card-top-bar"></div>
+        <div class="card-label">📜 이용 약관</div>
+        <div class="terms-list" id="terms-list">
+          <!-- JS inject -->
+        </div>
+        <div class="terms-footer" id="terms-footer">
+          BY PROCEEDING, YOU AGREE TO ALL TERMS AND CONDITIONS.<br>
+          (접속함으로써 귀하는 위의 모든 약관에 동의하게 됩니다.)
+        </div>
+      </div>
+
+      <!-- ── 클라이언트 ── -->
+      <div class="card">
+        <div class="card-top-bar blue"></div>
+        <div class="card-label blue">💻 클라이언트</div>
+        <div class="client-grid" id="client-grid">
+          <!-- JS inject -->
+        </div>
+      </div>
+
+      <!-- ── 플러그인 ── -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" id="plugin-grid-wrap">
+
+        <!-- 외부 플러그인 -->
+        <div class="card">
+          <div class="card-top-bar"></div>
+          <div class="card-label">🔌 사용 플러그인</div>
+          <div class="plugin-list" id="plugin-external-list"><!-- JS inject --></div>
+        </div>
+
+        <!-- 자체 제작 플러그인 -->
+        <div class="card">
+          <div class="card-top-bar"></div>
+          <div class="card-label" style="color:#fbbf24">⚙️ 자체 제작 플러그인</div>
+          <div class="plugin-list" id="plugin-custom-list"><!-- JS inject --></div>
+        </div>
+      </div>
+
+      <!-- ── 모드 목록 ── -->
+      <div class="card">
+        <div class="card-top-bar"></div>
+        <div class="card-label">🧩 사용 모드 목록</div>
+        <div class="client-card-desc">아래 사용된 모드 목록은 참고용도로만 제공됩니다.</div>
+        <div class="mod-search-wrap">
+          <span class="mod-search-icon">🔍</span>
+          <input type="search" class="mod-search" id="mod-search" placeholder="모드 이름 또는 설명으로 검색..." aria-label="모드 검색">
+        </div>
+
+        <div class="mod-filter-row" id="mod-filter-row">
+          <button class="mod-filter-btn active" data-tag="ALL">ALL</button>
+          <!-- JS inject tags -->
+        </div>
+
+        <div class="mod-count" id="mod-count"></div>
+
+        <div class="plugin-list" id="mod-list"><!-- JS inject --></div>
+      </div>
+
+    </div><!-- /si-main -->
+
+    <!-- ══ FOOTER ══ -->
+    <footer class="footer" id="footer-root"></footer>
+
+  </div><!-- /wrap -->
+
+  <script src="asset/script.js"></script>
+  <script>
+  /* ══════════════════════════════════════
+     서버정보 페이지 전용 스크립트
+  ══════════════════════════════════════ */
+  (async function () {
+    'use strict';
+
+    // ── 유틸 ──────────────────────────────────
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // 간단 Markdown → HTML (링크, 볼드, 이탤릭)
+    function parseMd(text) {
+      if (!text) return '';
+      return text
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
+          '<a href="$2" target="_blank" rel="noopener">$1</a>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>');
+    }
+
+    function fmtDate(str) {
+      if (!str) return '—';
+      const [y, m, d] = str.split('-');
+      return `${y}년 ${+m}월 ${+d}일`;
+    }
+
+    function toast(msg, icon = '✅') {
+      const d = document.createElement('div');
+      d.className = 'toast';
+      d.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${esc(msg)}</span>
+        <div class="toast-progress" style="animation-duration:2.5s"></div>`;
+      document.getElementById('toast-container').appendChild(d);
+      setTimeout(() => { d.classList.add('toast-out'); setTimeout(() => d.remove(), 400); }, 2500);
+    }
+
+    // ── JSON 로드 ─────────────────────────────
+    let data;
+    try {
+      const res = await fetch('asset/serverinfo.json');
+      if (!res.ok) throw new Error('fetch failed');
+      data = await res.json();
+    } catch (e) {
+      document.getElementById('si-main').innerHTML =
+        `<div class="card"><div style="color:#fca5a5;font-family:var(--mono);font-size:13px;padding:20px">
+          ⚠️ serverinfo.json 로드 실패: ${esc(e.message)}</div></div>`;
+      return;
+    }
+
+    const { server, terms, plugins, mods, client } = data;
+
+    // ── 상태바 ───────────────────────────────
+    document.getElementById('si-mc-version').textContent  = server.minecraft_version || '—';
+    document.getElementById('si-engine').textContent      = 'Arclight';
+    document.getElementById('si-genre').textContent       = (server.genre || []).join(' · ');
+
+    // ── 기본 정보 그리드 ─────────────────────
+    const infoItems = [
+      { label: 'MC VERSION',    value: server.minecraft_version,   green: true },
+      { label: 'MOD LOADER',    value: server.mod_loader },
+      { label: 'SERVER ENGINE', value: server.server_engine },
+      { label: 'GENRE',         value: (server.genre || []).join(', ') },
+      { label: 'ZERO 시작일',   value: fmtDate(server.zero_start) },
+      { label: `이전 버전 (${server.prev_name || ''})`, value: fmtDate(server.prev_start) },
+    ];
+    document.getElementById('info-grid').innerHTML = infoItems.map(item => `
+      <div class="info-item">
+        <div class="info-item-label">${esc(item.label)}</div>
+        <div class="info-item-value${item.green ? ' green' : ''}">${esc(item.value || '—')}</div>
+      </div>
+    `).join('');
+
+    // ── IP ───────────────────────────────────
+    document.getElementById('si-ip-text').textContent = server.ip || '—';
+    const copyBox = document.getElementById('ip-copy-box');
+    const copyBtn = document.getElementById('ip-copy-btn');
+    function copyIp() {
+      navigator.clipboard.writeText(server.ip).then(() => {
+        copyBtn.textContent = '✅ 복사됨';
+        toast('서버 IP가 클립보드에 복사되었습니다!');
+        setTimeout(() => { copyBtn.textContent = '📋 복사'; }, 2000);
+      });
+    }
+    copyBtn.addEventListener('click', e => { e.stopPropagation(); copyIp(); });
+    copyBox.addEventListener('click', copyIp);
+    copyBox.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') copyIp(); });
+
+    // ── 서버 소개 (Markdown) ─────────────────
+    document.getElementById('si-desc').innerHTML = parseMd(server.description || '');
+
+    // ── 타임라인 ─────────────────────────────
+    const tlData = [
+      { date: fmtDate(server.prev_start),  label: server.prev_name, sub: '이전 버전 개발 시작', dim: true },
+      { date: fmtDate(server.zero_start),  label: 'Min. At. Zero 개발 시작', sub: '현재 버전 (Zero 시즌)', dim: false },
+      { date: '현재',                      label: '서비스 운영 중', sub: `MC ${server.minecraft_version} · ${server.mod_loader}`, dim: false },
+    ];
+    document.getElementById('si-timeline').innerHTML = tlData.map(t => `
+      <div class="tl-item">
+        <div class="tl-dot${t.dim ? ' dim' : ''}"></div>
+        <div class="tl-date">${esc(t.date)}</div>
+        <div class="tl-label">${esc(t.label)}</div>
+        <div class="tl-sub">${esc(t.sub)}</div>
+      </div>
+    `).join('');
+
+    // ── 링크 버튼 ────────────────────────────
+    const linksMap = [
+      { href: server.discord, icon: '💬', text: 'Discord 서버', cls: 'btn-secondary' },
+      { href: server.notion,  icon: '📖', text: '게임 가이드 (Notion)', cls: 'btn-secondary' },
+      { href: server.github,  icon: '💻', text: 'GitHub', cls: 'btn-secondary' },
+    ];
+    document.getElementById('si-links').innerHTML = linksMap.map(l => `
+      <a href="${esc(l.href)}" target="_blank" rel="noopener noreferrer" class="btn ${l.cls}" style="text-decoration:none">
+        <span class="btn-icon">${l.icon}</span>
+        <span class="btn-text">${esc(l.text)}</span>
+        <span class="btn-shimmer"></span>
+      </a>
+    `).join('');
+
+    // ── 약관 아코디언 ────────────────────────
+    document.getElementById('terms-list').innerHTML = (terms || []).map((t, i) => `
+      <div class="term-item" id="term-${i}">
+        <button class="term-q" aria-expanded="false" aria-controls="term-body-${i}">
+          <span>${esc(t.title)}</span>
+          <span class="term-icon">+</span>
+        </button>
+        <div class="term-body" id="term-body-${i}" role="region">${esc(t.content)}</div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.term-q').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.term-item');
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.term-item').forEach(el => {
+          el.classList.remove('open');
+          el.querySelector('.term-q').setAttribute('aria-expanded', 'false');
+        });
+        if (!isOpen) {
+          item.classList.add('open');
+          btn.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+
+    // ── 클라이언트 ───────────────────────────
+    const prog = client.program;
+    const web  = client.web;
+
+    document.getElementById('client-grid').innerHTML = `
+      <!-- 프로그램형 -->
+      <div class="client-card">
+        <div class="client-card-top"></div>
+        <div class="client-card-title">🖥️ ${esc(prog.name)}</div>
+        <div class="client-card-desc">${esc(prog.description)}</div>
+        <div class="client-meta-row">
+          <div class="client-meta-item">
+            <span class="client-meta-key">IDE</span>
+            <span class="client-meta-val">${esc(prog.ide)}</span>
+          </div>
+          <div class="client-meta-item">
+            <span class="client-meta-key">언어</span>
+            <span class="client-meta-val">${esc(prog.language)}</span>
+          </div>
+          <div class="client-meta-item">
+            <span class="client-meta-key">런타임</span>
+            <span class="client-meta-val">${esc(prog.runtime)}</span>
+          </div>
+          <div class="client-meta-item">
+            <span class="client-meta-key">플랫폼</span>
+            <span class="client-meta-val">${esc(prog.platform)}</span>
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:6px">주요 라이브러리</div>
+        <div class="client-libs">
+          ${(prog.libs || []).map(lib => `
+            <div class="client-lib-row">
+              <span class="client-lib-name">${esc(lib.name)}</span>
+              <span class="client-lib-desc">${esc(lib.desc)}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--text-dim);margin:12px 0 6px">기능</div>
+        <div class="feature-chips">
+          ${(prog.features || []).map(f => `<span class="feature-chip">${esc(f)}</span>`).join('')}
+        </div>
+        <a href="${esc(prog.repo)}" target="_blank" rel="noopener" class="btn btn-secondary" style="margin-top:14px;text-decoration:none">
+          <span class="btn-icon">💻</span>
+          <span class="btn-text">GitHub 릴리즈</span>
+          <span class="btn-shimmer"></span>
+        </a>
+      </div>
+
+      <!-- 웹형 -->
+      <div class="client-card">
+        <div class="client-card-top"></div>
+        <div class="client-card-title">🌐 ${esc(web.name)}</div>
+        <div class="client-card-desc">${esc(web.description)}</div>
+        <div class="client-meta-row">
+          <div class="client-meta-item">
+            <span class="client-meta-key">호스팅</span>
+            <span class="client-meta-val">${esc(web.hosting)}</span>
+          </div>
+          <div class="client-meta-item">
+            <span class="client-meta-key">URL</span>
+            <span class="client-meta-val" style="color:var(--blue);font-size:11px">https://tharu8813.github.io/Min-At-Zero-Web-Client/index.html</span>
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:6px">기술 스택</div>
+        <div class="tech-chips">
+          ${(web.tech || []).map(t => `<span class="tech-chip">${esc(t)}</span>`).join('')}
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--text-dim);margin:12px 0 6px">제공 기능</div>
+        <div class="feature-chips">
+          ${(web.features || []).map(f => `<span class="feature-chip">${esc(f)}</span>`).join('')}
+        </div>
+        <a href="${esc(web.repo)}" target="_blank" rel="noopener" class="btn btn-secondary" style="margin-top:14px;text-decoration:none">
+          <span class="btn-icon">💻</span>
+          <span class="btn-text">GitHub 저장소</span>
+          <span class="btn-shimmer"></span>
+        </a>
+      </div>
+    `;
+
+    // ── 플러그인 ─────────────────────────────
+    document.getElementById('plugin-external-list').innerHTML =
+      (plugins.external || []).map(p => `
+        <div class="plugin-row">
+          <div>
+            <div class="plugin-name">${esc(p.name)}</div>
+            <div class="plugin-file">${esc(p.file)}</div>
+          </div>
+          <span class="badge badge-dim" style="font-size:10px;margin-left:auto">${esc(p.version)}</span>
+        </div>
+      `).join('');
+
+    document.getElementById('plugin-custom-list').innerHTML =
+      (plugins.custom || []).map(p => `
+        <div class="plugin-row">
+          <div style="flex:1">
+            <div class="plugin-name">${esc(p.name)}</div>
+            <div class="plugin-file">${esc(p.file)}</div>
+            <div class="plugin-desc">${esc(p.desc)}</div>
+          </div>
+          <span class="custom-badge">자체제작</span>
+          <span class="badge badge-dim" style="font-size:10px">${esc(p.version)}</span>
+        </div>
+      `).join('');
+
+    // ── 모드 목록 + 필터 ─────────────────────
+    const allMods = mods || [];
+    const allTags = [...new Set(allMods.map(m => m.tag).filter(Boolean))];
+    let activeTag = 'ALL';
+    let searchQuery = '';
+
+    // 필터 버튼 생성
+    const filterRow = document.getElementById('mod-filter-row');
+    allTags.forEach(tag => {
+      const btn = document.createElement('button');
+      btn.className = 'mod-filter-btn';
+      btn.dataset.tag = tag;
+      btn.textContent = tag;
+      filterRow.appendChild(btn);
+    });
+
+    function renderMods() {
+      const filtered = allMods.filter(m => {
+        const matchTag = activeTag === 'ALL' || m.tag === activeTag;
+        const q = searchQuery.toLowerCase();
+        const matchSearch = !q ||
+          m.name.toLowerCase().includes(q) ||
+          (m.desc || '').toLowerCase().includes(q);
+        return matchTag && matchSearch;
+      });
+
+      const countEl = document.getElementById('mod-count');
+      countEl.innerHTML = `<span>${filtered.length}</span> / ${allMods.length} 개 모드`;
+
+      const list = document.getElementById('mod-list');
+      if (!filtered.length) {
+        list.innerHTML = `<div class="empty-state">🔍 검색 결과가 없습니다.</div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(m => `
+        <div class="plugin-row">
+          <div style="flex:1">
+            <div class="plugin-name">${m.url
+              ? `<a href="${esc(m.url)}" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none">${esc(m.name)}</a>`
+              : esc(m.name)
+            }</div>
+            <div class="plugin-desc">${esc(m.desc || '')}</div>
+          </div>
+          ${m.tag ? `<span class="mod-tag tag-${esc(m.tag)}">${esc(m.tag)}</span>` : ''}
+        </div>
+      `).join('');
+    }
+
+    filterRow.addEventListener('click', e => {
+      const btn = e.target.closest('.mod-filter-btn');
+      if (!btn) return;
+      activeTag = btn.dataset.tag;
+      document.querySelectorAll('.mod-filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderMods();
+    });
+
+    document.getElementById('mod-search').addEventListener('input', e => {
+      searchQuery = e.target.value;
+      renderMods();
+    });
+
+    renderMods();
+
+    // ── 반응형: plugin-grid-wrap ─────────────
+    function updatePluginGrid() {
+      const wrap = document.getElementById('plugin-grid-wrap');
+      const topGrid = document.getElementById('top-grid');
+      if (window.innerWidth <= 900) {
+        wrap.style.gridTemplateColumns = '1fr';
+        topGrid.style.gridTemplateColumns = '1fr';
+      } else {
+        wrap.style.gridTemplateColumns = '1fr 1fr';
+        topGrid.style.gridTemplateColumns = '1fr 320px';
+      }
+    }
+    window.addEventListener('resize', updatePluginGrid);
+    updatePluginGrid();
+
+  })();
+  </script>
+
+</body>
+</html>

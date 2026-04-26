@@ -1,0 +1,115 @@
+{
+  "server": {
+    "name": "Min. At. Zero",
+    "subtitle": "마인크래프트 FPS 서버",
+    "genre": ["PvP", "FPS"],
+    "minecraft_version": "1.20.1",
+    "mod_loader": "forge-47.4.18",
+    "server_engine": "Arclight (Forge + Spigot 하이브리드)",
+    "ip": "tharu81.kro.kr",
+    "zero_start": "2024-06-05",
+    "prev_start": "2023-06-03",
+    "prev_name": "Min. At. 시즌2",
+    "description": "기존 [Timeless and Classics Guns](https://www.curseforge.com/minecraft/mc-mods/timeless-and-classic-guns-tac)(1.16.5) 보다 더욱 좋아진 [Timeless and Classics Zero](https://www.curseforge.com/minecraft/mc-mods/timeless-and-classics-zero)(1.20.1) 모드 기반으로 제작된 마인크래프트 FPS게임 서버입니다. 맵과 무기를 선택하고 여러가지 맵을 선택해 유저들과 싸워보세요!",
+    "discord": "https://discord.gg/xAPPegjYnN",
+    "github": "https://github.com/tharu8813",
+    "notion": "https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
+  },
+  "terms": [
+    {
+      "title": "제 1조: 서비스 이용 및 동의",
+      "content": "본 서버(이하 'Min. At. Zero')에 접속하는 모든 사용자는 본 이용약관 및 운영 정책에 동의한 것으로 간주합니다. 본 프로젝트는 비영리 목적으로 운영되며, 사용자는 서버 내에서 제공되는 모든 콘텐츠를 제작자가 의도한 UX 가이드라인에 따라 이용해야 합니다."
+    },
+    {
+      "title": "제 2조: 금지 행위 및 부정 이용",
+      "content": "사실적인 경쟁 환경을 저해하는 비인가 프로그램(Unauthorized Third-party Software)의 사용, 서버 리소스의 무단 변조, 타인의 몰입감을 방해하는 악의적인 행위는 엄격히 금지됩니다. 이를 위반할 경우 서비스 이용이 영구적으로 제한될 수 있으며, 제작자는 이에 대한 별도의 통지 의무를 갖지 않습니다."
+    },
+    {
+      "title": "제 3조: 데이터 및 책임의 한계",
+      "content": "'Min. At. Zero'는 모드 기반의 실험적 프로젝트로, 모드 간 충돌이나 업데이트로 인한 데이터 손실에 대해 책임을 지지 않습니다. 또한, 사용자의 부주의나 하드웨어 사양 미달로 인해 발생하는 물리적/정신적 피해에 대해 제작자 및 기여자는 법적 책임을 지지 않음을 명시합니다."
+    }
+  ],
+  "plugins": {
+    "external": [
+      { "name": "SkBee", "version": "3.12.3", "file": "SkBee-3.12.3.jar" },
+      { "name": "Skellett", "version": "2.0.10", "file": "Skellett-2.0.10.jar" },
+      { "name": "SkQuery", "version": "4.3.2", "file": "SkQuery-4.3.2.jar" },
+      { "name": "Skript", "version": "2.9.5", "file": "Skript-2.9.5.jar" }
+    ],
+    "custom": [
+      { "name": "MinAtPlugin", "version": "1.0", "file": "MinAtPlugin-1.0.jar", "desc": "서버 전용 커스텀 플러그인" },
+      { "name": "MinAtZeroSupabaseDB", "version": "1.0", "file": "MinAtZeroSupabaseDB-1.0.jar", "desc": "Supabase 연동 DB 플러그인" }
+    ]
+  },
+  "mods": [
+    { "name": "TaCZ — Timeless and Classics Zero Guns", "desc": "해당 서버의 메인 콘텐츠", "tag": "CORE", "url": "https://www.curseforge.com/minecraft/mc-mods/timeless-and-classics-zero" },
+    { "name": "[TACZ/SBW] Suppression", "desc": "저지력 시스템 추가", "tag": "GAMEPLAY" },
+    { "name": "ADM Anticheat", "desc": "안티치트", "tag": "SERVER" },
+    { "name": "CameraOverhaul", "desc": "1인칭 카메라 애니메이션", "tag": "VISUAL" },
+    { "name": "Combat Roll", "desc": "구르기 추가", "tag": "GAMEPLAY" },
+    { "name": "Drippy Loading Screen", "desc": "로딩화면 커스텀", "tag": "UI" },
+    { "name": "Embeddium", "desc": "렌더링 최적화", "tag": "PERF" },
+    { "name": "EnhancedVisuals", "desc": "체력 비례 심장소리·빨간 피 연출", "tag": "VISUAL" },
+    { "name": "Entity Culling", "desc": "엔티티 렌더링 최적화", "tag": "PERF" },
+    { "name": "FancyMenu", "desc": "메인화면 커스텀", "tag": "UI" },
+    { "name": "FerriteCore", "desc": "메모리 최적화", "tag": "PERF" },
+    { "name": "fix GPU memory leak", "desc": "그래픽카드 메모리 누수 최적화", "tag": "PERF" },
+    { "name": "Hit Feedback", "desc": "피격 시 피 튀는 연출", "tag": "VISUAL" },
+    { "name": "ImmediatelyFast", "desc": "렌더링 최적화", "tag": "PERF" },
+    { "name": "ItemPhysic Full", "desc": "드롭된 아이템에 물리 적용", "tag": "VISUAL" },
+    { "name": "Korean Chat Patch", "desc": "한글 채팅 지원", "tag": "QOL" },
+    { "name": "Legendary Tooltips", "desc": "아이템 툴팁 커스텀", "tag": "UI" },
+    { "name": "ModernFix", "desc": "전체적인 최적화", "tag": "PERF" },
+    { "name": "Ping Wheel", "desc": "핑 (마킹) 시스템", "tag": "GAMEPLAY" },
+    { "name": "Presence Footsteps", "desc": "현실적인 발소리", "tag": "AUDIO" },
+    { "name": "ReForgedPlay", "desc": "리플레이 모드", "tag": "QOL" },
+    { "name": "Smooth Boot (Reloaded)", "desc": "마인크래프트 로딩속도 최적화", "tag": "PERF" },
+    { "name": "Sound Physics Remastered", "desc": "공간에 따라 사운드 변경", "tag": "AUDIO" },
+    { "name": "SpiffyHUD", "desc": "HUD 커스텀", "tag": "UI" },
+    { "name": "TaCZ Additions", "desc": "TACZ 모드의 다양한 요소 추가", "tag": "GAMEPLAY" },
+    { "name": "TaCZ Tweaks", "desc": "TACZ 모드의 조작감 최적화", "tag": "GAMEPLAY" },
+    { "name": "TaCZ: Immersive Ballistic", "desc": "블록 적중 시 재질에 따라 파티클 추가", "tag": "VISUAL" },
+    { "name": "TaCZ: Presence", "desc": "탄약 알림 및 피격 위치 표시", "tag": "UI" },
+    { "name": "WATERFrAMES: Multimedia Displays", "desc": "멀티미디어 디스플레이(TV) 추가", "tag": "VISUAL" },
+    { "name": "WATERViSION: Videoplayer", "desc": "화면에 동영상 재생", "tag": "VISUAL" },
+    { "name": "What Are They Up To (Watut)", "desc": "다른 플레이어가 보고 있는 GUI 화면 공유", "tag": "GAMEPLAY" }
+  ],
+  "client": {
+    "program": {
+      "name": "프로그램형 클라이언트",
+      "ide": "Visual Studio 2022",
+      "language": "C# (WinForm)",
+      "runtime": ".NET 10.0",
+      "platform": "Windows",
+      "repo": "https://github.com/tharu8813/Min-At-Zero-Clinet",
+      "description": "Windows 전용 설치형 런처입니다. 마인크래프트 설치·로그인·Forge 설치를 자동으로 처리하며, 게임 시작 및 클라이언트 업데이트를 지원합니다.",
+      "libs": [
+        { "name": "CmlLib.Core", "desc": "마인크래프트 커스텀 런처 제작 라이브러리" },
+        { "name": "CmlLib.Core.Auth.Microsoft", "desc": "마인크래프트 Microsoft 계정 로그인 라이브러리" },
+        { "name": "CmlLib.Core.Installer.Forge", "desc": "Forge 자동 설치 라이브러리" }
+      ],
+      "features": [
+        "자동 Forge 설치",
+        "Microsoft 계정 로그인",
+        "자동 클라이언트 업데이트",
+        "리플레이 폴더 바로가기",
+        "클라이언트 초기화 기능"
+      ]
+    },
+    "web": {
+      "name": "웹페이지형 클라이언트",
+      "hosting": "GitHub Pages",
+      "description": "별도 설치 없이 웹 브라우저에서 접근할 수 있는 클라이언트입니다. 서버 정보, 랭킹, 맵, 위키, 조작법 등 게임 관련 모든 정보를 제공합니다.",
+      "tech": ["HTML5", "CSS3", "Vanilla JS", "GitHub Pages"],
+      "features": [
+        "서버 실시간 상태 확인",
+        "플레이어 랭킹 조회",
+        "맵 정보 및 미리보기",
+        "게임 위키",
+        "조작키 안내",
+        "패치노트 확인"
+      ],
+      "repo": "https://github.com/tharu8813"
+    }
+  }
+}
