@@ -1264,10 +1264,15 @@
 
       /* ── Supabase 조회 ── */
       async function fetchTable(table) {
-        const url = `${SUPABASE_URL}/rest/v1/${table}?select=entry,value&order=value.desc&limit=200`;
+        const url = `${SUPABASE_URL}/rest/v1/${table}?select=entry,value&order=value.desc&limit=500`;
         const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
-        if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + table);
-        return res.json();
+        if (!res.ok) {
+          const body = await res.text().catch(() => '');
+          throw new Error(`HTTP ${res.status} — ${table}: ${body}`);
+        }
+        const data = await res.json();
+        console.log(`[Ranking] ${table}: ${data.length}건 로드`, data.slice(0, 3));
+        return data;
       }
 
       async function loadData(force = false) {
@@ -1278,19 +1283,32 @@
         try {
           const tables = ['all_kill', 'all_death', 'kill_assist_all', 'win_count', 'round_count', 'playTime_H'];
           const settled = await Promise.allSettled(tables.map(t => fetchTable(t)));
+
+          // 실패한 테이블 로그 출력
+          settled.forEach((r, i) => {
+            if (r.status === 'rejected') console.warn(`[Ranking] ${tables[i]} 로드 실패:`, r.reason);
+          });
+
           const [killR, deathR, assistR, winR, roundR, ptR] =
             settled.map(r => r.status === 'fulfilled' ? r.value : []);
 
           const map = {};
-          const ensure = n => { if (!map[n]) map[n] = { name: n, kills: 0, deaths: 0, assists: 0, wins: 0, rounds: 0, playtime: 0 }; };
-          killR?.forEach(r => { ensure(r.entry); map[r.entry].kills = +r.value; });
-          deathR?.forEach(r => { ensure(r.entry); map[r.entry].deaths = +r.value; });
-          assistR?.forEach(r => { ensure(r.entry); map[r.entry].assists = +r.value; });
-          winR?.forEach(r => { ensure(r.entry); map[r.entry].wins = +r.value; });
-          roundR?.forEach(r => { ensure(r.entry); map[r.entry].rounds = +r.value; });
-          ptR?.forEach(r => { ensure(r.entry); map[r.entry].playtime = +r.value; });
+          const ensure = n => {
+            if (!map[n]) map[n] = { name: n, kills: 0, deaths: 0, assists: 0, wins: 0, rounds: 0, playtime: 0 };
+          };
+          killR?.forEach(r => { if (r.entry) { ensure(r.entry); map[r.entry].kills = +r.value || 0; } });
+          deathR?.forEach(r => { if (r.entry) { ensure(r.entry); map[r.entry].deaths = +r.value || 0; } });
+          assistR?.forEach(r => { if (r.entry) { ensure(r.entry); map[r.entry].assists = +r.value || 0; } });
+          winR?.forEach(r => { if (r.entry) { ensure(r.entry); map[r.entry].wins = +r.value || 0; } });
+          roundR?.forEach(r => { if (r.entry) { ensure(r.entry); map[r.entry].rounds = +r.value || 0; } });
+          ptR?.forEach(r => { if (r.entry) { ensure(r.entry); map[r.entry].playtime = +r.value || 0; } });
 
-          const players = Object.values(map).filter(p => p.rounds > 0 || p.kills > 0);
+          console.log('[Ranking] 전체 플레이어 수 (필터 전):', Object.keys(map).length);
+
+          // 모든 테이블에서 한 번이라도 등장한 플레이어 포함 (0값 필터 제거)
+          const players = Object.values(map);
+          console.log('[Ranking] 필터 후 플레이어 수:', players.length);
+
           players.forEach(p => {
             p.kda = p.deaths > 0 ? (p.kills + p.assists) / p.deaths : (p.kills + p.assists);
             p.winRate = p.rounds > 0 ? (p.wins / p.rounds) * 100 : 0;
@@ -1300,6 +1318,7 @@
           const maxWinRate = Math.max(1, ...players.map(p => p.winRate));
           const maxRounds = Math.max(1, ...players.map(p => p.rounds));
           const maxPt = Math.max(1, ...players.map(p => p.playtime));
+
           players.forEach(p => {
             p.score = Math.round(
               ((p.kda / maxKda) * 40 + (p.winRate / maxWinRate) * 30 +
@@ -1307,7 +1326,9 @@
             ) / 10;
           });
 
-          allPlayers = players;
+          // score 기준 내림차순 정렬 후 저장
+          allPlayers = players.sort((a, b) => b.score - a.score);
+          console.log('[Ranking] 상위 5명:', allPlayers.slice(0, 5).map(p => `${p.name}(${p.score}CR)`));
 
           const now = new Date();
           lbUpdated.textContent = '· ' + now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) + ' 기준';
@@ -1338,6 +1359,15 @@
           win_count: 'wins', playTime_H: 'playtime', kda: 'kda'
         }[tab];
         const sorted = [...allPlayers].sort((a, b) => b[key] - a[key]);
+
+        if (sorted.length === 0) {
+          lbTbody.innerHTML = `<tr><td colspan="3"><div class="lb-empty">
+            <span class="lb-empty-icon">📭</span>
+            <p class="lb-empty-text">랭킹 데이터가 없습니다</p>
+            <p class="lb-empty-sub">DB에 데이터를 확인해주세요</p>
+          </div></td></tr>`;
+          return;
+        }
         const medals = ['🥇', '🥈', '🥉'];
         const topClass = ['rank-top1', 'rank-top2', 'rank-top3'];
         const lowSearch = searchedName.toLowerCase();
@@ -1456,6 +1486,8 @@
           <span class="lb-empty-icon">⚠️</span>
           <p class="lb-empty-text">데이터를 불러오지 못했습니다</p>
           <p class="lb-empty-sub">${escHtml(msg)}</p>
+          <p class="lb-empty-sub" style="margin-top:8px;opacity:0.6">브라우저 콘솔(F12)에서 자세한 오류를 확인하세요</p>
+          <button onclick="location.reload()" style="margin-top:14px;padding:8px 18px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:8px;color:#22c55e;font-family:monospace;font-size:12px;cursor:pointer;letter-spacing:1px">⟳ 새로고침</button>
         </div></td></tr>`;
       }
 
