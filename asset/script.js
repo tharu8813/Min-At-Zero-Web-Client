@@ -1659,6 +1659,294 @@ const layout = (() => {
 })();
 
 /* ════════════════════════════════════════════
+   NOTICE POPUP  (카드 스택 멀티 팝업)
+   ─────────────────────────────────────────
+   지원 타입:
+     notice  – tharu8813/Min-At-Zero-Web-Client 릴리즈 (초록)
+     patch   – tharu8813/Min-At-Zero 릴리즈       (파랑)
+
+   동작:
+     · 세션당 1회 표시  (새로고침/재방문 시 재표시)
+     · "다시 보지 않기" 체크 → 해당 릴리즈 ID 영구 숨김
+     · 여러 팝업이 있으면 카드처럼 뒤에 쌓여 보임
+     · 닫을 때마다 맨 앞 카드가 사라지고 다음 카드가 올라옴
+════════════════════════════════════════════ */
+const noticePopup = (() => {
+
+  /* ── 타입별 설정 ── */
+  const TYPE_CFG = {
+    notice: {
+      repo:       'tharu8813/Min-At-Zero-Web-Client',
+      sessionKey: 'matz_notice_seen',
+      hiddenKey:  'matz_notice_hidden_ids',
+      cacheKey:   'matz_notice_release_cache',
+      badge:      '📢 NOTICE',
+      accentVar:  '--notice-accent',     // CSS 변수명
+      accentVal:  '#22c55e',
+      noseeLabel: '이 공지를 다시 보지 않기',
+      confirmBtn: '확인',
+    },
+    patch: {
+      repo:       'tharu8813/Min-At-Zero',
+      sessionKey: 'matz_patch_seen',
+      hiddenKey:  'matz_patch_hidden_ids',
+      cacheKey:   'matz_patch_release_cache',
+      badge:      '🔧 PATCH NOTE',
+      accentVar:  '--patch-accent',
+      accentVal:  '#3b82f6',
+      noseeLabel: '이 패치노트를 다시 보지 않기',
+      confirmBtn: '확인',
+    },
+  };
+
+  /* ── 내부 상태 ── */
+  // 표시할 항목 큐: [{ type, release }, ...]  — 앞이 현재 표시 중
+  let queue = [];
+  let overlayVisible = false;
+
+  /* ── localStorage 헬퍼 ── */
+  function getHiddenIds(key) {
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+  }
+  function addHiddenId(key, id) {
+    const ids = getHiddenIds(key);
+    if (!ids.includes(id)) ids.push(id);
+    try { localStorage.setItem(key, JSON.stringify(ids)); } catch {}
+  }
+
+  /* ── 릴리즈 fetch (세션 캐시) ── */
+  async function fetchRelease(type) {
+    const cfg = TYPE_CFG[type];
+    try {
+      const raw = sessionStorage.getItem(cfg.cacheKey);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    try {
+      const res = await fetch(`https://api.github.com/repos/${cfg.repo}/releases/latest`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      try { sessionStorage.setItem(cfg.cacheKey, JSON.stringify(data)); } catch {}
+      return data;
+    } catch { return null; }
+  }
+
+  /* ══════════════════════════════════════
+     DOM 생성 / 렌더링
+  ══════════════════════════════════════ */
+
+  /* 오버레이 컨테이너 1개만 생성 */
+  function ensureOverlay() {
+    if (utils.$('nstack-overlay')) return;
+    const ov = document.createElement('div');
+    ov.id = 'nstack-overlay';
+    ov.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(ov);
+
+    // 오버레이 배경 클릭 → 현재 카드 닫기
+    ov.addEventListener('click', e => {
+      if (e.target === ov) dismissTop(false);
+    });
+  }
+
+  /* 카드 하나 만들기 */
+  function buildCard(type, release, stackIndex, total) {
+    const cfg    = TYPE_CFG[type];
+    const tag    = release.tag_name ?? '';
+    const name   = release.name    ?? (tag ? `${cfg.badge} ${tag}` : cfg.badge);
+    const date   = utils.fmtDate(release.published_at);
+    const body   = release.body    ?? '';
+    const ghUrl  = release.html_url ?? '';
+
+    const card = document.createElement('div');
+    card.className  = 'nstack-card';
+    card.dataset.type      = type;
+    card.dataset.releaseId = String(release.id);
+    card.dataset.accent    = cfg.accentVal;
+
+    // 스택 뒤 카드 위치는 CSS 변수로 제어
+    card.style.setProperty('--stack-i', String(stackIndex));
+    card.style.setProperty('--accent', cfg.accentVal);
+
+    card.innerHTML = `
+      <div class="nstack-glow-line"></div>
+
+      <div class="nstack-header">
+        <div class="nstack-header-left">
+          <span class="nstack-badge">${cfg.badge}</span>
+          <h2 class="nstack-title">${utils.sanitizeText(name)}</h2>
+        </div>
+        <button class="nstack-close-btn" aria-label="닫기">✕</button>
+      </div>
+
+      <div class="nstack-meta">
+        ${tag ? `<span class="nstack-meta-tag">v${utils.sanitizeText(tag)}</span>` : ''}
+        <span class="nstack-meta-date">${utils.sanitizeText(date)}</span>
+        ${total > 1 ? `<span class="nstack-counter">${total - stackIndex} / ${total}</span>` : ''}
+      </div>
+
+      <div class="nstack-body-wrap">
+        <div class="nstack-body">${utils.fmtMd(body) || '<p style="color:var(--text-dim)">내용이 없습니다.</p>'}</div>
+      </div>
+
+      <div class="nstack-footer">
+        <label class="nstack-nosee-label">
+          <input type="checkbox" class="nstack-nosee-chk">
+          <span class="nstack-nosee-custom"></span>
+          <span class="nstack-nosee-text">${cfg.noseeLabel}</span>
+        </label>
+        ${ghUrl ? `<a class="nstack-gh-link" href="${utils.sanitizeUrl(ghUrl)}" target="_blank" rel="noopener noreferrer">GitHub에서 보기 →</a>` : ''}
+        <button class="nstack-confirm-btn">${cfg.confirmBtn}</button>
+      </div>`;
+
+    /* 버튼 이벤트 */
+    card.querySelector('.nstack-close-btn').addEventListener('click',   () => dismissTop(false));
+    card.querySelector('.nstack-confirm-btn').addEventListener('click', () => dismissTop(true));
+
+    return card;
+  }
+
+  /* ══════════════════════════════════════
+     스택 렌더 (카드 위치 재계산)
+  ══════════════════════════════════════ */
+  function renderStack() {
+    const ov = utils.$('nstack-overlay');
+    if (!ov) return;
+
+    const cards = Array.from(ov.querySelectorAll('.nstack-card'));
+    const n = cards.length;
+
+    cards.forEach((card, i) => {
+      // i=0 이 맨 앞(현재), i=n-1 이 맨 뒤
+      card.style.setProperty('--stack-i', String(i));
+      card.style.zIndex = String(100 - i);
+
+      // 맨 앞 카드만 인터랙션 가능
+      card.style.pointerEvents = i === 0 ? 'auto' : 'none';
+    });
+  }
+
+  /* ══════════════════════════════════════
+     열기
+  ══════════════════════════════════════ */
+  function openAll() {
+    ensureOverlay();
+    const ov = utils.$('nstack-overlay');
+    if (!ov) return;
+
+    // 뒤에서부터 appendChild → 앞(index 0)이 맨 위 DOM에 쌓임
+    // 실제로는 z-index로 제어하므로 역순으로 추가
+    [...queue].reverse().forEach(({ type, release }, ri) => {
+      const stackIndex = queue.length - 1 - ri; // 0 = 맨 앞
+      const card = buildCard(type, release, stackIndex, queue.length);
+      ov.appendChild(card);
+    });
+
+    renderStack();
+
+    ov.style.display = 'flex';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      ov.classList.add('active');
+      ov.setAttribute('aria-hidden', 'false');
+    }));
+
+    overlayVisible = true;
+    document.addEventListener('keydown', onEsc);
+  }
+
+  /* ══════════════════════════════════════
+     닫기 (맨 앞 카드 dismiss)
+  ══════════════════════════════════════ */
+  function dismissTop(withCheck) {
+    const ov = utils.$('nstack-overlay');
+    if (!ov) return;
+
+    const cards = Array.from(ov.querySelectorAll('.nstack-card'));
+    if (!cards.length) return;
+
+    const topCard = cards[0]; // z-index 최상위 = DOM 마지막 추가된 것 아님, renderStack에서 z-index로 관리
+    // 실제 맨 앞 카드는 stack-i = 0 인 카드
+    const frontCard = cards.find(c => c.style.getPropertyValue('--stack-i') === '0') ?? cards[0];
+
+    if (withCheck) {
+      const chk = frontCard.querySelector('.nstack-nosee-chk');
+      if (chk?.checked) {
+        const type      = frontCard.dataset.type;
+        const releaseId = Number(frontCard.dataset.releaseId);
+        const hiddenKey = TYPE_CFG[type]?.hiddenKey;
+        if (hiddenKey) addHiddenId(hiddenKey, releaseId);
+      }
+    }
+
+    /* 퇴장 애니메이션 */
+    frontCard.classList.add('nstack-card-exit');
+    frontCard.addEventListener('animationend', () => {
+      frontCard.remove();
+
+      const remaining = ov.querySelectorAll('.nstack-card');
+      if (!remaining.length) {
+        // 모든 카드 닫힘 → 오버레이 닫기
+        closeOverlay();
+      } else {
+        renderStack();
+      }
+    }, { once: true });
+  }
+
+  function closeOverlay() {
+    const ov = utils.$('nstack-overlay');
+    if (!ov) return;
+
+    ov.classList.remove('active');
+    ov.setAttribute('aria-hidden', 'true');
+    overlayVisible = false;
+    document.removeEventListener('keydown', onEsc);
+
+    ov.addEventListener('transitionend', () => {
+      ov.style.display = 'none';
+      // 혹시 남은 카드 제거
+      ov.querySelectorAll('.nstack-card').forEach(c => c.remove());
+    }, { once: true });
+  }
+
+  function onEsc(e) {
+    if (e.key === 'Escape' && overlayVisible) dismissTop(false);
+  }
+
+  /* ══════════════════════════════════════
+     초기화
+  ══════════════════════════════════════ */
+  async function init() {
+    const types = ['notice', 'patch'];
+
+    const results = await Promise.all(types.map(async type => {
+      const cfg = TYPE_CFG[type];
+
+      // 이미 이번 세션에 봤으면 스킵
+      try { if (sessionStorage.getItem(cfg.sessionKey)) return null; } catch {}
+
+      const release = await fetchRelease(type);
+      if (!release) return null;
+      if (!release.body && !release.name) return null;
+
+      // 다시 보지 않기 체크된 ID면 스킵
+      if (getHiddenIds(cfg.hiddenKey).includes(release.id)) return null;
+
+      // 세션 기록
+      try { sessionStorage.setItem(cfg.sessionKey, '1'); } catch {}
+
+      return { type, release };
+    }));
+
+    queue = results.filter(Boolean);
+    if (!queue.length) return;
+
+    setTimeout(openAll, 800);
+  }
+
+  return { init };
+})();
+
+/* ════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════ */
 (async () => {
@@ -1711,4 +1999,7 @@ const layout = (() => {
   if (gameData) ui.updateGameInfo(gameData);
 
   serverStatus.start();
+
+  // 공지 팝업 (마지막에 초기화)
+  noticePopup.init();
 })();
