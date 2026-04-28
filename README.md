@@ -9,6 +9,6 @@
 이외에도 [MinAtZeroSupabaseDB](https://github.com/tharu8813/MinAtZeroSupabaseDB/settings)플러그인을 통해 저장한 스코어보드 값을 이용해 랭킹을 표시하거나, 서버정보, 맵목록, 조작키정보를 표시하는 페이지가 있습니다.
 
 ## 사용되는 툴
-SupabaseDB(하드코딩 되어있는 API 키는 읽기만 가능합니다.)
-GIthub API
-mc-heads.net
+1. SupabaseDB(하드코딩 되어있는 API 키는 읽기만 가능합니다.)
+2. GIthub API
+3. mc-heads.net
