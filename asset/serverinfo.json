@@ -81,7 +81,7 @@
       "language": "C# (WinForm)",
       "runtime": ".NET 10.0",
       "platform": "Windows",
-      "repo": "https://github.com/tharu8813/Min-At-Zero-Clinet",
+      "repo": "https://github.com/tharu8813/Min-At-Zero-Client",
       "description": "Windows 전용 설치형 런처입니다. 마인크래프트 설치·로그인·Forge 설치를 자동으로 처리하며, 게임 시작 및 클라이언트 업데이트를 지원합니다.",
       "libs": [
         { "name": "CmlLib.Core", "desc": "마인크래프트 커스텀 런처 제작 라이브러리" },

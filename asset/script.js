@@ -5,11 +5,11 @@
 ════════════════════════════════════════════ */
 const CONFIG = Object.freeze({
   REPOS: {
-    client: 'tharu8813/Min-At-Zero-Clinet',
+    client: 'tharu8813/Min-At-Zero-Client',
     game: 'tharu8813/Min-At-Zero',
   },
   FALLBACK: {
-    clientUrl: 'https://github.com/tharu8813/Min-At-Zero-Clinet/releases/latest',
+    clientUrl: 'https://github.com/tharu8813/Min-At-Zero-Client/releases/latest',
   },
   SERVER_IP: 'tharu81.kro.kr',
   DOWNTIME_KEY: 'matz_offline_since',
@@ -26,6 +26,31 @@ const CONFIG = Object.freeze({
   MINI_RANK_TTL: 5 * 60 * 1000,
   API_CACHE_TTL: 3 * 60 * 1000,
 });
+
+/* ════════════════════════════════════════════
+   SOUND (graceful no-op when audio unavailable)
+════════════════════════════════════════════ */
+const sound = (() => {
+  const cache = Object.create(null);
+  let muted = false;
+
+  function play(name) {
+    if (muted) return;
+    try {
+      if (!cache[name]) {
+        const audio = new Audio(`${CONFIG.SOUND_PATH}${name}.mp3`);
+        audio.volume = 0.25;
+        audio.addEventListener('error', () => { muted = true; }, { once: true });
+        cache[name] = audio;
+      }
+      const clip = cache[name];
+      clip.currentTime = 0;
+      clip.play().catch(() => {});
+    } catch { /* audio unavailable */ }
+  }
+
+  return { play };
+})();
 
 /* ════════════════════════════════════════════
    UTILS
@@ -1631,28 +1656,81 @@ const download = (() => {
    LAYOUT LOADER
 ════════════════════════════════════════════ */
 const layout = (() => {
+  const HEADER_CACHE_KEY = 'maz_layout_header_html';
+  const FOOTER_CACHE_KEY = 'maz_layout_footer_html';
+
+  function getCached(key) {
+    try {
+      const cached = window.__mazLayoutCache?.[key];
+      if (cached) return cached;
+
+      const stored = sessionStorage.getItem(key);
+      if (stored) {
+        window.__mazLayoutCache = window.__mazLayoutCache || {};
+        window.__mazLayoutCache[key] = stored;
+        return stored;
+      }
+    } catch {
+      // ignore storage errors
+    }
+    return null;
+  }
+
+  function setCached(key, html) {
+    try {
+      window.__mazLayoutCache = window.__mazLayoutCache || {};
+      window.__mazLayoutCache[key] = html;
+      sessionStorage.setItem(key, html);
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function applyActiveLink(root) {
+    if (!root) return;
+    let page = window.location.pathname.split('/').pop().split('.')[0] || 'index';
+    if (!page || page === '') page = 'index';
+    const activeLink = root.querySelector(`[data-nav="${page}"]`);
+    if (activeLink) activeLink.style.color = 'var(--green)';
+  }
+
+  async function loadPart(root, url, cacheKey, onRender) {
+    if (!root) return;
+
+    const cached = getCached(cacheKey);
+    if (cached) {
+      onRender(root, cached);
+    }
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return;
+
+      const html = await res.text();
+      if (!html) return;
+
+      if (html !== cached) {
+        onRender(root, html);
+        setCached(cacheKey, html);
+      }
+    } catch (e) {
+      console.error(`${cacheKey} load error:`, e);
+    }
+  }
+
   async function load() {
     const headerRoot = utils.$('header-root');
     const footerRoot = utils.$('footer-root');
 
-    if (headerRoot) {
-      try {
-        const res = await fetch('asset/header.html');
-        if (res.ok) {
-          headerRoot.innerHTML = await res.text();
-          const page = window.location.pathname.split('/').pop().split('.')[0] || 'index';
-          const activeLink = headerRoot.querySelector(`[data-nav="${page}"]`);
-          if (activeLink) activeLink.style.color = 'var(--green)';
-        }
-      } catch (e) { console.error('Header load error:', e); }
-    }
-
-    if (footerRoot) {
-      try {
-        const res = await fetch('asset/footer.html');
-        if (res.ok) footerRoot.innerHTML = await res.text();
-      } catch (e) { console.error('Footer load error:', e); }
-    }
+    await Promise.all([
+      loadPart(headerRoot, 'asset/header.html', HEADER_CACHE_KEY, (root, html) => {
+        root.innerHTML = html;
+        applyActiveLink(root);
+      }),
+      loadPart(footerRoot, 'asset/footer.html', FOOTER_CACHE_KEY, (root, html) => {
+        root.innerHTML = html;
+      }),
+    ]);
   }
 
   return { load };
@@ -1947,6 +2025,159 @@ const noticePopup = (() => {
 })();
 
 /* ════════════════════════════════════════════
+   PWA INSTALL PROMPT
+   — 설치 가능할 때만 작은 팝업으로 표시하고, 사이트 사용을 방해하지 않도록 함
+════════════════════════════════════════════ */
+const pwaInstall = (() => {
+  const DISMISS_KEY = 'matz_pwa_install_dismissed';
+  const LATER_KEY = 'matz_pwa_install_later';
+  const SHOW_DELAY_MS = 4500;
+  const POLL_MS = 1500;
+
+  let deferredPrompt = null;
+  let scheduled = false;
+
+  function isInstalled() {
+    return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+  }
+
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+
+  function isDismissedPermanently() {
+    try { return localStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; }
+  }
+
+  function isDismissedSession() {
+    try { return sessionStorage.getItem(LATER_KEY) === '1'; } catch { return false; }
+  }
+
+  function canOfferInstall() {
+    return !isInstalled() && !isDismissedPermanently() && !isDismissedSession();
+  }
+
+  function noticeOverlayOpen() {
+    const ov = utils.$('nstack-overlay');
+    return ov?.classList.contains('active') || ov?.style.display === 'flex';
+  }
+
+  function hideBanner() {
+    const banner = utils.$('pwa-install-banner');
+    if (!banner) return;
+    banner.classList.remove('show');
+    banner.addEventListener('transitionend', () => banner.remove(), { once: true });
+  }
+
+  function dismiss(permanent = false) {
+    if (permanent) {
+      try { localStorage.setItem(DISMISS_KEY, '1'); } catch {}
+    } else {
+      try { sessionStorage.setItem(LATER_KEY, '1'); } catch {}
+    }
+    hideBanner();
+  }
+
+  function createBanner() {
+    if (utils.$('pwa-install-banner') || !canOfferInstall()) return;
+
+    const ios = isIOS();
+    const hasNativePrompt = !!deferredPrompt;
+
+    const banner = document.createElement('aside');
+    banner.id = 'pwa-install-banner';
+    banner.className = 'pwa-install-banner';
+    banner.setAttribute('role', 'dialog');
+    banner.setAttribute('aria-label', '앱 설치 안내');
+
+    const iosHint = ios && !hasNativePrompt
+      ? '<span class="pwa-install-hint">Safari의 공유 버튼 → 홈 화면에 추가</span>'
+      : '<span class="pwa-install-hint">브라우저 메뉴에서 앱으로 설치할 수 있어요</span>';
+
+    banner.innerHTML =
+      '<div class="pwa-install-inner">' +
+        '<img src="asset/image/icon.png" alt="" class="pwa-install-icon" width="40" height="40"' +
+        ' onerror="this.style.display=\'none\'">' +
+        '<div class="pwa-install-body">' +
+          '<strong class="pwa-install-title">이 사이트를 앱처럼 사용해볼까요?</strong>' +
+          '<span class="pwa-install-desc">홈 화면에 추가하면 더 빠르게 열고, 바로 접속할 수 있어요.</span>' +
+          iosHint +
+        '</div>' +
+        '<div class="pwa-install-actions">' +
+          '<button type="button" class="pwa-install-btn primary" id="pwa-install-add">추가하기</button>' +
+          '<button type="button" class="pwa-install-btn secondary" id="pwa-install-later">나중에</button>' +
+        '</div>' +
+        '<button type="button" class="pwa-install-close" id="pwa-install-close" aria-label="닫기">×</button>' +
+      '</div>';
+
+    document.body.appendChild(banner);
+    requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('show')));
+
+    utils.$('pwa-install-add')?.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        dismiss(outcome === 'accepted');
+        return;
+      }
+      if (ios) {
+        toast.show('Safari 하단 공유 버튼 → "홈 화면에 추가"를 선택하세요', '📲', 6000);
+      } else {
+        toast.show('브라우저 메뉴에서 “앱으로 설치”를 선택하세요', '📱', 6000);
+      }
+      dismiss(false);
+    });
+
+    utils.$('pwa-install-later')?.addEventListener('click', () => dismiss(false));
+    utils.$('pwa-install-close')?.addEventListener('click', () => dismiss(false));
+  }
+
+  function scheduleShow() {
+    if (scheduled || !canOfferInstall()) return;
+
+    scheduled = true;
+
+    const attempt = () => {
+      if (!canOfferInstall()) return;
+      if (noticeOverlayOpen()) {
+        setTimeout(attempt, POLL_MS);
+        return;
+      }
+      createBanner();
+    };
+
+    setTimeout(attempt, SHOW_DELAY_MS);
+  }
+
+  function init() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch((err) => {
+        console.warn('Service Worker registration failed:', err);
+      });
+    }
+
+    if (!canOfferInstall()) return;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      scheduleShow();
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      dismiss(true);
+    });
+
+    scheduleShow();
+  }
+
+  return { init };
+})();
+
+/* ════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════ */
 (async () => {
@@ -2002,4 +2233,7 @@ const noticePopup = (() => {
 
   // 공지 팝업 (마지막에 초기화)
   noticePopup.init();
+
+  // PWA 설치 배너 (공지 이후 비침습적으로 표시)
+  pwaInstall.init();
 })();
