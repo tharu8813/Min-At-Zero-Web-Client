@@ -57,8 +57,43 @@ const platformGuard = (() => {
 const platformGate = (() => {
   let clientReleaseData = null;
   let gameReleaseData = null;
+  const PLATFORM_POPUP_SEEN_KEY = 'matz_platform_popup_seen';
 
-  const overlayEl = () => utils.$('platform-blocked-overlay');
+  function ensureOverlay() {
+    let overlay = utils.$('platform-blocked-overlay');
+    if (overlay) return overlay;
+
+    overlay = document.createElement('div');
+    overlay.id = 'platform-blocked-overlay';
+    overlay.className = 'platform-blocked-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', '지원 환경 안내');
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.innerHTML = `
+      <div class="platform-blocked-box">
+        <h1>Windows 전용 환경입니다.</h1>
+        <p>현재 감지된 플랫폼에서는 게임 플레이가 불가능합니다. 아래 내용을 참고하시고, Windows PC에서 접속해 주세요.</p>
+        <div class="platform-blocked-meta">
+          <span id="platform-blocked-os">현재 플랫폼을 확인 중입니다.</span>
+        </div>
+        <div class="platform-blocked-details" id="platform-blocked-details"></div>
+        <button class="platform-blocked-close" id="platform-blocked-close" type="button">팝업 닫기</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) {
+        overlay.classList.remove('visible');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    return overlay;
+  }
+
+  const overlayEl = () => ensureOverlay();
   const detailsEl = () => utils.$('platform-blocked-details');
   const osTextEl = () => utils.$('platform-blocked-os');
   const closeBtn = () => utils.$('platform-blocked-close');
@@ -104,6 +139,26 @@ const platformGate = (() => {
     details.innerHTML = lines.join('');
   }
 
+  function setControlState(unsupported) {
+    const controls = [
+      ...Array.from(document.querySelectorAll('.launcher-card button')),
+      utils.$('download-btn'),
+    ];
+
+    controls.forEach((el) => {
+      if (!el) return;
+      if (unsupported) {
+        el.setAttribute('aria-disabled', 'true');
+        if (el instanceof HTMLButtonElement) el.disabled = true;
+        if (el instanceof HTMLAnchorElement) el.tabIndex = -1;
+      } else {
+        el.removeAttribute('aria-disabled');
+        if (el instanceof HTMLButtonElement) el.disabled = false;
+        if (el instanceof HTMLAnchorElement) el.tabIndex = 0;
+      }
+    });
+  }
+
   function setReleaseInfo(clientData, gameData) {
     if (clientData) clientReleaseData = clientData;
     if (gameData) gameReleaseData = gameData;
@@ -122,13 +177,23 @@ const platformGate = (() => {
       document.body.classList.remove('platform-blocked', 'platform-unsupported');
       overlay.classList.remove('visible');
       overlay.setAttribute('aria-hidden', 'true');
+      setControlState(false);
       return;
     }
 
     document.body.classList.add('platform-blocked', 'platform-unsupported');
-    overlay.classList.add('visible');
-    overlay.setAttribute('aria-hidden', 'false');
     updateDetails();
+    setControlState(true);
+
+    const hasSeenPopup = sessionStorage.getItem(PLATFORM_POPUP_SEEN_KEY) === '1';
+    if (!hasSeenPopup) {
+      sessionStorage.setItem(PLATFORM_POPUP_SEEN_KEY, '1');
+      overlay.classList.add('visible');
+      overlay.setAttribute('aria-hidden', 'false');
+    } else {
+      overlay.classList.remove('visible');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
   }
 
   function init() {
@@ -140,12 +205,16 @@ const platformGate = (() => {
 
     if (closeButton) {
       closeButton.addEventListener('click', () => {
-        toggleUnsupported(false);
+        overlay.classList.remove('visible');
+        overlay.setAttribute('aria-hidden', 'true');
       });
     }
 
     overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) toggleUnsupported(false);
+      if (e.target === overlay) {
+        overlay.classList.remove('visible');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
     });
   }
 
@@ -1578,6 +1647,59 @@ const miniRanking = (() => {
   return { init };
 })();
 
+const pageTransition = (() => {
+  const TRANSITION_DELAY = 250;
+  let inProgress = false;
+
+  function isInternalLink(anchor) {
+    if (!(anchor instanceof HTMLAnchorElement)) return false;
+    const href = anchor.getAttribute('href');
+    if (!href || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return false;
+    if (anchor.target === '_blank' || anchor.hasAttribute('download')) return false;
+    try {
+      const url = new URL(href, location.href);
+      if (url.origin !== location.origin) return false;
+      if (url.pathname === location.pathname && url.search === location.search) return false;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function handleNavigationClick(e) {
+    const anchor = e.target.closest('a');
+    if (!anchor || !isInternalLink(anchor)) return;
+    e.preventDefault();
+    if (inProgress) return;
+
+    const href = anchor.href;
+    if (!href) return;
+
+    inProgress = true;
+    document.body.classList.add('page-exit');
+
+    setTimeout(() => {
+      location.href = href;
+    }, TRANSITION_DELAY);
+  }
+
+  function init() {
+    document.body.classList.remove('page-exit');
+    requestAnimationFrame(() => {
+      document.body.classList.add('page-loaded');
+    });
+
+    document.addEventListener('click', handleNavigationClick);
+    window.addEventListener('pageshow', () => {
+      document.body.classList.remove('page-exit');
+      document.body.classList.add('page-loaded');
+      inProgress = false;
+    });
+  }
+
+  return { init };
+})();
+
 /* ════════════════════════════════════════════
    MOBILE MENU
 ════════════════════════════════════════════ */
@@ -1736,19 +1858,43 @@ const launcher = (() => {
 
   function init() {
     utils.$('btn-start-game')?.addEventListener('click', e => {
+      if (!platformGuard.isSupported) {
+        toast.show('Windows에서만 게임 실행이 가능합니다.', '⚠️', 3000);
+        return;
+      }
       setLoading(e.currentTarget, '⏳ 실행 준비 중...');
       setTimeout(() => invokeProtocol('start'), 100);
     });
     utils.$('btn-login-info')?.addEventListener('click', e => {
+      if (!platformGuard.isSupported) {
+        toast.show('Windows에서만 클라이언트 정보를 열 수 있습니다.', '⚠️', 3000);
+        return;
+      }
       setLoading(e.currentTarget, '⏳ 여는 중...');
       setTimeout(() => invokeProtocol('login-info'), 100);
     });
     utils.$('btn-replay-folder')?.addEventListener('click', e => {
+      if (!platformGuard.isSupported) {
+        toast.show('Windows에서만 리플레이 폴더를 열 수 있습니다.', '⚠️', 3000);
+        return;
+      }
       setLoading(e.currentTarget, '⏳ 폴더 여는 중...');
       setTimeout(() => invokeProtocol('replay', false), 100);
     });
-    utils.$('btn-reset')?.addEventListener('click', e => { popup.show(e.currentTarget, 'reset'); });
-    utils.$('btn-uninstall')?.addEventListener('click', e => { popup.show(e.currentTarget, 'uninstall'); });
+    utils.$('btn-reset')?.addEventListener('click', e => {
+      if (!platformGuard.isSupported) {
+        toast.show('Windows에서만 클라이언트를 초기화할 수 있습니다.', '⚠️', 3000);
+        return;
+      }
+      popup.show(e.currentTarget, 'reset');
+    });
+    utils.$('btn-uninstall')?.addEventListener('click', e => {
+      if (!platformGuard.isSupported) {
+        toast.show('Windows에서만 클라이언트를 삭제할 수 있습니다.', '⚠️', 3000);
+        return;
+      }
+      popup.show(e.currentTarget, 'uninstall');
+    });
   }
 
   return { init };
@@ -1762,7 +1908,13 @@ const download = (() => {
     const btn = utils.$('download-btn');
     if (!btn) return;
 
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      if (!platformGuard.isSupported) {
+        e.preventDefault();
+        toast.show('Windows에서만 클라이언트를 다운로드할 수 있습니다.', '⚠️', 3000);
+        return;
+      }
+
       const href = btn.getAttribute('href');
       if (!href || href === '') {
         toast.show('다운로드 링크를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.', '⏳', 3000);
@@ -1858,11 +2010,21 @@ const layout = (() => {
   async function load() {
     const headerRoot = utils.$('header-root');
     const footerRoot = utils.$('footer-root');
+    const HEADER_ANIM_KEY = 'matz_header_animated';
+
+    if (headerRoot && sessionStorage.getItem(HEADER_ANIM_KEY)) {
+      headerRoot.classList.add('no-header-anim');
+    }
 
     await Promise.all([
       loadPart(headerRoot, 'asset/header.html', HEADER_CACHE_KEY, (root, html) => {
         root.innerHTML = html;
         applyActiveLink(root);
+        if (headerRoot && !sessionStorage.getItem(HEADER_ANIM_KEY)) {
+          try {
+            sessionStorage.setItem(HEADER_ANIM_KEY, '1');
+          } catch {}
+        }
       }),
       loadPart(footerRoot, 'asset/footer.html', FOOTER_CACHE_KEY, (root, html) => {
         root.innerHTML = html;
@@ -2330,6 +2492,7 @@ const pwaInstall = (() => {
   faq.init();
   launcher.init();
   mobileMenu.init();
+  pageTransition.init();
   miniRanking.init();
   lightbox.init();
 
