@@ -107,6 +107,109 @@ body::after {
   pointer-events: none;
 }
 
+body.platform-blocked {
+  overflow: hidden;
+}
+
+.platform-blocked-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 8, 14, 0.96);
+  backdrop-filter: blur(12px);
+}
+
+.platform-blocked-overlay.visible {
+  display: flex;
+}
+
+.platform-blocked-box {
+  width: min(100%, 560px);
+  padding: 32px;
+  border: 1px solid var(--green-border);
+  border-radius: 20px;
+  background: rgba(11, 18, 32, 0.95);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.platform-blocked-box h1 {
+  font-size: 24px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.platform-blocked-box p {
+  color: var(--text-muted);
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.platform-blocked-meta {
+  margin-top: 16px;
+  color: var(--green);
+  font-size: 13px;
+  font-family: var(--mono);
+}
+
+.platform-blocked-details {
+  margin-top: 20px;
+  text-align: left;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.platform-blocked-details p,
+.platform-blocked-details ul {
+  margin: 10px 0;
+}
+
+.platform-blocked-details ul {
+  padding-left: 18px;
+}
+
+.platform-blocked-details li {
+  margin-bottom: 8px;
+}
+
+.platform-blocked-close {
+  margin-top: 18px;
+  border: 1px solid var(--green-border);
+  border-radius: 999px;
+  background: var(--green-glow);
+  color: var(--green);
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+body.platform-unsupported .launcher-card,
+body.platform-unsupported #download-card,
+body.platform-unsupported #game-patch-notes-card,
+body.platform-unsupported .core-action-cards {
+  display: none !important;
+}
+
+body.platform-unsupported .mobile-compact-card {
+  display: block !important;
+}
+
+body.platform-blocked .wrap,
+body.platform-blocked .footer,
+body.platform-blocked #toast-container {
+  filter: blur(2px);
+  pointer-events: none;
+}
+
 /* ── BACKGROUND ── */
 .bg-grid {
   position: fixed;
@@ -2107,7 +2210,7 @@ body::after {
 
 /* 모바일 내비게이션 드로어 */
 .mobile-nav {
-  display: none;
+  display: flex;
   flex-direction: column;
   background: rgba(11, 18, 32, 0.98);
   border: 1px solid var(--border);
@@ -2119,14 +2222,20 @@ body::after {
 
   max-height: 0;
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   transition:
     max-height 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-    opacity var(--dur-normal);
+    opacity var(--dur-normal),
+    visibility 0s linear 0.4s;
 }
 
 .mobile-nav.open {
   max-height: 400px;
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
 }
 
 .mobile-nav-link {
@@ -2158,6 +2267,42 @@ body::after {
   margin: 0;
 }
 
+.mobile-compact-card {
+  display: none;
+  margin-bottom: 16px;
+}
+
+.mobile-compact-card.visible {
+  display: block;
+}
+
+.mobile-compact-text {
+  margin: 8px 0 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.mobile-compact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mobile-compact-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--green-border);
+  background: var(--green-glow);
+  color: var(--green);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* ══════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════ */
@@ -2167,11 +2312,15 @@ body::after {
   }
 
   .sidebar {
+    order: 1;
+  }
+
+  .full-row {
     order: 2;
   }
 
   .main-content {
-    order: 1;
+    order: 3;
   }
 
   .download-section {
@@ -2188,12 +2337,34 @@ body::after {
     justify-content: center;
   }
 
+  .header {
+    align-items: flex-start;
+  }
+
+  .header {
+    overflow: visible;
+  }
+
   .header-links {
     display: none;
   }
 
   .mobile-menu-btn {
     display: flex;
+    margin-left: auto;
+    position: relative;
+    z-index: 6;
+  }
+
+  .mobile-nav {
+    display: flex;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+    width: 100%;
+    margin-bottom: 0;
+    z-index: 5;
   }
 
   .footer-grid {
@@ -2207,8 +2378,39 @@ body::after {
 }
 
 @media (max-width: 768px) {
+  .bg-grid,
+  .bg-radial,
+  .bg-lines,
+  body::after {
+    display: none !important;
+  }
+
+  .main-grid {
+    gap: 16px;
+  }
+
+  .sidebar,
+  .main-content,
+  .full-row {
+    gap: 16px;
+  }
+
+  .card {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
   .mobile-nav {
     display: flex;
+  }
+
+  .site-desc {
+    display: block;
+    font-size: 12px;
+  }
+
+  .wrap {
+    padding: 0 14px 48px;
   }
 
   .status-bar {
@@ -2256,6 +2458,21 @@ body::after {
     padding: 0 14px 60px;
   }
 
+  .main-grid {
+    gap: 12px;
+  }
+
+  .sidebar,
+  .main-content,
+  .full-row {
+    gap: 12px;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
   .status-bar {
     gap: 10px;
     overflow-x: auto;
@@ -2279,14 +2496,74 @@ body::after {
 
   .community-links {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .comm-btn {
+    padding: 11px 12px;
+    font-size: 12px;
+  }
+
+  .btn-stack {
+    gap: 8px;
+  }
+
+  .btn {
+    padding: 11px 12px;
+    border-radius: 10px;
+    gap: 8px;
+  }
+
+  .btn-text {
+    font-size: 13px;
+  }
+
+  .btn-tag {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  .download-section {
+    gap: 16px;
   }
 
   .dl-btn {
-    padding: 16px 24px;
+    padding: 14px 20px;
+    min-width: 100%;
   }
 
   .dl-title {
-    font-size: 24px;
+    font-size: 22px;
+  }
+
+  .dl-desc {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .dl-meta-row {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-size: 12px;
+  }
+
+  .step-item {
+    gap: 10px;
+    padding: 12px 0;
+  }
+
+  .step-title {
+    font-size: 16px;
+  }
+
+  .step-desc {
+    font-size: 13px;
+  }
+
+  .faq-q {
+    font-size: 14px;
+    align-items: flex-start;
+    text-align: left;
   }
 }
 

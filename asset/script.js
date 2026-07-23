@@ -27,9 +27,134 @@ const CONFIG = Object.freeze({
   API_CACHE_TTL: 3 * 60 * 1000,
 });
 
+const platformGuard = (() => {
+  const ua = navigator.userAgent || '';
+  const platform = navigator.userAgentData?.platform || navigator.platform || '';
+  const userAgentDataBrands = navigator.userAgentData?.brands?.map(b => b.brand).join(' ') || '';
+  const combinedAgent = `${ua} ${userAgentDataBrands}`;
+
+  const isWindows = /windows/i.test(combinedAgent) || /win32|win64|windows/i.test(platform);
+  const isMac = /macintosh|mac os x|macos/i.test(combinedAgent) || /mac|darwin/i.test(platform);
+  const isLinux = /linux|x11/i.test(combinedAgent) || /linux/i.test(platform);
+  const isAndroid = /android/i.test(combinedAgent);
+  const isIOS = /(iphone|ipad|ipod)/i.test(combinedAgent);
+  const isMobile = /android|iphone|ipad|ipod|mobile/i.test(combinedAgent);
+
+  return {
+    ua,
+    platform,
+    isWindows,
+    isMac,
+    isLinux,
+    isAndroid,
+    isIOS,
+    isMobile,
+    isSupported: isWindows,
+    isDesktop: !isAndroid && !isIOS && !isMobile,
+  };
+})();
+
+const platformGate = (() => {
+  let clientReleaseData = null;
+  let gameReleaseData = null;
+
+  const overlayEl = () => utils.$('platform-blocked-overlay');
+  const detailsEl = () => utils.$('platform-blocked-details');
+  const osTextEl = () => utils.$('platform-blocked-os');
+  const closeBtn = () => utils.$('platform-blocked-close');
+
+  function getDetectedLabel() {
+    if (platformGuard.isWindows) return 'Windows';
+    if (platformGuard.isAndroid) return 'Android';
+    if (platformGuard.isIOS) return 'iOS';
+    if (platformGuard.isMac) return 'macOS';
+    if (platformGuard.isLinux) return 'Linux';
+    return platformGuard.platform || platformGuard.ua || '알 수 없는 환경';
+  }
+
+  function updateDetails() {
+    const details = detailsEl();
+    if (!details) return;
+
+    const detected = getDetectedLabel();
+    const lines = [];
+
+    lines.push('<p>Windows 전용 클라이언트를 요구하는 서버입니다. 해당 플랫폼에서는 게임 실행이 불가능합니다.</p>');
+    lines.push(`<p><strong>감지된 플랫폼:</strong> ${utils.sanitizeText(detected)}</p>`);
+
+    if (gameReleaseData) {
+      const title = utils.sanitizeText(gameReleaseData.name || `최신 게임 업데이트 (v${gameReleaseData.tag_name || 'N/A'})`);
+      const date = utils.fmtDate(gameReleaseData.published_at);
+      const link = utils.sanitizeUrl(gameReleaseData.html_url || '');
+      lines.push('<ul>');
+      lines.push(`<li><strong>게임 패치:</strong> ${title} · ${date}</li>`);
+      if (link !== '#') lines.push(`<li><a href="${link}" target="_blank" rel="noopener noreferrer">GitHub에서 패치노트 보기</a></li>`);
+      lines.push('</ul>');
+    }
+
+    if (clientReleaseData) {
+      const tag = utils.sanitizeText(clientReleaseData.tag_name || 'v?');
+      const link = utils.sanitizeUrl(clientReleaseData.html_url || CONFIG.FALLBACK.clientUrl);
+      lines.push('<ul>');
+      lines.push(`<li><strong>클라이언트 업데이트:</strong> ${tag}</li>`);
+      if (link !== '#') lines.push(`<li><a href="${link}" target="_blank" rel="noopener noreferrer">업데이트 정보 보기</a></li>`);
+      lines.push('</ul>');
+    }
+
+    details.innerHTML = lines.join('');
+  }
+
+  function setReleaseInfo(clientData, gameData) {
+    if (clientData) clientReleaseData = clientData;
+    if (gameData) gameReleaseData = gameData;
+    if (!platformGuard.isSupported) updateDetails();
+  }
+
+  function toggleUnsupported(unsupported) {
+    const overlay = overlayEl();
+    const osText = osTextEl();
+    if (!overlay) return;
+
+    const detected = getDetectedLabel();
+    if (osText) osText.textContent = `현재 감지된 플랫폼: ${detected}`;
+
+    if (!unsupported) {
+      document.body.classList.remove('platform-blocked', 'platform-unsupported');
+      overlay.classList.remove('visible');
+      overlay.setAttribute('aria-hidden', 'true');
+      return;
+    }
+
+    document.body.classList.add('platform-blocked', 'platform-unsupported');
+    overlay.classList.add('visible');
+    overlay.setAttribute('aria-hidden', 'false');
+    updateDetails();
+  }
+
+  function init() {
+    const overlay = overlayEl();
+    const closeButton = closeBtn();
+    if (!overlay) return;
+
+    toggleUnsupported(!platformGuard.isSupported);
+
+    if (closeButton) {
+      closeButton.addEventListener('click', () => {
+        toggleUnsupported(false);
+      });
+    }
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) toggleUnsupported(false);
+    });
+  }
+
+  return { init, setReleaseInfo };
+})();
+
 /* ════════════════════════════════════════════
    SOUND (graceful no-op when audio unavailable)
-════════════════════════════════════════════ */
+════════════════════════════════════ */
 const sound = (() => {
   const cache = Object.create(null);
   let muted = false;
@@ -330,6 +455,14 @@ const api = {
    UI
 ════════════════════════════════════════════ */
 const ui = {
+  updatePlatformNotice() {
+    const mobileNotice = utils.$('mobile-compact-card');
+    if (!mobileNotice) return;
+
+    const shouldShowMobileNotice = !platformGuard.isWindows && platformGuard.isDesktop;
+    mobileNotice.classList.toggle('visible', shouldShowMobileNotice);
+  },
+
   updateClientInfo(data) {
     const tag = data?.tag_name ?? '1.0.0';
 
@@ -1454,6 +1587,10 @@ const mobileMenu = (() => {
     const nav = utils.$('mobile-nav');
     if (!btn || !nav) return;
 
+    const isOpen = btn.classList.contains('open');
+    btn.setAttribute('aria-expanded', String(isOpen));
+    nav.setAttribute('aria-hidden', String(!isOpen));
+
     btn.addEventListener('click', () => {
       const isOpen = btn.classList.toggle('open');
       nav.classList.toggle('open', isOpen);
@@ -2186,6 +2323,7 @@ const pwaInstall = (() => {
 
   document.documentElement.classList.add('js-ready');
 
+  platformGate.init();
   visibilityManager.init();
 
   popup.init();
@@ -2216,6 +2354,7 @@ const pwaInstall = (() => {
 
   if (clientData) {
     ui.updateClientInfo(clientData);
+    platformGate.setReleaseInfo(clientData, null);
   } else {
     const verBar = utils.$('client-version-bar');
     if (verBar) {
@@ -2227,9 +2366,12 @@ const pwaInstall = (() => {
     toast.show('버전 정보를 불러오지 못했습니다. 링크는 최신 페이지로 연결됩니다.', '⚠️', 4000);
   }
 
-  if (gameData) ui.updateGameInfo(gameData);
+  if (gameData) {
+    ui.updateGameInfo(gameData);
+    platformGate.setReleaseInfo(null, gameData);
+  }
 
-  serverStatus.start();
+  ui.updatePlatformNotice();
 
   // 공지 팝업 (마지막에 초기화)
   noticePopup.init();

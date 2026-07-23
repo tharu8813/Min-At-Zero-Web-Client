@@ -38,6 +38,19 @@
   <!-- 토스트 -->
   <div id="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
 
+  <div class="platform-blocked-overlay" id="platform-blocked-overlay" role="dialog" aria-modal="true"
+    aria-label="지원 환경 안내" aria-hidden="true">
+    <div class="platform-blocked-box">
+      <h1>Windows 전용 환경입니다.</h1>
+      <p>현재 감지된 플랫폼에서는 게임 플레이가 불가능합니다. 아래 내용을 참고하시고, Windows PC에서 접속해 주세요.</p>
+      <div class="platform-blocked-meta">
+        <span id="platform-blocked-os">현재 플랫폼을 확인 중입니다.</span>
+      </div>
+      <div class="platform-blocked-details" id="platform-blocked-details"></div>
+      <button class="platform-blocked-close" id="platform-blocked-close" type="button">닫기</button>
+    </div>
+  </div>
+
   <div class="wrap">
 
     <!-- ══ HEADER (Dynamic) ══ -->
@@ -45,6 +58,16 @@
 
     <p class="site-desc">기존 Timeless and Classics Guns(1.16.5) 모다 더욱 좋아진 Timeless and Classics Zero(1.20.1) 모드
       기반으로<br>제작된 마인크래프트 FPS게임 서버입니다. 맵과 무기를 선택하고 여러가지 맵을 선택해 유저들과 싸워보세요!</p>
+
+    <div class="mobile-compact-card card" role="status" aria-label="모바일 안내">
+      <div class="card-top-bar"></div>
+      <div class="card-label">Mobile Notice</div>
+      <p class="mobile-compact-text">이 서버는 데스크탑 클라이언트 중심으로 운영됩니다. 모바일에서는 기본 정보·커뮤니티 링크·랭킹만 빠르게 확인할 수 있어요.</p>
+      <div class="mobile-compact-actions">
+        <a href="serverinfo.html" class="mobile-compact-link">서버 정보</a>
+        <a href="ranking.html" class="mobile-compact-link">랭킹 보기</a>
+      </div>
+    </div>
 
     <!-- ══ STATUS BAR ══ -->
     <div class="status-bar" role="status" aria-label="서버 현재 상태">
@@ -82,7 +105,7 @@
       <aside class="sidebar" aria-label="런처 및 커뮤니티">
 
         <!-- 런처 카드 -->
-        <div class="card blue-accent">
+        <div class="card blue-accent launcher-card">
           <div class="card-top-bar blue"></div>
           <div class="card-label blue">Launcher</div>
           <div class="btn-stack">
@@ -158,7 +181,7 @@
 
 
         <!-- 권장 사양 카드 -->
-        <div class="card">
+        <div class="card requirements-card">
           <div class="card-top-bar"></div>
           <div class="card-label">Requirements</div>
           <div class="req-table-wrap">
@@ -202,7 +225,7 @@
       <main class="main-content">
 
         <!-- 트레일러 카드 -->
-        <div class="card">
+        <div class="card trailer-card">
           <div class="card-top-bar"></div>
           <div class="card-label">Official Trailer</div>
           <div class="video-wrap">
@@ -231,7 +254,7 @@
       <div class="full-row">
 
         <!-- 쇼케이스 슬라이더 -->
-        <div class="card" id="showcase-slider-section">
+        <div class="card showcase-card" id="showcase-slider-section">
           <div class="card-top-bar"></div>
           <div class="card-label">Weapons &amp; Maps</div>
           <div class="slider-outer" role="region" aria-label="게임 스크린샷 슬라이더">
@@ -251,7 +274,7 @@
         </div>
 
         <!-- 설치 가이드 -->
-        <div class="card">
+        <div class="card installation-card">
           <div class="card-top-bar"></div>
           <div class="card-label">Installation Guide</div>
           <ol class="steps-wrap" aria-label="설치 단계">
