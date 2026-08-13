@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>맵 목록 | Min. At. Zero Web Client</title>
   <meta name="description" content="Min. At. Zero 서버에서 플레이 가능한 다양한 전투 맵을 소개합니다.">
-  <meta name="theme-color" content="#22c55e">
+  <meta name="theme-color" content="#101513">
   <link rel="icon" type="image/png" href="asset/image/icon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -172,6 +172,16 @@
 
     .map-thumb.loaded {
       opacity: 1;
+    }
+
+    .map-thumb-placeholder {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.025);
+      font-size: 12px;
     }
 
     /* ── 이미지 스켈레톤 애니메이션 ── */
@@ -488,6 +498,8 @@
     .slider-dot {
       width: 6px;
       height: 6px;
+      padding: 0;
+      border: 0;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.35);
       transition: all 0.3s;
@@ -557,6 +569,7 @@
       white-space: pre-line;
     }
   </style>
+  <link rel="stylesheet" href="asset/theme.css">
 </head>
 
 <body>
@@ -576,7 +589,7 @@
           TOTAL <span id="map-count" style="color:var(--blue); font-weight:700;">0</span> MAPS
         </p>
         <div class="view-switcher">
-          <button class="view-btn active" id="btn-grid" title="그리드 뷰">
+          <button class="view-btn active" id="btn-grid" type="button" title="그리드 뷰" aria-label="그리드 뷰" aria-pressed="true">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="7" height="7"></rect>
               <rect x="14" y="3" width="7" height="7"></rect>
@@ -584,7 +597,7 @@
               <rect x="3" y="14" width="7" height="7"></rect>
             </svg>
           </button>
-          <button class="view-btn" id="btn-list" title="리스트 뷰">
+          <button class="view-btn" id="btn-list" type="button" title="리스트 뷰" aria-label="리스트 뷰" aria-pressed="false">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="8" y1="6" x2="21" y2="6"></line>
               <line x1="8" y1="12" x2="21" y2="12"></line>
@@ -609,12 +622,12 @@
 
   <!-- Modal -->
   <div class="map-modal-bg" id="map-modal">
-    <div class="map-modal">
+    <div class="map-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <button class="modal-close" id="modal-close" aria-label="닫기">✕</button>
       <div class="modal-hero">
         <div class="modal-slider-wrapper" id="modal-slider"></div>
-        <button class="slider-btn" id="slider-prev" style="left:14px">◀</button>
-        <button class="slider-btn" id="slider-next" style="right:14px">▶</button>
+        <button class="slider-btn" id="slider-prev" type="button" aria-label="이전 이미지" style="left:14px">◀</button>
+        <button class="slider-btn" id="slider-next" type="button" aria-label="다음 이미지" style="right:14px">▶</button>
         <div class="slider-dots" id="slider-dots"></div>
       </div>
       <div class="modal-body">
@@ -643,6 +656,7 @@
       const modalSlider = document.getElementById('modal-slider');
       const sliderDots = document.getElementById('slider-dots');
       let currentSlide = 0, totalSlides = 0;
+      let lastModalTrigger = null;
 
       /* ── 슬라이더 ── */
       function updateSlider() {
@@ -688,13 +702,19 @@
           const buster = `?v=${Date.now()}`;
 
           data.forEach((map, i) => {
+            const images = Array.isArray(map.image) ? map.image.filter(Boolean) : [];
+            const normalizedMap = { ...map, image: images };
             const card = document.createElement('article');
             card.className = 'card map-card';
+            card.setAttribute('role', 'button');
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('aria-label', `${map.title} 맵 상세 정보 보기`);
             card.innerHTML = `
               <div class="card-top-bar blue"></div>
               <div class="map-thumb-wrap">
-                <div class="img-skeleton"></div>
-                <img class="map-thumb" src="${map.image[0]}${buster}" alt="${map.title}" loading="lazy" onload="this.classList.add('loaded');this.previousElementSibling.classList.add('hidden')">
+                ${images.length ? `<div class="img-skeleton"></div>
+                <img class="map-thumb" src="${images[0]}${buster}" alt="${map.title}" loading="lazy" onload="this.classList.add('loaded');this.previousElementSibling.classList.add('hidden')">`
+                  : '<div class="map-thumb-placeholder">이미지 준비 중</div>'}
                 <div class="map-overlay"><span class="map-hint">🔍 VIEW DETAILS</span></div>
               </div>
               <div class="map-info">
@@ -706,7 +726,13 @@
                   <span class="tag-badge">${map.mapSize}</span>
                 </div>
               </div>`;
-            card.onclick = () => openModal(map, buster);
+            card.onclick = () => openModal(normalizedMap, buster);
+            card.onkeydown = event => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openModal(normalizedMap, buster);
+              }
+            };
             container.appendChild(card);
             /* 스태거 진입 */
             setTimeout(() => card.classList.add('revealed'), 60 + i * 55);
@@ -718,15 +744,18 @@
 
       /* ── 모달 열기 ── */
       function openModal(map, buster) {
-        currentSlide = 0; totalSlides = map.image.length;
-        modalSlider.innerHTML = map.image.map(src =>
+        lastModalTrigger = document.activeElement;
+        const images = map.image;
+        currentSlide = 0;
+        totalSlides = Math.max(images.length, 1);
+        modalSlider.innerHTML = images.length ? images.map(src =>
           `<div class="modal-slide">
             <div class="img-skeleton"></div>
             <img src="${src}${buster}" alt="${map.title}" onload="this.classList.add('loaded');this.previousElementSibling.classList.add('hidden')">
           </div>`
-        ).join('');
-        sliderDots.innerHTML = map.image.map((_, i) =>
-          `<div class="slider-dot${i === 0 ? ' active' : ''}" data-i="${i}"></div>`).join('');
+        ).join('') : '<div class="modal-slide"><div class="map-thumb-placeholder">이미지 준비 중</div></div>';
+        sliderDots.innerHTML = images.map((_, i) =>
+          `<button type="button" class="slider-dot${i === 0 ? ' active' : ''}" data-i="${i}" aria-label="${i + 1}번째 이미지 보기"></button>`).join('');
         sliderDots.querySelectorAll('.slider-dot').forEach(d =>
           d.addEventListener('click', e => { e.stopPropagation(); currentSlide = +d.dataset.i; updateSlider(); }));
 
@@ -737,20 +766,29 @@
         document.getElementById('modal-size').textContent = map.mapSize;
         document.getElementById('modal-date').textContent = map.createData;
         document.getElementById('modal-desc').textContent = map.value;
+        document.getElementById('slider-prev').disabled = images.length <= 1;
+        document.getElementById('slider-next').disabled = images.length <= 1;
 
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
         updateSlider();
+        requestAnimationFrame(() => document.getElementById('modal-close').focus());
+      }
+
+      function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        if (lastModalTrigger instanceof HTMLElement) lastModalTrigger.focus();
       }
 
       /* ── 이벤트 ── */
-      document.getElementById('modal-close').onclick = () => { modal.classList.remove('active'); document.body.style.overflow = ''; };
-      modal.addEventListener('click', e => { if (e.target === modal) { modal.classList.remove('active'); document.body.style.overflow = ''; } });
+      document.getElementById('modal-close').onclick = closeModal;
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
       document.getElementById('slider-prev').onclick = e => { e.stopPropagation(); currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlider(); };
       document.getElementById('slider-next').onclick = e => { e.stopPropagation(); currentSlide = (currentSlide + 1) % totalSlides; updateSlider(); };
       document.addEventListener('keydown', e => {
         if (!modal.classList.contains('active')) return;
-        if (e.key === 'Escape') { modal.classList.remove('active'); document.body.style.overflow = ''; }
+        if (e.key === 'Escape') closeModal();
         if (e.key === 'ArrowLeft') { currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlider(); }
         if (e.key === 'ArrowRight') { currentSlide = (currentSlide + 1) % totalSlides; updateSlider(); }
       });
@@ -759,6 +797,8 @@
         if (container.classList.contains('view-list')) {
           document.getElementById('btn-grid').classList.add('active');
           document.getElementById('btn-list').classList.remove('active');
+          document.getElementById('btn-grid').setAttribute('aria-pressed', 'true');
+          document.getElementById('btn-list').setAttribute('aria-pressed', 'false');
           switchView(false);
         }
       };
@@ -766,6 +806,8 @@
         if (!container.classList.contains('view-list')) {
           document.getElementById('btn-list').classList.add('active');
           document.getElementById('btn-grid').classList.remove('active');
+          document.getElementById('btn-list').setAttribute('aria-pressed', 'true');
+          document.getElementById('btn-grid').setAttribute('aria-pressed', 'false');
           switchView(true);
         }
       };

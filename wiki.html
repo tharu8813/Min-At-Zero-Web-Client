@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>위키 | Min. At. Zero Web Client</title>
   <meta name="description" content="Min. At. Zero 서버 위키 문서">
-  <meta name="theme-color" content="#22c55e">
+  <meta name="theme-color" content="#101513">
   <meta property="og:title" content="Wiki — Min. At. Zero">
   <meta property="og:description" content="Min. At. Zero 서버 공략, 규칙, 무기 정보 등 모든 것을 담은 공식 위키">
   <meta property="og:type" content="website">
@@ -771,6 +771,7 @@
   }
 
   </style>
+  <link rel="stylesheet" href="asset/theme.css">
 </head>
 <body>
   <div class="scan-deco" aria-hidden="true"></div>
@@ -788,7 +789,9 @@
   </div>
 
   <!-- 헤더 -->
-  <header id="header-root" class="header"></header>
+  <div class="wrap wiki-header-wrap">
+    <header id="header-root" class="header"></header>
+  </div>
 
   <!-- 위키 레이아웃 -->
   <div class="wiki-layout">
@@ -804,7 +807,7 @@
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
             </svg>
           </span>
-          <input class="sidebar-search" id="sidebar-search" type="text" placeholder="문서 검색...">
+          <input class="sidebar-search" id="sidebar-search" type="search" placeholder="문서 검색..." aria-label="위키 문서 검색">
         </div>
 
         <div class="sidebar-label">문서 목록</div>

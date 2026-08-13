@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matz-web-client-v2';
+const CACHE_NAME = 'matz-web-client-v3';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const STATIC_ASSETS = [
   './wiki.html',
   './controls.html',
   './asset/style.css',
+  './asset/theme.css',
   './asset/script.js',
   './asset/header.html',
   './asset/footer.html',
@@ -21,11 +22,15 @@ const STATIC_ASSETS = [
 // Service Worker Install
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('SW static asset caching partial fail:', err);
-      });
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then((cache) => Promise.all(STATIC_ASSETS.map(async (asset) => {
+        try {
+          await cache.add(asset);
+        } catch (error) {
+          console.warn(`SW cache skipped: ${asset}`, error);
+        }
+      })))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -54,7 +59,14 @@ self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
-        .catch(() => caches.match('./index.html'))
+        .catch(async () => (
+          await caches.match(event.request)
+          || await caches.match('./index.html')
+          || new Response('오프라인 상태입니다.', {
+            status: 503,
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+          })
+        ))
     );
     return;
   }
@@ -76,6 +88,7 @@ self.addEventListener('fetch', (event) => {
           if (event.request.headers.get('accept')?.includes('text/html')) {
             return caches.match('./index.html');
           }
+          return new Response('', { status: 504, statusText: 'Offline' });
         });
       })
   );
