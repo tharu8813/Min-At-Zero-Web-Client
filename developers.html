@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>개발자 | Min. At. Zero Web Client</title>
   <meta name="description" content="Min. At. Zero 프로젝트 기여자 목록">
-  <meta name="theme-color" content="#22c55e">
+  <meta name="theme-color" content="#101513">
   <link rel="icon" type="image/png" href="asset/image/icon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -381,6 +381,7 @@
       box-shadow: 0 6px 20px rgba(var(--c), 0.22), inset 0 1px 0 rgba(var(--c), 0.1);
     }
   </style>
+  <link rel="stylesheet" href="asset/theme.css">
 </head>
 
 <body>
@@ -474,7 +475,7 @@
         if (mc_id) {
           allLinks.push(`<a class="dev-link-btn link-namemc"
             href="https://ko.namemc.com/profile/${encodeURIComponent(mc_id)}"
-            target="_blank" rel="noopener noreferrer" data-label="NameMC">
+            target="_blank" rel="noopener noreferrer" data-label="NameMC" aria-label="${mc_id} NameMC 프로필 보기">
             ${NAMEMC_ICON}
           </a>`);
         }
@@ -485,7 +486,7 @@
             if (!url) return;
             const platform = LINK_PLATFORMS.find(p => p.match(url)) || LINK_PLATFORMS.at(-1);
             allLinks.push(`<a class="dev-link-btn ${platform.class}"
-              href="${url}" target="_blank" rel="noopener noreferrer" data-label="${platform.label}">
+              href="${url}" target="_blank" rel="noopener noreferrer" data-label="${platform.label}" aria-label="${platform.label} 링크 열기">
               ${platform.icon}
             </a>`);
           });

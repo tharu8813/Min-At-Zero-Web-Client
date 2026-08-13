@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>플레이어 랭킹 | Min. At. Zero Web Client</title>
   <meta name="description" content="Min. At. Zero 플레이어 랭킹 및 전투 통계">
-  <meta name="theme-color" content="#22c55e">
+  <meta name="theme-color" content="#101513">
   <link rel="icon" type="image/png" href="asset/image/icon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -1051,6 +1051,7 @@
       color: var(--text-dim);
     }
   </style>
+  <link rel="stylesheet" href="asset/theme.css">
 </head>
 
 <body>
@@ -1092,7 +1093,7 @@
         <p class="matz-popup-msg" id="popup-msg"></p>
         <div class="matz-popup-actions">
           <button class="matz-popup-btn cancel" id="popup-cancel">취소</button>
-          <button class="matz-popup-btn confirm-danger" id="popup-confirm"></button>
+          <button class="matz-popup-btn confirm-danger" id="popup-confirm" aria-label="확인">확인</button>
         </div>
       </div>
       <div class="matz-popup-corner"></div>
@@ -1195,8 +1196,8 @@
     (function () {
       'use strict';
 
-      const SUPABASE_URL = 'https://mcojlhiycruiifrcaxam.supabase.co';
-      const SUPABASE_KEY = 'sb_publishable_motLaW6vYM8bLPov6QTYMg_LxfbSXfr';
+      const SUPABASE_URL = CONFIG.SUPABASE.url;
+      const SUPABASE_KEY = CONFIG.SUPABASE.key;
       const FALLBACK_AV = 'data:image/svg+xml,' + encodeURIComponent(
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" fill="#0b1220"/><text x="12" y="17" text-anchor="middle" fill="#22c55e" font-size="13" font-family="monospace">?</text></svg>'
       );
@@ -1390,7 +1391,7 @@
           /* 행 진입 delay */
           const delay = Math.min(i * 28, 400);
 
-          return `<tr class="${rowExtra}" data-player="${safeName}" style="animation-delay:${delay}ms">
+          return `<tr class="${rowExtra}" data-player="${safeName}" tabindex="0" aria-label="${safeName} 상세 통계 보기" style="animation-delay:${delay}ms">
             <td class="col-rank">${rankHtml}</td>
             <td>
               <div class="player-cell">
@@ -1404,12 +1405,19 @@
         }).join('');
 
         lbTbody.querySelectorAll('tr[data-player]').forEach(row => {
-          row.addEventListener('click', () => {
+          const openPlayer = () => {
             const name = row.dataset.player;
             searchInput.value = name;
             searchClear.classList.add('visible');
             performSearch(name, true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
+          };
+          row.addEventListener('click', openPlayer);
+          row.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              openPlayer();
+            }
           });
         });
       }
@@ -1535,14 +1543,17 @@
       });
 
       /* 새로고침 */
-      refreshBtn.addEventListener('click', () => {
+      refreshBtn.addEventListener('click', async () => {
         if (refreshLocked) return;
         refreshLocked = true;
         setRefreshState(true);
         allPlayers = null;
-        loadData(true).finally(() => {
-          setTimeout(() => { refreshLocked = false; }, 8000);
-        });
+        try {
+          await loadData(true);
+        } finally {
+          refreshLocked = false;
+          setRefreshState(false);
+        }
       });
 
       /* 검색 */

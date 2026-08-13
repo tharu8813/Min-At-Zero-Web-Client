@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>서버 정보 | Min. At. Zero Web Client</title>
   <meta name="description" content="Min. At. Zero 서버 상세 정보 — 버전, 모드, 플러그인, 클라이언트 정보">
-  <meta name="theme-color" content="#22c55e">
+  <meta name="theme-color" content="#101513">
   <link rel="icon" type="image/png" href="asset/image/icon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -496,6 +496,7 @@
       .client-lib-name { width: auto; }
     }
   </style>
+  <link rel="stylesheet" href="asset/theme.css">
 </head>
 
 <body>
@@ -733,16 +734,43 @@
     document.getElementById('si-ip-text').textContent = server.ip || '—';
     const copyBox = document.getElementById('ip-copy-box');
     const copyBtn = document.getElementById('ip-copy-btn');
-    function copyIp() {
-      navigator.clipboard.writeText(server.ip).then(() => {
+    async function writeClipboard(text) {
+      if (navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return;
+        } catch {}
+      }
+
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.cssText = 'position:fixed;left:-9999px;opacity:0';
+      document.body.appendChild(area);
+      area.select();
+      const copied = document.execCommand('copy');
+      area.remove();
+      if (!copied) throw new Error('clipboard unavailable');
+    }
+
+    async function copyIp() {
+      try {
+        await writeClipboard(server.ip);
         copyBtn.textContent = '✅ 복사됨';
         toast('서버 IP가 클립보드에 복사되었습니다!');
         setTimeout(() => { copyBtn.textContent = '📋 복사'; }, 2000);
-      });
+      } catch {
+        toast(`복사하지 못했습니다. IP: ${server.ip}`);
+      }
     }
     copyBtn.addEventListener('click', e => { e.stopPropagation(); copyIp(); });
     copyBox.addEventListener('click', copyIp);
-    copyBox.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') copyIp(); });
+    copyBox.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        copyIp();
+      }
+    });
 
     // ── 서버 소개 (Markdown) ─────────────────
     document.getElementById('si-desc').innerHTML = parseMd(server.description || '');

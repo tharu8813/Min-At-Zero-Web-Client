@@ -11,6 +11,17 @@ const CONFIG = Object.freeze({
   FALLBACK: {
     clientUrl: 'https://github.com/tharu8813/Min-At-Zero-Client/releases/latest',
   },
+  SUPABASE: Object.freeze({
+    url: 'https://mcojlhiycruiifrcaxam.supabase.co',
+    key: 'sb_publishable_motLaW6vYM8bLPov6QTYMg_LxfbSXfr',
+  }),
+  EFFECTS: Object.freeze({
+    particles: false,
+    aurora: false,
+    customCursor: false,
+    typewriter: false,
+    buttonFx: false,
+  }),
   SERVER_IP: 'tharu81.kro.kr',
   DOWNTIME_KEY: 'matz_offline_since',
   STATUS_INTERVAL: 60_000,
@@ -1152,10 +1163,13 @@ const scrollReveal = (() => {
 ════════════════════════════════════════════ */
 const scrollProgress = (() => {
   function init() {
-    const bar = document.createElement('div');
-    bar.id = 'scroll-progress';
-    bar.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(bar);
+    let bar = utils.$('scroll-progress');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'scroll-progress';
+      bar.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(bar);
+    }
 
     window.addEventListener('scroll', () => {
       const docH = document.documentElement.scrollHeight - innerHeight;
@@ -1447,8 +1461,8 @@ const popup = (() => {
    두 페이지에서 동일한 로직으로 COMBAT RATING 계산
 ════════════════════════════════════════════ */
 const scoreCalc = (() => {
-  const SUPABASE_URL = 'https://mcojlhiycruiifrcaxam.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_motLaW6vYM8bLPov6QTYMg_LxfbSXfr';
+  const SUPABASE_URL = CONFIG.SUPABASE.url;
+  const SUPABASE_KEY = CONFIG.SUPABASE.key;
 
   let globalCache = null;
   let globalCacheTime = 0;
@@ -1529,8 +1543,8 @@ const scoreCalc = (() => {
    MINI RANKING CARD
 ════════════════════════════════════════════ */
 const miniRanking = (() => {
-  const SUPABASE_URL = 'https://mcojlhiycruiifrcaxam.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_motLaW6vYM8bLPov6QTYMg_LxfbSXfr';
+  const SUPABASE_URL = CONFIG.SUPABASE.url;
+  const SUPABASE_KEY = CONFIG.SUPABASE.key;
 
   /* [FIX] score 탭은 scoreCalc 공유 모듈 사용, 나머지는 DB 직접 조회 */
   const TAB_CONFIG = {
@@ -1879,7 +1893,7 @@ const launcher = (() => {
         return;
       }
       setLoading(e.currentTarget, '⏳ 폴더 여는 중...');
-      setTimeout(() => invokeProtocol('replay', false), 100);
+      setTimeout(() => invokeProtocol('replay', true), 100);
     });
     utils.$('btn-reset')?.addEventListener('click', e => {
       if (!platformGuard.isSupported) {
@@ -1945,8 +1959,8 @@ const download = (() => {
    LAYOUT LOADER
 ════════════════════════════════════════════ */
 const layout = (() => {
-  const HEADER_CACHE_KEY = 'maz_layout_header_html';
-  const FOOTER_CACHE_KEY = 'maz_layout_footer_html';
+  const HEADER_CACHE_KEY = 'maz_layout_header_html_v2';
+  const FOOTER_CACHE_KEY = 'maz_layout_footer_html_v2';
 
   function getCached(key) {
     try {
@@ -1980,7 +1994,10 @@ const layout = (() => {
     let page = window.location.pathname.split('/').pop().split('.')[0] || 'index';
     if (!page || page === '') page = 'index';
     const activeLink = root.querySelector(`[data-nav="${page}"]`);
-    if (activeLink) activeLink.style.color = 'var(--green)';
+    if (activeLink) {
+      activeLink.classList.add('is-active');
+      activeLink.setAttribute('aria-current', 'page');
+    }
   }
 
   async function loadPart(root, url, cacheKey, onRender) {
@@ -2330,7 +2347,7 @@ const noticePopup = (() => {
 const pwaInstall = (() => {
   const DISMISS_KEY = 'matz_pwa_install_dismissed';
   const LATER_KEY = 'matz_pwa_install_later';
-  const SHOW_DELAY_MS = 4500;
+  const SHOW_DELAY_MS = 12000;
   const POLL_MS = 1500;
 
   let deferredPrompt = null;
@@ -2457,7 +2474,7 @@ const pwaInstall = (() => {
       });
     }
 
-    if (!canOfferInstall()) return;
+    if (!utils.$('download-btn') || !canOfferInstall()) return;
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -2496,45 +2513,67 @@ const pwaInstall = (() => {
   miniRanking.init();
   lightbox.init();
 
+  document.querySelectorAll('details.launcher-maintenance, details.mobile-disclosure').forEach(details => {
+    const summary = details.querySelector(':scope > summary');
+    if (!summary) return;
+    const sync = () => {
+      summary.setAttribute('aria-expanded', String(details.open));
+      const action = summary.querySelector('.mobile-disclosure-action');
+      if (action) action.textContent = details.open ? '접기' : '펼쳐보기';
+    };
+    summary.addEventListener('click', event => {
+      event.preventDefault();
+      details.open = !details.open;
+      sync();
+    });
+    sync();
+  });
+
   scrollProgress.init();
   scrollReveal.init();
-  particles.init();
-  aurora.init();
-  customCursor.init();
-  typewriter.init();
+  if (CONFIG.EFFECTS.particles) particles.init();
+  if (CONFIG.EFFECTS.aurora) aurora.init();
+  if (CONFIG.EFFECTS.customCursor) customCursor.init();
+  if (CONFIG.EFFECTS.typewriter) typewriter.init();
 
   requestAnimationFrame(() => {
-    buttonFX.attach();
+    if (CONFIG.EFFECTS.buttonFx) buttonFX.attach();
     download.init();
   });
 
   slider.build();
 
-  const [clientData, gameData] = await Promise.all([
-    api.fetchRelease('client'),
-    api.fetchRelease('game'),
-  ]);
+  const isHomePage = !!utils.$('download-btn');
+  if (isHomePage) {
+    const [clientData, gameData] = await Promise.all([
+      api.fetchRelease('client'),
+      api.fetchRelease('game'),
+    ]);
 
-  if (clientData) {
-    ui.updateClientInfo(clientData);
-    platformGate.setReleaseInfo(clientData, null);
-  } else {
-    const verBar = utils.$('client-version-bar');
-    if (verBar) {
-      verBar.classList.remove('skeleton-text');
-      verBar.textContent = '최신 버전';
+    if (clientData) {
+      ui.updateClientInfo(clientData);
+      platformGate.setReleaseInfo(clientData, null);
+    } else {
+      const verBar = utils.$('client-version-bar');
+      if (verBar) {
+        verBar.classList.remove('skeleton-text');
+        verBar.textContent = '릴리스 페이지';
+      }
+      const btn = utils.$('download-btn');
+      if (btn) btn.href = CONFIG.FALLBACK.clientUrl;
+      utils.setText('dl-version-text', 'GitHub');
+      utils.setText('dl-sub-ver', '최신 릴리스');
     }
-    const btn = utils.$('download-btn');
-    if (btn) btn.href = CONFIG.FALLBACK.clientUrl;
-    toast.show('버전 정보를 불러오지 못했습니다. 링크는 최신 페이지로 연결됩니다.', '⚠️', 4000);
+
+    if (gameData) {
+      ui.updateGameInfo(gameData);
+      platformGate.setReleaseInfo(null, gameData);
+    }
+
+    ui.updatePlatformNotice();
   }
 
-  if (gameData) {
-    ui.updateGameInfo(gameData);
-    platformGate.setReleaseInfo(null, gameData);
-  }
-
-  ui.updatePlatformNotice();
+  if (utils.$('server-status-text')) serverStatus.start();
 
   // 공지 팝업 (마지막에 초기화)
   noticePopup.init();
