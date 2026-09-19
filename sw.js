@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matz-web-client-v3';
+const CACHE_NAME = 'matz-web-client-v4';
 const STATIC_ASSETS = [
   './',
   './index.html',

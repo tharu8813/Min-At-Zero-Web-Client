@@ -205,12 +205,14 @@
 
   /* 검색 숨김 */
   .tree-node.hidden { display: none; }
+  #wiki-search-empty { margin: 16px 20px; color: var(--text-muted); font-size: 13px; line-height: 1.7; }
+  .wiki-welcome-hint a { color: var(--green); text-decoration: underline; }
 
   /* 모바일 사이드바 토글 */
   .sidebar-toggle-btn {
     display: none;
     position: fixed; bottom: 24px; right: 24px;
-    width: 50px; height: 50px; border-radius: 50%;
+    width: auto; min-width: 110px; height: 48px; padding: 0 16px; gap: 8px; border-radius: 24px;
     background: var(--green); color: #000;
     border: none; cursor: pointer; z-index: 200;
     align-items: center; justify-content: center;
@@ -811,6 +813,7 @@
         </div>
 
         <div class="sidebar-label">문서 목록</div>
+        <p id="wiki-search-empty" role="status" hidden>검색 결과가 없습니다. 다른 제목으로 검색해 주세요.</p>
 
         <!-- 트리 렌더 영역 -->
         <div id="wiki-tree">
@@ -849,7 +852,7 @@
         <div class="wiki-welcome" id="wiki-welcome">
           <p class="wiki-welcome-eyebrow">Documentation</p>
           <h1 class="wiki-welcome-title">Min. At. Zero<br><span>Wiki</span></h1>
-          <p class="wiki-welcome-desc">서버 공략, 규칙, 무기 정보 등 모든 것을 담은 공식 위키입니다.<br>왼쪽 메뉴에서 문서를 선택하거나 검색하세요.</p>
+          <p class="wiki-welcome-desc">서버 공략, 규칙, 무기 정보 등 모든 것을 담은 공식 위키입니다.<br>문서 목록에서 궁금한 내용을 선택하거나 제목으로 검색하세요.</p>
           <div class="wiki-welcome-stats" id="wiki-welcome-stats" style="display:none">
             <div class="wiki-welcome-stat">
               <span class="wiki-welcome-stat-num" id="stat-docs">—</span>
@@ -860,7 +863,7 @@
               <span class="wiki-welcome-stat-label">카테고리</span>
             </div>
           </div>
-          <div class="wiki-welcome-hint">왼쪽 트리에서 문서를 클릭하면 내용이 표시됩니다.</div>
+          <div class="wiki-welcome-hint">처음 방문하셨나요? <a href="#1">설치부터 첫 접속까지 안내 보기 →</a></div>
         </div>
       </div>
     </main>
@@ -871,7 +874,7 @@
   <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="문서 목록 열기" aria-expanded="false" aria-controls="wiki-sidebar">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <path d="M3 12h18M3 6h18M3 18h18"/>
-    </svg>
+    </svg><span>문서 목록</span>
   </button>
 
   <!-- 푸터 -->
@@ -908,7 +911,7 @@
       const match = base.match(/^([\d]+(?:-[\d]+)*)-(.+)$/);
       if (!match) return null;
       const keys  = match[1].split('-').map(Number);
-      const title = match[2];
+      const title = match[2].replace(/_/g, ' ');
       return { keys, title, depth: keys.length };
     }
 
@@ -1011,7 +1014,7 @@
           }
           // 모바일 사이드바 닫기
           if (window.innerWidth <= 768) {
-            document.getElementById('wiki-sidebar').classList.remove('open');
+            setSidebarOpen(false);
           }
         });
 
@@ -1396,9 +1399,7 @@
             <nav class="wiki-breadcrumb">${buildBreadcrumb(doc)}</nav>
             <h1 class="wiki-doc-title">${doc.title}</h1>
             <div class="wiki-doc-meta">
-              <span>${doc.keys.join(' › ')}</span>
-              <span class="wiki-doc-meta-sep">·</span>
-              <span>${doc.path}</span>
+              <span>게임 이용 안내</span>
             </div>
             <div class="wiki-doc-divider"></div>
             <div id="wiki-body" class="wiki-body">${html}</div>
@@ -1478,6 +1479,7 @@
           node.classList.add('hidden');
         }
       });
+      document.getElementById('wiki-search-empty').hidden = !q || !!document.querySelector('.tree-node:not(.hidden)');
     }
 
     /* ─────────────────────────────────────
@@ -1545,12 +1547,22 @@
     /* ─────────────────────────────────────
        모바일 사이드바
     ───────────────────────────────────── */
-    document.getElementById('sidebar-toggle-btn').addEventListener('click', () => {
-      const sidebar = document.getElementById('wiki-sidebar');
+    function setSidebarOpen(isOpen) {
+      document.getElementById('wiki-sidebar').classList.toggle('open', isOpen);
       const btn = document.getElementById('sidebar-toggle-btn');
-      const isOpen = sidebar.classList.toggle('open');
-      btn.setAttribute('aria-expanded', isOpen);
+      btn.setAttribute('aria-expanded', String(isOpen));
       btn.setAttribute('aria-label', isOpen ? '문서 목록 닫기' : '문서 목록 열기');
+      btn.querySelector('span').textContent = isOpen ? '목록 닫기' : '문서 목록';
+    }
+    document.getElementById('sidebar-toggle-btn').addEventListener('click', () => {
+      setSidebarOpen(!document.getElementById('wiki-sidebar').classList.contains('open'));
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && document.getElementById('wiki-sidebar').classList.contains('open')) {
+        event.preventDefault();
+        setSidebarOpen(false);
+        document.getElementById('sidebar-toggle-btn').focus();
+      }
     });
 
     /* 뒤로가기 처리 및 Hash 변경 처리 */

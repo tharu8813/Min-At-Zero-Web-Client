@@ -206,22 +206,38 @@ body::after,
 .btn-shimmer, .btn-ripple { display: none; }
 .hint-text { color: var(--text-dim); font-family: 'Noto Sans KR', sans-serif; letter-spacing: 0; }
 
-.launcher-maintenance summary,
-.mobile-disclosure summary {
-  display: none;
-}
-
-.launcher-maintenance-actions {
-  display: contents;
-}
-
-.launcher-maintenance:not([open]) > .launcher-maintenance-actions {
-  display: contents;
-}
-
-.mobile-disclosure:not([open]) > .steps-wrap {
+ .launcher-maintenance summary,
+.mobile-disclosure summary,
+.release-details summary {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
 }
+.launcher-maintenance-actions { display: grid; gap: 8px; margin-top: 8px; }
+.launcher-maintenance:not([open]) > .launcher-maintenance-actions,
+.mobile-disclosure:not([open]) > .steps-wrap { display: none; }
+.mobile-disclosure[open] > .steps-wrap { display: flex; }
+.release-details { margin-top: 12px; }
+.hint-text a { color: var(--green); text-decoration: underline; }
+#installation-card, #download-card { scroll-margin-top: 24px; }
+#download-card .download-section { display: flex; flex-direction: column; align-items: stretch; text-align: left; }
+#download-card .dl-btn { width: 100%; }
+#download-card .dl-meta-row { flex-wrap: wrap; }
+#download-card .dl-btn-wrap { width: 100%; }
+#download-card .dl-title { font-size: clamp(20px, 3vw, 30px); }
+#download-card .dl-desc { line-height: 1.7; }
+#download-card .dl-meta-row { justify-content: flex-start; }
+#installation-card .steps-wrap { margin-top: 12px; }
+.status-item:first-child { flex-wrap: wrap; }
+.status-item .hint-text { margin: 0; font-size: 11px; }
 
 .footer { margin-top: 48px; border-top-color: var(--border); background: transparent; }
 .footer-wrap { padding-bottom: 0; }
@@ -231,17 +247,10 @@ body::after,
 .footer-col-title::after { background: var(--border); }
 .footer-link:hover { color: var(--text-primary); }
 
-.pwa-install-inner {
-  background: #1b221e;
-  border-color: var(--border);
-  border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0,0,0,.28);
-  backdrop-filter: none;
-}
-.pwa-install-btn.primary { background: var(--green); color: #102016; border-color: var(--green); }
+.site-install-btn { padding: 10px; margin-bottom: 12px; color: var(--text-primary); background: transparent; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
 
 @media (max-width: 1080px) {
-  .main-grid { grid-template-columns: minmax(0, 1fr); }
+  .main-grid { grid-template-columns: 230px minmax(0, 1fr); }
   .sidebar, .main-content, .full-row { min-width: 0; }
   .sidebar { order: 1; }
   .main-content { order: 2; }
@@ -295,6 +304,7 @@ body::after,
   .home-page .main-grid {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 20px;
     margin-top: 4px;
   }
@@ -307,14 +317,15 @@ body::after,
 
   .home-page #launcher-card { order: 1; }
   .home-page #download-card { order: 2; }
-  .home-page #community-card { order: 3; }
-  .home-page #showcase-slider-section { order: 4; }
-  .home-page #trailer-card { order: 5; }
-  .home-page #ranking-preview-card { order: 6; }
-  .home-page #installation-card { order: 7; }
+  .home-page #community-card { order: 4; }
+  .home-page #showcase-slider-section { order: 5; }
+  .home-page #trailer-card { order: 6; }
+  .home-page #ranking-preview-card { order: 7; }
+  .home-page #installation-card { order: 3; }
   .home-page #faq-section { order: 8; }
   .home-page #requirements-card { order: 9; }
-  .home-page #game-patch-notes-card { order: 10; }
+  .home-page #notice-card { order: 10; }
+  .home-page #game-patch-notes-card { order: 11; }
 
   .home-page .main-grid .card {
     padding: 17px;

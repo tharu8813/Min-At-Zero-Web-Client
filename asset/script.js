@@ -7,6 +7,7 @@ const CONFIG = Object.freeze({
   REPOS: {
     client: 'tharu8813/Min-At-Zero-Client',
     game: 'tharu8813/Min-At-Zero',
+    notice: 'tharu8813/Min-At-Zero-Web-Client',
   },
   FALLBACK: {
     clientUrl: 'https://github.com/tharu8813/Min-At-Zero-Client/releases/latest',
@@ -23,7 +24,6 @@ const CONFIG = Object.freeze({
     buttonFx: false,
   }),
   SERVER_IP: 'tharu81.kro.kr',
-  DOWNTIME_KEY: 'matz_offline_since',
   STATUS_INTERVAL: 60_000,
   SLIDER_IMAGES: 10,
   SLIDER_AUTO_MS: 5_000,
@@ -65,172 +65,15 @@ const platformGuard = (() => {
   };
 })();
 
-const platformGate = (() => {
-  let clientReleaseData = null;
-  let gameReleaseData = null;
-  const PLATFORM_POPUP_SEEN_KEY = 'matz_platform_popup_seen';
-
-  function ensureOverlay() {
-    let overlay = utils.$('platform-blocked-overlay');
-    if (overlay) return overlay;
-
-    overlay = document.createElement('div');
-    overlay.id = 'platform-blocked-overlay';
-    overlay.className = 'platform-blocked-overlay';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', '지원 환경 안내');
-    overlay.setAttribute('aria-hidden', 'true');
-    overlay.innerHTML = `
-      <div class="platform-blocked-box">
-        <h1>Windows 전용 환경입니다.</h1>
-        <p>현재 감지된 플랫폼에서는 게임 플레이가 불가능합니다. 아래 내용을 참고하시고, Windows PC에서 접속해 주세요.</p>
-        <div class="platform-blocked-meta">
-          <span id="platform-blocked-os">현재 플랫폼을 확인 중입니다.</span>
-        </div>
-        <div class="platform-blocked-details" id="platform-blocked-details"></div>
-        <button class="platform-blocked-close" id="platform-blocked-close" type="button">팝업 닫기</button>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-
-    overlay.addEventListener('click', e => {
-      if (e.target === overlay) {
-        overlay.classList.remove('visible');
-        overlay.setAttribute('aria-hidden', 'true');
-      }
+const platformGate = {
+  init() {
+    const unsupported = !platformGuard.isSupported;
+    document.body.classList.toggle('platform-unsupported', unsupported);
+    document.querySelectorAll('.launcher-card button').forEach(button => {
+      button.disabled = unsupported;
     });
-
-    return overlay;
-  }
-
-  const overlayEl = () => ensureOverlay();
-  const detailsEl = () => utils.$('platform-blocked-details');
-  const osTextEl = () => utils.$('platform-blocked-os');
-  const closeBtn = () => utils.$('platform-blocked-close');
-
-  function getDetectedLabel() {
-    if (platformGuard.isWindows) return 'Windows';
-    if (platformGuard.isAndroid) return 'Android';
-    if (platformGuard.isIOS) return 'iOS';
-    if (platformGuard.isMac) return 'macOS';
-    if (platformGuard.isLinux) return 'Linux';
-    return platformGuard.platform || platformGuard.ua || '알 수 없는 환경';
-  }
-
-  function updateDetails() {
-    const details = detailsEl();
-    if (!details) return;
-
-    const detected = getDetectedLabel();
-    const lines = [];
-
-    lines.push('<p>Windows 전용 클라이언트를 요구하는 서버입니다. 해당 플랫폼에서는 게임 실행이 불가능합니다.</p>');
-    lines.push(`<p><strong>감지된 플랫폼:</strong> ${utils.sanitizeText(detected)}</p>`);
-
-    if (gameReleaseData) {
-      const title = utils.sanitizeText(gameReleaseData.name || `최신 게임 업데이트 (v${gameReleaseData.tag_name || 'N/A'})`);
-      const date = utils.fmtDate(gameReleaseData.published_at);
-      const link = utils.sanitizeUrl(gameReleaseData.html_url || '');
-      lines.push('<ul>');
-      lines.push(`<li><strong>게임 패치:</strong> ${title} · ${date}</li>`);
-      if (link !== '#') lines.push(`<li><a href="${link}" target="_blank" rel="noopener noreferrer">GitHub에서 패치노트 보기</a></li>`);
-      lines.push('</ul>');
-    }
-
-    if (clientReleaseData) {
-      const tag = utils.sanitizeText(clientReleaseData.tag_name || 'v?');
-      const link = utils.sanitizeUrl(clientReleaseData.html_url || CONFIG.FALLBACK.clientUrl);
-      lines.push('<ul>');
-      lines.push(`<li><strong>클라이언트 업데이트:</strong> ${tag}</li>`);
-      if (link !== '#') lines.push(`<li><a href="${link}" target="_blank" rel="noopener noreferrer">업데이트 정보 보기</a></li>`);
-      lines.push('</ul>');
-    }
-
-    details.innerHTML = lines.join('');
-  }
-
-  function setControlState(unsupported) {
-    const controls = [
-      ...Array.from(document.querySelectorAll('.launcher-card button')),
-      utils.$('download-btn'),
-    ];
-
-    controls.forEach((el) => {
-      if (!el) return;
-      if (unsupported) {
-        el.setAttribute('aria-disabled', 'true');
-        if (el instanceof HTMLButtonElement) el.disabled = true;
-        if (el instanceof HTMLAnchorElement) el.tabIndex = -1;
-      } else {
-        el.removeAttribute('aria-disabled');
-        if (el instanceof HTMLButtonElement) el.disabled = false;
-        if (el instanceof HTMLAnchorElement) el.tabIndex = 0;
-      }
-    });
-  }
-
-  function setReleaseInfo(clientData, gameData) {
-    if (clientData) clientReleaseData = clientData;
-    if (gameData) gameReleaseData = gameData;
-    if (!platformGuard.isSupported) updateDetails();
-  }
-
-  function toggleUnsupported(unsupported) {
-    const overlay = overlayEl();
-    const osText = osTextEl();
-    if (!overlay) return;
-
-    const detected = getDetectedLabel();
-    if (osText) osText.textContent = `현재 감지된 플랫폼: ${detected}`;
-
-    if (!unsupported) {
-      document.body.classList.remove('platform-blocked', 'platform-unsupported');
-      overlay.classList.remove('visible');
-      overlay.setAttribute('aria-hidden', 'true');
-      setControlState(false);
-      return;
-    }
-
-    document.body.classList.add('platform-blocked', 'platform-unsupported');
-    updateDetails();
-    setControlState(true);
-
-    const hasSeenPopup = sessionStorage.getItem(PLATFORM_POPUP_SEEN_KEY) === '1';
-    if (!hasSeenPopup) {
-      sessionStorage.setItem(PLATFORM_POPUP_SEEN_KEY, '1');
-      overlay.classList.add('visible');
-      overlay.setAttribute('aria-hidden', 'false');
-    } else {
-      overlay.classList.remove('visible');
-      overlay.setAttribute('aria-hidden', 'true');
-    }
-  }
-
-  function init() {
-    const overlay = overlayEl();
-    const closeButton = closeBtn();
-    if (!overlay) return;
-
-    toggleUnsupported(!platformGuard.isSupported);
-
-    if (closeButton) {
-      closeButton.addEventListener('click', () => {
-        overlay.classList.remove('visible');
-        overlay.setAttribute('aria-hidden', 'true');
-      });
-    }
-
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        overlay.classList.remove('visible');
-        overlay.setAttribute('aria-hidden', 'true');
-      }
-    });
-  }
-
-  return { init, setReleaseInfo };
-})();
+  },
+};
 
 /* ════════════════════════════════════════════
    SOUND (graceful no-op when audio unavailable)
@@ -517,7 +360,7 @@ const api = {
     }
 
     try {
-      const r = await fetch(`https://api.github.com/repos/${CONFIG.REPOS[type]}/releases/latest`);
+      const r = await fetch(`https://api.github.com/repos/${CONFIG.REPOS[type]}/releases/latest`, { signal: AbortSignal.timeout(10_000) });
       if (!r.ok) return cached?.data ?? null;
 
       const data = await r.json();
@@ -535,14 +378,6 @@ const api = {
    UI
 ════════════════════════════════════════════ */
 const ui = {
-  updatePlatformNotice() {
-    const mobileNotice = utils.$('mobile-compact-card');
-    if (!mobileNotice) return;
-
-    const shouldShowMobileNotice = !platformGuard.isWindows && platformGuard.isDesktop;
-    mobileNotice.classList.toggle('visible', shouldShowMobileNotice);
-  },
-
   updateClientInfo(data) {
     const tag = data?.tag_name ?? '1.0.0';
 
@@ -554,29 +389,20 @@ const ui = {
     utils.setText('dl-version-text', `v${tag}`);
     utils.setText('dl-sub-ver', `Client v${tag}`);
 
-    const exe = data?.assets?.find(a => a.name.toLowerCase().endsWith('.exe'));
-    const btn = utils.$('download-btn');
-
-    if (exe && btn) {
-      btn.href = exe.browser_download_url;
-      const sizeEl = utils.$('file-size');
-      if (sizeEl) sizeEl.textContent = `약 ${(exe.size / 1048576).toFixed(1)}MB`;
-    } else if (btn) {
-      btn.href = CONFIG.FALLBACK.clientUrl;
-    }
+    download.setRelease(data);
 
     if (data?.body) {
       const wrap = utils.$('client-patch-notes');
       if (!wrap) return;
       wrap.innerHTML = `
-        <div class="client-update-box">
+        <details class="client-update-box release-details"><summary>클라이언트 업데이트 내용</summary>
           <div class="client-update-header">
             <span style="font-family:var(--mono);font-size:16px;letter-spacing:2px;color:var(--blue);text-transform:uppercase">Client Update</span>
             <span style="font-family:var(--mono);font-size:14px;color:var(--text-dim)">v${utils.sanitizeText(tag)} · ${utils.fmtDate(data.published_at)}</span>
           </div>
           <div class="patch-body" style="border-color:rgba(59,130,246,0.1)">${utils.fmtMd(data.body)}</div>
           ${data.html_url ? `<a href="${utils.sanitizeUrl(data.html_url)}" target="_blank" rel="noopener noreferrer" class="patch-link" style="color:var(--blue)">GitHub에서 보기 →</a>` : ''}
-        </div>`;
+        </details>`;
     }
   },
 
@@ -632,29 +458,6 @@ const ui = {
 const serverStatus = (() => {
   let intervalId = null;
 
-  function saveDowntime() {
-    try {
-      if (!localStorage.getItem(CONFIG.DOWNTIME_KEY)) {
-        localStorage.setItem(CONFIG.DOWNTIME_KEY, String(Date.now()));
-      }
-    } catch { }
-  }
-
-  function clearDowntime() {
-    try { localStorage.removeItem(CONFIG.DOWNTIME_KEY); } catch { }
-  }
-
-  function getDowntimeLabel() {
-    try {
-      const since = localStorage.getItem(CONFIG.DOWNTIME_KEY);
-      if (!since) return '';
-      const mins = Math.floor((Date.now() - Number(since)) / 60_000);
-      if (mins < 1) return '방금 전부터 오프라인';
-      if (mins < 60) return `${mins}분 전부터 오프라인`;
-      return `${Math.floor(mins / 60)}시간 전부터 오프라인`;
-    } catch { return ''; }
-  }
-
   async function checkServer() {
     const dot = utils.$('status-dot');
     const txt = utils.$('server-status-text');
@@ -675,14 +478,12 @@ const serverStatus = (() => {
       }
 
       if (data.online) {
-        clearDowntime();
-        utils.$('downtime-label')?.remove();
 
         if (dot) {
           dot.style.background = '#22c55e';
           dot.style.boxShadow = '0 0 8px #22c55e';
         }
-        utils.animateText(txt, 'Online');
+        utils.animateText(txt, '온라인');
         if (players && data.players) {
           const online = data.players.online ?? 0;
           const max = data.players.max ?? '?';
@@ -691,28 +492,20 @@ const serverStatus = (() => {
           utils.animateText(players, '— / —');
         }
       } else {
-        saveDowntime();
 
         if (dot) {
           dot.style.background = '#ef4444';
           dot.style.boxShadow = '0 0 8px #ef4444';
         }
-        utils.animateText(txt, 'Offline');
+        utils.animateText(txt, '오프라인');
         utils.animateText(players, '— / —');
 
-        const lbl = getDowntimeLabel();
-        if (lbl && txt?.parentElement) {
-          let dtEl = utils.$('downtime-label');
-          if (!dtEl) {
-            dtEl = document.createElement('span');
-            dtEl.id = 'downtime-label';
-            dtEl.className = 'downtime-label';
-            txt.parentElement.appendChild(dtEl);
-          }
-          dtEl.textContent = lbl;
-        }
       }
+      utils.setText('server-status-checked', `${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 확인`);
     } catch (err) {
+      utils.setText('server-status-checked', '잠시 후 다시 확인합니다');
+      utils.animateText(players, '— / —');
+      if (dot) { dot.style.background = '#a7b2a9'; dot.style.boxShadow = 'none'; }
       if (err.name === 'AbortError') {
         utils.animateText(txt, '응답 없음');
       } else {
@@ -1864,7 +1657,7 @@ const launcher = (() => {
     if (bool) {
       setTimeout(() => {
         if (document.hasFocus()) {
-          toast.show('전용 클라이언트가 설치되어 있지 않습니다.', '⚠️', 4000);
+          toast.show('실행되지 않았나요? 브라우저의 앱 열기 요청을 확인하거나 설치·로그인 안내를 확인하세요.', 'ℹ️', 6000);
         }
       }, 1000);
     }
@@ -1918,48 +1711,41 @@ const launcher = (() => {
    DOWNLOAD
 ════════════════════════════════════════════ */
 const download = (() => {
+  function setRelease(data) {
+    const btn = utils.$('download-btn');
+    if (!btn) return;
+    const exe = data?.assets?.find(asset => asset.name.toLowerCase().endsWith('.exe') && /^https:\/\//.test(asset.browser_download_url));
+    btn.href = exe ? exe.browser_download_url : CONFIG.FALLBACK.clientUrl;
+    btn.dataset.directDownload = String(!!exe);
+    const label = exe ? 'Windows 설치 파일 다운로드' : '다운로드 페이지 열기';
+    btn.querySelector('.dl-text').textContent = label;
+    btn.setAttribute('aria-label', label);
+    utils.setText('dl-sub-ver', exe ? 'Windows 10/11 · 64비트' : 'GitHub에서 Windows 설치 파일 선택');
+    utils.setText('file-size', exe ? `약 ${(exe.size / 1048576).toFixed(1)}MB` : '파일 용량은 다운로드 페이지에서 확인');
+  }
+
   function init() {
     const btn = utils.$('download-btn');
     if (!btn) return;
-
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', e => {
       if (!platformGuard.isSupported) {
         e.preventDefault();
-        toast.show('Windows에서만 클라이언트를 다운로드할 수 있습니다.', '⚠️', 3000);
+        toast.show('Windows PC에서 클라이언트를 설치해 주세요.', 'ℹ️', 4000);
         return;
       }
-
-      const href = btn.getAttribute('href');
-      if (!href || href === '') {
-        toast.show('다운로드 링크를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.', '⏳', 3000);
-        return;
-      }
-
-      btn.classList.add('dl-done');
-      const textEl = btn.querySelector('.dl-text');
-      const subEl = btn.querySelector('.dl-sub');
-      const subVer = utils.$('dl-sub-ver')?.textContent ?? '';
-      if (textEl) textEl.textContent = '다운로드 시작됨 ✓';
-      if (subEl) subEl.textContent = '잠시만 기다려주세요';
-
-      toast.show('클라이언트 다운로드가 시작되었습니다', '⬇️', 4000);
-
-      setTimeout(() => {
-        btn.classList.remove('dl-done');
-        if (textEl) textEl.textContent = 'Windows 클라이언트';
-        if (subEl) subEl.textContent = subVer;
-      }, 5000);
+      toast.show(btn.dataset.directDownload === 'true'
+        ? '다운로드를 요청했습니다. 브라우저의 다운로드 목록을 확인하세요.'
+        : 'GitHub 다운로드 페이지를 엽니다. Assets에서 .exe 파일을 선택하세요.', '⬇️', 5000);
     });
   }
-
-  return { init };
+  return { init, setRelease };
 })();
 
 /* ════════════════════════════════════════════
    LAYOUT LOADER
 ════════════════════════════════════════════ */
 const layout = (() => {
-  const HEADER_CACHE_KEY = 'maz_layout_header_html_v2';
+  const HEADER_CACHE_KEY = 'maz_layout_header_html_v3';
   const FOOTER_CACHE_KEY = 'maz_layout_footer_html_v2';
 
   function getCached(key) {
@@ -2052,446 +1838,47 @@ const layout = (() => {
   return { load };
 })();
 
-/* ════════════════════════════════════════════
-   NOTICE POPUP  (카드 스택 멀티 팝업)
-   ─────────────────────────────────────────
-   지원 타입:
-     notice  – tharu8813/Min-At-Zero-Web-Client 릴리즈 (초록)
-     patch   – tharu8813/Min-At-Zero 릴리즈       (파랑)
-
-   동작:
-     · 세션당 1회 표시  (새로고침/재방문 시 재표시)
-     · "다시 보지 않기" 체크 → 해당 릴리즈 ID 영구 숨김
-     · 여러 팝업이 있으면 카드처럼 뒤에 쌓여 보임
-     · 닫을 때마다 맨 앞 카드가 사라지고 다음 카드가 올라옴
-════════════════════════════════════════════ */
-const noticePopup = (() => {
-
-  /* ── 타입별 설정 ── */
-  const TYPE_CFG = {
-    notice: {
-      repo:       'tharu8813/Min-At-Zero-Web-Client',
-      sessionKey: 'matz_notice_seen',
-      hiddenKey:  'matz_notice_hidden_ids',
-      cacheKey:   'matz_notice_release_cache',
-      badge:      '📢 NOTICE',
-      accentVar:  '--notice-accent',     // CSS 변수명
-      accentVal:  '#22c55e',
-      noseeLabel: '이 공지를 다시 보지 않기',
-      confirmBtn: '확인',
-    },
-    patch: {
-      repo:       'tharu8813/Min-At-Zero',
-      sessionKey: 'matz_patch_seen',
-      hiddenKey:  'matz_patch_hidden_ids',
-      cacheKey:   'matz_patch_release_cache',
-      badge:      '🔧 PATCH NOTE',
-      accentVar:  '--patch-accent',
-      accentVal:  '#3b82f6',
-      noseeLabel: '이 패치노트를 다시 보지 않기',
-      confirmBtn: '확인',
-    },
-  };
-
-  /* ── 내부 상태 ── */
-  // 표시할 항목 큐: [{ type, release }, ...]  — 앞이 현재 표시 중
-  let queue = [];
-  let overlayVisible = false;
-
-  /* ── localStorage 헬퍼 ── */
-  function getHiddenIds(key) {
-    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
-  }
-  function addHiddenId(key, id) {
-    const ids = getHiddenIds(key);
-    if (!ids.includes(id)) ids.push(id);
-    try { localStorage.setItem(key, JSON.stringify(ids)); } catch {}
-  }
-
-  /* ── 릴리즈 fetch (세션 캐시) ── */
-  async function fetchRelease(type) {
-    const cfg = TYPE_CFG[type];
-    try {
-      const raw = sessionStorage.getItem(cfg.cacheKey);
-      if (raw) return JSON.parse(raw);
-    } catch {}
-    try {
-      const res = await fetch(`https://api.github.com/repos/${cfg.repo}/releases/latest`);
-      if (!res.ok) return null;
-      const data = await res.json();
-      try { sessionStorage.setItem(cfg.cacheKey, JSON.stringify(data)); } catch {}
-      return data;
-    } catch { return null; }
-  }
-
-  /* ══════════════════════════════════════
-     DOM 생성 / 렌더링
-  ══════════════════════════════════════ */
-
-  /* 오버레이 컨테이너 1개만 생성 */
-  function ensureOverlay() {
-    if (utils.$('nstack-overlay')) return;
-    const ov = document.createElement('div');
-    ov.id = 'nstack-overlay';
-    ov.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(ov);
-
-    // 오버레이 배경 클릭 → 현재 카드 닫기
-    ov.addEventListener('click', e => {
-      if (e.target === ov) dismissTop(false);
-    });
-  }
-
-  /* 카드 하나 만들기 */
-  function buildCard(type, release, stackIndex, total) {
-    const cfg    = TYPE_CFG[type];
-    const tag    = release.tag_name ?? '';
-    const name   = release.name    ?? (tag ? `${cfg.badge} ${tag}` : cfg.badge);
-    const date   = utils.fmtDate(release.published_at);
-    const body   = release.body    ?? '';
-    const ghUrl  = release.html_url ?? '';
-
-    const card = document.createElement('div');
-    card.className  = 'nstack-card';
-    card.dataset.type      = type;
-    card.dataset.releaseId = String(release.id);
-    card.dataset.accent    = cfg.accentVal;
-
-    // 스택 뒤 카드 위치는 CSS 변수로 제어
-    card.style.setProperty('--stack-i', String(stackIndex));
-    card.style.setProperty('--accent', cfg.accentVal);
-
-    card.innerHTML = `
-      <div class="nstack-glow-line"></div>
-
-      <div class="nstack-header">
-        <div class="nstack-header-left">
-          <span class="nstack-badge">${cfg.badge}</span>
-          <h2 class="nstack-title">${utils.sanitizeText(name)}</h2>
-        </div>
-        <button class="nstack-close-btn" aria-label="닫기">✕</button>
-      </div>
-
-      <div class="nstack-meta">
-        ${tag ? `<span class="nstack-meta-tag">v${utils.sanitizeText(tag)}</span>` : ''}
-        <span class="nstack-meta-date">${utils.sanitizeText(date)}</span>
-        ${total > 1 ? `<span class="nstack-counter">${total - stackIndex} / ${total}</span>` : ''}
-      </div>
-
-      <div class="nstack-body-wrap">
-        <div class="nstack-body">${utils.fmtMd(body) || '<p style="color:var(--text-dim)">내용이 없습니다.</p>'}</div>
-      </div>
-
-      <div class="nstack-footer">
-        <label class="nstack-nosee-label">
-          <input type="checkbox" class="nstack-nosee-chk">
-          <span class="nstack-nosee-custom"></span>
-          <span class="nstack-nosee-text">${cfg.noseeLabel}</span>
-        </label>
-        ${ghUrl ? `<a class="nstack-gh-link" href="${utils.sanitizeUrl(ghUrl)}" target="_blank" rel="noopener noreferrer">GitHub에서 보기 →</a>` : ''}
-        <button class="nstack-confirm-btn">${cfg.confirmBtn}</button>
-      </div>`;
-
-    /* 버튼 이벤트 */
-    card.querySelector('.nstack-close-btn').addEventListener('click',   () => dismissTop(false));
-    card.querySelector('.nstack-confirm-btn').addEventListener('click', () => dismissTop(true));
-
-    return card;
-  }
-
-  /* ══════════════════════════════════════
-     스택 렌더 (카드 위치 재계산)
-  ══════════════════════════════════════ */
-  function renderStack() {
-    const ov = utils.$('nstack-overlay');
-    if (!ov) return;
-
-    const cards = Array.from(ov.querySelectorAll('.nstack-card'));
-    const n = cards.length;
-
-    cards.forEach((card, i) => {
-      // i=0 이 맨 앞(현재), i=n-1 이 맨 뒤
-      card.style.setProperty('--stack-i', String(i));
-      card.style.zIndex = String(100 - i);
-
-      // 맨 앞 카드만 인터랙션 가능
-      card.style.pointerEvents = i === 0 ? 'auto' : 'none';
-    });
-  }
-
-  /* ══════════════════════════════════════
-     열기
-  ══════════════════════════════════════ */
-  function openAll() {
-    ensureOverlay();
-    const ov = utils.$('nstack-overlay');
-    if (!ov) return;
-
-    // 뒤에서부터 appendChild → 앞(index 0)이 맨 위 DOM에 쌓임
-    // 실제로는 z-index로 제어하므로 역순으로 추가
-    [...queue].reverse().forEach(({ type, release }, ri) => {
-      const stackIndex = queue.length - 1 - ri; // 0 = 맨 앞
-      const card = buildCard(type, release, stackIndex, queue.length);
-      ov.appendChild(card);
-    });
-
-    renderStack();
-
-    ov.style.display = 'flex';
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      ov.classList.add('active');
-      ov.setAttribute('aria-hidden', 'false');
-    }));
-
-    overlayVisible = true;
-    document.addEventListener('keydown', onEsc);
-  }
-
-  /* ══════════════════════════════════════
-     닫기 (맨 앞 카드 dismiss)
-  ══════════════════════════════════════ */
-  function dismissTop(withCheck) {
-    const ov = utils.$('nstack-overlay');
-    if (!ov) return;
-
-    const cards = Array.from(ov.querySelectorAll('.nstack-card'));
-    if (!cards.length) return;
-
-    const topCard = cards[0]; // z-index 최상위 = DOM 마지막 추가된 것 아님, renderStack에서 z-index로 관리
-    // 실제 맨 앞 카드는 stack-i = 0 인 카드
-    const frontCard = cards.find(c => c.style.getPropertyValue('--stack-i') === '0') ?? cards[0];
-
-    if (withCheck) {
-      const chk = frontCard.querySelector('.nstack-nosee-chk');
-      if (chk?.checked) {
-        const type      = frontCard.dataset.type;
-        const releaseId = Number(frontCard.dataset.releaseId);
-        const hiddenKey = TYPE_CFG[type]?.hiddenKey;
-        if (hiddenKey) addHiddenId(hiddenKey, releaseId);
-      }
-    }
-
-    /* 퇴장 애니메이션 */
-    frontCard.classList.add('nstack-card-exit');
-    frontCard.addEventListener('animationend', () => {
-      frontCard.remove();
-
-      const remaining = ov.querySelectorAll('.nstack-card');
-      if (!remaining.length) {
-        // 모든 카드 닫힘 → 오버레이 닫기
-        closeOverlay();
-      } else {
-        renderStack();
-      }
-    }, { once: true });
-  }
-
-  function closeOverlay() {
-    const ov = utils.$('nstack-overlay');
-    if (!ov) return;
-
-    ov.classList.remove('active');
-    ov.setAttribute('aria-hidden', 'true');
-    overlayVisible = false;
-    document.removeEventListener('keydown', onEsc);
-
-    ov.addEventListener('transitionend', () => {
-      ov.style.display = 'none';
-      // 혹시 남은 카드 제거
-      ov.querySelectorAll('.nstack-card').forEach(c => c.remove());
-    }, { once: true });
-  }
-
-  function onEsc(e) {
-    if (e.key === 'Escape' && overlayVisible) dismissTop(false);
-  }
-
-  /* ══════════════════════════════════════
-     초기화
-  ══════════════════════════════════════ */
-  async function init() {
-    const types = ['notice', 'patch'];
-
-    const results = await Promise.all(types.map(async type => {
-      const cfg = TYPE_CFG[type];
-
-      // 이미 이번 세션에 봤으면 스킵
-      try { if (sessionStorage.getItem(cfg.sessionKey)) return null; } catch {}
-
-      const release = await fetchRelease(type);
-      if (!release) return null;
-      if (!release.body && !release.name) return null;
-
-      // 다시 보지 않기 체크된 ID면 스킵
-      if (getHiddenIds(cfg.hiddenKey).includes(release.id)) return null;
-
-      // 세션 기록
-      try { sessionStorage.setItem(cfg.sessionKey, '1'); } catch {}
-
-      return { type, release };
-    }));
-
-    queue = results.filter(Boolean);
-    if (!queue.length) return;
-
-    setTimeout(openAll, 800);
-  }
-
-  return { init };
-})();
-
-/* ════════════════════════════════════════════
-   PWA INSTALL PROMPT
-   — 설치 가능할 때만 작은 팝업으로 표시하고, 사이트 사용을 방해하지 않도록 함
-════════════════════════════════════════════ */
-const pwaInstall = (() => {
-  const DISMISS_KEY = 'matz_pwa_install_dismissed';
-  const LATER_KEY = 'matz_pwa_install_later';
-  const SHOW_DELAY_MS = 12000;
-  const POLL_MS = 1500;
-
-  let deferredPrompt = null;
-  let scheduled = false;
-
-  function isInstalled() {
-    return window.matchMedia('(display-mode: standalone)').matches
-      || window.navigator.standalone === true;
-  }
-
-  function isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  }
-
-  function isDismissedPermanently() {
-    try { return localStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; }
-  }
-
-  function isDismissedSession() {
-    try { return sessionStorage.getItem(LATER_KEY) === '1'; } catch { return false; }
-  }
-
-  function canOfferInstall() {
-    return !isInstalled() && !isDismissedPermanently() && !isDismissedSession();
-  }
-
-  function noticeOverlayOpen() {
-    const ov = utils.$('nstack-overlay');
-    return ov?.classList.contains('active') || ov?.style.display === 'flex';
-  }
-
-  function hideBanner() {
-    const banner = utils.$('pwa-install-banner');
-    if (!banner) return;
-    banner.classList.remove('show');
-    banner.addEventListener('transitionend', () => banner.remove(), { once: true });
-  }
-
-  function dismiss(permanent = false) {
-    if (permanent) {
-      try { localStorage.setItem(DISMISS_KEY, '1'); } catch {}
-    } else {
-      try { sessionStorage.setItem(LATER_KEY, '1'); } catch {}
-    }
-    hideBanner();
-  }
-
-  function createBanner() {
-    if (utils.$('pwa-install-banner') || !canOfferInstall()) return;
-
-    const ios = isIOS();
-    const hasNativePrompt = !!deferredPrompt;
-
-    const banner = document.createElement('aside');
-    banner.id = 'pwa-install-banner';
-    banner.className = 'pwa-install-banner';
-    banner.setAttribute('role', 'dialog');
-    banner.setAttribute('aria-label', '앱 설치 안내');
-
-    const iosHint = ios && !hasNativePrompt
-      ? '<span class="pwa-install-hint">Safari의 공유 버튼 → 홈 화면에 추가</span>'
-      : '<span class="pwa-install-hint">브라우저 메뉴에서 앱으로 설치할 수 있어요</span>';
-
-    banner.innerHTML =
-      '<div class="pwa-install-inner">' +
-        '<img src="asset/image/icon.png" alt="" class="pwa-install-icon" width="40" height="40"' +
-        ' onerror="this.style.display=\'none\'">' +
-        '<div class="pwa-install-body">' +
-          '<strong class="pwa-install-title">이 사이트를 앱처럼 사용해볼까요?</strong>' +
-          '<span class="pwa-install-desc">홈 화면에 추가하면 더 빠르게 열고, 바로 접속할 수 있어요.</span>' +
-          iosHint +
-        '</div>' +
-        '<div class="pwa-install-actions">' +
-          '<button type="button" class="pwa-install-btn primary" id="pwa-install-add">추가하기</button>' +
-          '<button type="button" class="pwa-install-btn secondary" id="pwa-install-later">나중에</button>' +
-        '</div>' +
-        '<button type="button" class="pwa-install-close" id="pwa-install-close" aria-label="닫기">×</button>' +
-      '</div>';
-
-    document.body.appendChild(banner);
-    requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('show')));
-
-    utils.$('pwa-install-add')?.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        deferredPrompt = null;
-        dismiss(outcome === 'accepted');
-        return;
-      }
-      if (ios) {
-        toast.show('Safari 하단 공유 버튼 → "홈 화면에 추가"를 선택하세요', '📲', 6000);
-      } else {
-        toast.show('브라우저 메뉴에서 “앱으로 설치”를 선택하세요', '📱', 6000);
-      }
-      dismiss(false);
-    });
-
-    utils.$('pwa-install-later')?.addEventListener('click', () => dismiss(false));
-    utils.$('pwa-install-close')?.addEventListener('click', () => dismiss(false));
-  }
-
-  function scheduleShow() {
-    if (scheduled || !canOfferInstall()) return;
-
-    scheduled = true;
-
-    const attempt = () => {
-      if (!canOfferInstall()) return;
-      if (noticeOverlayOpen()) {
-        setTimeout(attempt, POLL_MS);
-        return;
-      }
-      createBanner();
-    };
-
-    setTimeout(attempt, SHOW_DELAY_MS);
-  }
-
-  function init() {
+/* 홈에서 필요할 때 펼쳐 읽는 공지 */
+async function loadNotice() {
+  if (!utils.$('notice-card')) return;
+  const release = await api.fetchRelease('notice');
+  if (!release) return;
+  utils.setText('notice-title', release.name || '최신 서버 공지');
+  utils.setText('notice-date', utils.fmtDate(release.published_at));
+  utils.$('notice-body').innerHTML = utils.fmtMd(release.body || '');
+  utils.$('notice-details').hidden = !release.body;
+  if (release.html_url) utils.$('notice-link').href = utils.sanitizeUrl(release.html_url);
+}
+
+/* 사이트 앱 설치는 사용자가 요청할 때만 제공한다. */
+const pwaInstall = {
+  init() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch((err) => {
-        console.warn('Service Worker registration failed:', err);
-      });
+      navigator.serviceWorker.register('./sw.js').catch(error => console.warn('SW registration failed:', error));
     }
-
-    if (!utils.$('download-btn') || !canOfferInstall()) return;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      scheduleShow();
+    const button = utils.$('site-install-btn');
+    if (!button) return;
+    let prompt = null;
+    window.addEventListener('beforeinstallprompt', event => {
+      event.preventDefault();
+      prompt = event;
+      button.hidden = false;
     });
-
-    window.addEventListener('appinstalled', () => {
-      deferredPrompt = null;
-      dismiss(true);
+    button.addEventListener('click', async () => {
+      if (!prompt) return;
+      const request = prompt;
+      prompt = null;
+      button.hidden = true;
+      try {
+        await request.prompt();
+        await request.userChoice;
+      } catch {
+        toast.show('사이트 앱을 설치하지 못했습니다. 브라우저 메뉴에서 다시 시도해 주세요.', 'ℹ️');
+      }
     });
-
-    scheduleShow();
-  }
-
-  return { init };
-})();
+    window.addEventListener('appinstalled', () => { prompt = null; button.hidden = true; });
+  },
+};
 
 /* ════════════════════════════════════════════
    INIT
@@ -2521,11 +1908,12 @@ const pwaInstall = (() => {
       const action = summary.querySelector('.mobile-disclosure-action');
       if (action) action.textContent = details.open ? '접기' : '펼쳐보기';
     };
-    summary.addEventListener('click', event => {
-      event.preventDefault();
-      details.open = !details.open;
-      sync();
-    });
+    details.addEventListener('toggle', sync);
+    if (details.classList.contains('mobile-disclosure')) {
+      const desktop = window.matchMedia('(min-width: 769px)');
+      details.open = desktop.matches;
+      desktop.addEventListener('change', () => { details.open = desktop.matches; });
+    }
     sync();
   });
 
@@ -2543,6 +1931,13 @@ const pwaInstall = (() => {
 
   slider.build();
 
+  if (utils.$('server-status-text')) serverStatus.start();
+
+  loadNotice();
+
+  // 사용자 요청에 따른 사이트 앱 설치
+  pwaInstall.init();
+
   const isHomePage = !!utils.$('download-btn');
   if (isHomePage) {
     const [clientData, gameData] = await Promise.all([
@@ -2552,32 +1947,25 @@ const pwaInstall = (() => {
 
     if (clientData) {
       ui.updateClientInfo(clientData);
-      platformGate.setReleaseInfo(clientData, null);
+
     } else {
       const verBar = utils.$('client-version-bar');
       if (verBar) {
         verBar.classList.remove('skeleton-text');
         verBar.textContent = '릴리스 페이지';
       }
-      const btn = utils.$('download-btn');
-      if (btn) btn.href = CONFIG.FALLBACK.clientUrl;
+      download.setRelease(null);
       utils.setText('dl-version-text', 'GitHub');
-      utils.setText('dl-sub-ver', '최신 릴리스');
+
     }
 
     if (gameData) {
       ui.updateGameInfo(gameData);
-      platformGate.setReleaseInfo(null, gameData);
+
     }
 
-    ui.updatePlatformNotice();
+
   }
 
-  if (utils.$('server-status-text')) serverStatus.start();
 
-  // 공지 팝업 (마지막에 초기화)
-  noticePopup.init();
-
-  // PWA 설치 배너 (공지 이후 비침습적으로 표시)
-  pwaInstall.init();
 })();
