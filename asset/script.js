@@ -5,12 +5,12 @@
 ════════════════════════════════════════════ */
 const CONFIG = Object.freeze({
   REPOS: {
-    client: 'tharu8813/Min-At-Zero-Client',
+    client: 'tharu8813/Min-At-Zero-Clinet',
     game: 'tharu8813/Min-At-Zero',
     notice: 'tharu8813/Min-At-Zero-Web-Client',
   },
   FALLBACK: {
-    clientUrl: 'https://github.com/tharu8813/Min-At-Zero-Client/releases/latest',
+    clientUrl: 'https://github.com/tharu8813/Min-At-Zero-Clinet/releases/latest',
   },
   SUPABASE: Object.freeze({
     url: 'https://mcojlhiycruiifrcaxam.supabase.co',
@@ -281,12 +281,7 @@ const utils = {
 
   animateText(el, newText) {
     if (!el) return;
-    el.style.transition = 'opacity 0.25s';
-    el.style.opacity = '0';
-    setTimeout(() => {
-      el.textContent = newText;
-      el.style.opacity = '1';
-    }, 250);
+    el.textContent = newText;
   },
 
   $(id) { return document.getElementById(id); },
@@ -441,6 +436,7 @@ const ui = {
 
   countUpText(el, online, max, duration = 800) {
     if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = `${online} / ${max}`; return; }
     const start = Date.now();
     const tick = () => {
       const t = Math.min((Date.now() - start) / duration, 1);
@@ -538,6 +534,8 @@ const slider = (() => {
   let total = 0;
   let autoTimer = null;
   let isInit = false;
+  let paused = false;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   function build() {
     const wrapper = utils.$('showcase-slider');
@@ -549,12 +547,22 @@ const slider = (() => {
     for (let i = 1; i <= total; i++) {
       const img = document.createElement('img');
       img.onerror = () => {
+        img.onerror = null;
         img.src = `https://placehold.co/1200x675/04080e/22c55e?text=Showcase+${i}`;
       };
+      img.addEventListener('load', () => { if (isInit && current === i - 1) goTo(current); });
       img.src = `screenshot/${i}.png`;
       img.alt = `스크린샷 ${i}`;
       img.loading = i === 1 ? 'eager' : 'lazy';
+      img.decoding = 'async';
+      img.setAttribute('role', 'button');
+      img.setAttribute('aria-label', `스크린샷 ${i} 확대보기`);
+      img.tabIndex = -1;
+      img.setAttribute('aria-hidden', 'true');
       img.addEventListener('click', () => lightbox.open(img.src, img.alt));
+      img.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); lightbox.open(img.src, img.alt); }
+      });
       img.style.cursor = 'zoom-in';
       wrapper.appendChild(img);
     }
@@ -566,9 +574,9 @@ const slider = (() => {
       dot.setAttribute('tabindex', '0');
       dot.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
       dot.setAttribute('aria-label', `슬라이드 ${i + 1}`);
-      dot.addEventListener('click', () => goTo(i));
+      dot.addEventListener('click', () => { goTo(i); resetAuto(); });
       dot.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTo(i); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTo(i); resetAuto(); }
       });
       dotsEl.appendChild(dot);
     }
@@ -579,6 +587,10 @@ const slider = (() => {
     let touchStartX = 0;
     const sliderOuter = wrapper.closest('.slider-outer');
     if (sliderOuter) {
+      sliderOuter.addEventListener('mouseenter', resetAuto);
+      sliderOuter.addEventListener('mouseleave', resetAuto);
+      sliderOuter.addEventListener('focusin', resetAuto);
+      sliderOuter.addEventListener('focusout', () => requestAnimationFrame(resetAuto));
       sliderOuter.addEventListener('touchstart', e => {
         touchStartX = e.changedTouches[0].screenX;
       }, { passive: true });
@@ -588,16 +600,25 @@ const slider = (() => {
       }, { passive: true });
     }
 
-    document.addEventListener('keydown', e => {
+    sliderOuter?.addEventListener('keydown', e => {
       const tag = document.activeElement?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
-      if (e.key === 'ArrowLeft') { move(-1); sound.play('click'); }
-      if (e.key === 'ArrowRight') { move(1); sound.play('click'); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); move(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); move(1); }
     });
 
+    utils.$('slider-pause')?.addEventListener('click', e => {
+      paused = !paused;
+      e.currentTarget.setAttribute('aria-pressed', String(paused));
+      e.currentTarget.setAttribute('aria-label', paused ? '자동 재생 시작' : '자동 재생 일시 정지');
+      e.currentTarget.textContent = paused ? '▷' : 'Ⅱ';
+      resetAuto();
+    });
+    document.addEventListener('visibilitychange', resetAuto);
+    reducedMotion.addEventListener('change', resetAuto);
+
     isInit = true;
-    const firstImg = wrapper.querySelector('img');
-    if (firstImg) firstImg.classList.add('is-active');
+    goTo(0);
     startAuto();
   }
 
@@ -614,10 +635,21 @@ const slider = (() => {
     current = ((n % total) + total) % total;
     const wrapper = utils.$('showcase-slider');
     if (wrapper) {
-      wrapper.style.transform = `translateX(-${current * 100}%)`;
+      const images = wrapper.querySelectorAll('img');
+      const selected = images[current];
+      selected.loading = 'eager';
+      images[(current + 1) % total].loading = 'eager';
+      // Keep the previous image visible until the selected asset has loaded.
+      if (!selected.complete || !selected.naturalWidth) return;
       wrapper.querySelectorAll('img').forEach((img, i) => {
         img.classList.toggle('is-active', i === current);
+        img.tabIndex = i === current ? 0 : -1;
+        img.setAttribute('aria-hidden', String(i !== current));
+        if (i === current || i === (current + 1) % total) img.loading = 'eager';
       });
+      if (document.activeElement?.tagName === 'IMG' && wrapper.contains(document.activeElement)) {
+        wrapper.querySelector('.is-active')?.focus({ preventScroll: true });
+      }
     }
     updateDots();
   }
@@ -629,6 +661,8 @@ const slider = (() => {
 
   function resetAuto() {
     if (autoTimer) clearInterval(autoTimer);
+    const outer = utils.$('showcase-slider')?.closest('.slider-outer');
+    if (paused || reducedMotion.matches || document.hidden || outer?.matches(':hover, :focus-within') || utils.$('lightbox-overlay')?.classList.contains('active')) return;
     autoTimer = setInterval(() => goTo(current + 1), CONFIG.SLIDER_AUTO_MS);
   }
 
@@ -642,26 +676,32 @@ const slider = (() => {
 ════════════════════════════════════════════ */
 const lightbox = (() => {
   let overlay, img, closeBtn;
+  let trigger;
 
   function init() {
     overlay = utils.$('lightbox-overlay');
     img = utils.$('lightbox-img');
     closeBtn = utils.$('lightbox-close');
     if (!overlay) return;
+    overlay.inert = true;
 
     closeBtn?.addEventListener('click', close);
     overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && overlay.classList.contains('active')) close();
+      if (e.key === 'Tab' && overlay.classList.contains('active')) { e.preventDefault(); closeBtn?.focus(); }
     });
   }
 
   function open(src, alt = '') {
     if (!overlay || !img) return;
+    trigger = document.activeElement;
+    document.body.style.overflow = 'hidden';
     img.src = src;
     img.alt = alt;
     overlay.classList.add('active');
     overlay.setAttribute('aria-hidden', 'false');
+    overlay.inert = false;
     closeBtn?.focus();
   }
 
@@ -669,7 +709,9 @@ const lightbox = (() => {
     if (!overlay) return;
     overlay.classList.remove('active');
     overlay.setAttribute('aria-hidden', 'true');
-    setTimeout(() => { if (img) img.src = ''; }, 300);
+    overlay.inert = true;
+    document.body.style.overflow = '';
+    trigger?.focus({ preventScroll: true });
   }
 
   return { init, open, close };
@@ -922,25 +964,13 @@ const cardTilt = (() => {
    SCROLL REVEAL
 ════════════════════════════════════════════ */
 const scrollReveal = (() => {
-  function getDir(el) {
-    const rect = el.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const vw = window.innerWidth;
-    if (cx < vw * 0.25) return 'from-left';
-    if (cx > vw * 0.75) return 'from-right';
-    return 'from-bottom';
-  }
-
   function init() {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, i) => {
+      entries.forEach(entry => {
         if (!entry.isIntersecting) return;
-        const dir = getDir(entry.target);
-        entry.target.dataset.revealDir = dir;
-        setTimeout(() => {
-          entry.target.classList.add('revealed', dir);
-          cardTilt.attach(entry.target);
-        }, i * 60);
+        entry.target.classList.add('revealed');
+        if (!reducedMotion.matches) entry.target.classList.add('motion-enter');
         observer.unobserve(entry.target);
       });
     }, { threshold: 0.08 });
@@ -964,10 +994,21 @@ const scrollProgress = (() => {
       document.body.appendChild(bar);
     }
 
-    window.addEventListener('scroll', () => {
+    let scheduled = false;
+    function update() {
+      scheduled = false;
       const docH = document.documentElement.scrollHeight - innerHeight;
-      bar.style.width = (docH > 0 ? (scrollY / docH) * 100 : 0) + '%';
-    }, { passive: true });
+      bar.style.transform = `scaleX(${docH > 0 ? Math.min(1, Math.max(0, scrollY / docH)) : 0})`;
+    }
+    function schedule() {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(update);
+    }
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    new ResizeObserver(schedule).observe(document.body);
+    schedule();
   }
 
   return { init };
@@ -1150,7 +1191,7 @@ const popup = (() => {
       icon: '🗑️',
       title: '클라이언트 초기화',
       sub: 'WARNING · RESET',
-      msg: '클라이언트 설정과 캐시를 모두 초기화합니다.\n이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?',
+      msg: '게임 폴더 전체를 삭제합니다. 설정·모드팩·저장된 리플레이가 함께 삭제됩니다.\n게임을 종료하고 리플레이 폴더에서 필요한 파일을 백업하세요. 이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?',
       confirmText: '초기화',
       action: () => { window.location.href = CONFIG.CUSTOM_PROTOCOL + 'reset'; },
     },
@@ -1158,7 +1199,7 @@ const popup = (() => {
       icon: '❌',
       title: '클라이언트 삭제',
       sub: 'DANGER · UNINSTALL',
-      msg: '클라이언트를 완전히 삭제합니다.\n모든 데이터가 제거되며 되돌릴 수 없습니다.',
+      msg: 'Windows 제거 프로그램을 열어 클라이언트를 삭제합니다.\n게임 데이터 초기화는 별도의 기능입니다. 계속하시겠습니까?',
       confirmText: '삭제',
       action: () => { window.location.href = CONFIG.CUSTOM_PROTOCOL + 'uninstall'; },
     },
@@ -1352,6 +1393,7 @@ const miniRanking = (() => {
   );
 
   let cache = {};
+  let renderRequest = 0;
 
   function isCacheValid(table) {
     if (!cache[table]) return false;
@@ -1384,11 +1426,13 @@ const miniRanking = (() => {
   async function render(table) {
     const listEl = utils.$('mini-rank-list');
     if (!listEl) return;
+    const request = ++renderRequest;
+    listEl.setAttribute('aria-busy', 'true');
 
-    listEl.innerHTML = Array(5).fill('<div class="skeleton-mini-row skeleton"></div>').join('');
+    if (!listEl.querySelector('.mini-rank-row')) listEl.innerHTML = Array(5).fill('<div class="skeleton-mini-row skeleton"></div>').join('');
 
     const loadingTimeout = setTimeout(() => {
-      if (listEl.querySelector('.skeleton')) {
+      if (request === renderRequest && listEl.querySelector('.skeleton')) {
         listEl.innerHTML = `<div class="mini-rank-loading" style="color:var(--text-dim);padding:20px 0">⏳ 불러오는 중...</div>`;
       }
     }, 8000);
@@ -1396,6 +1440,7 @@ const miniRanking = (() => {
     try {
       const rows = await fetchTop(table);
       clearTimeout(loadingTimeout);
+      if (request !== renderRequest) return;
 
       const cfg = TAB_CONFIG[table];
       const medals = ['🥇', '🥈', '🥉'];
@@ -1427,8 +1472,12 @@ const miniRanking = (() => {
       }).join('');
 
     } catch (err) {
+      if (request !== renderRequest) return;
       listEl.innerHTML = `<div class="mini-rank-loading" style="color:#fca5a5">⚠️ 불러오기 실패</div>`;
       console.error('Mini ranking error:', err);
+    } finally {
+      clearTimeout(loadingTimeout);
+      if (request === renderRequest) listEl.setAttribute('aria-busy', 'false');
     }
   }
 
@@ -1438,7 +1487,7 @@ const miniRanking = (() => {
 
     tabsEl.addEventListener('click', e => {
       const tab = e.target.closest('.mini-rank-tab');
-      if (!tab) return;
+      if (!tab || tab.classList.contains('active')) return;
       tabsEl.querySelectorAll('.mini-rank-tab').forEach(t => {
         t.classList.remove('active');
         t.setAttribute('aria-selected', 'false');
@@ -1454,59 +1503,6 @@ const miniRanking = (() => {
   return { init };
 })();
 
-const pageTransition = (() => {
-  const TRANSITION_DELAY = 250;
-  let inProgress = false;
-
-  function isInternalLink(anchor) {
-    if (!(anchor instanceof HTMLAnchorElement)) return false;
-    const href = anchor.getAttribute('href');
-    if (!href || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return false;
-    if (anchor.target === '_blank' || anchor.hasAttribute('download')) return false;
-    try {
-      const url = new URL(href, location.href);
-      if (url.origin !== location.origin) return false;
-      if (url.pathname === location.pathname && url.search === location.search) return false;
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  function handleNavigationClick(e) {
-    const anchor = e.target.closest('a');
-    if (!anchor || !isInternalLink(anchor)) return;
-    e.preventDefault();
-    if (inProgress) return;
-
-    const href = anchor.href;
-    if (!href) return;
-
-    inProgress = true;
-    document.body.classList.add('page-exit');
-
-    setTimeout(() => {
-      location.href = href;
-    }, TRANSITION_DELAY);
-  }
-
-  function init() {
-    document.body.classList.remove('page-exit');
-    requestAnimationFrame(() => {
-      document.body.classList.add('page-loaded');
-    });
-
-    document.addEventListener('click', handleNavigationClick);
-    window.addEventListener('pageshow', () => {
-      document.body.classList.remove('page-exit');
-      document.body.classList.add('page-loaded');
-      inProgress = false;
-    });
-  }
-
-  return { init };
-})();
-
 /* ════════════════════════════════════════════
    MOBILE MENU
 ════════════════════════════════════════════ */
@@ -1516,35 +1512,41 @@ const mobileMenu = (() => {
     const nav = utils.$('mobile-nav');
     if (!btn || !nav) return;
 
-    const isOpen = btn.classList.contains('open');
-    btn.setAttribute('aria-expanded', String(isOpen));
-    nav.setAttribute('aria-hidden', String(!isOpen));
-
-    btn.addEventListener('click', () => {
-      const isOpen = btn.classList.toggle('open');
+    function setOpen(isOpen) {
+      btn.classList.toggle('open', isOpen);
       nav.classList.toggle('open', isOpen);
       btn.setAttribute('aria-expanded', String(isOpen));
+      btn.setAttribute('aria-label', isOpen ? '메뉴 닫기' : '메뉴 열기');
       nav.setAttribute('aria-hidden', String(!isOpen));
+      nav.inert = !isOpen;
+    }
+
+    setOpen(false);
+
+    btn.addEventListener('click', () => {
+      setOpen(!btn.classList.contains('open'));
       sound.play('click');
     });
 
     nav.querySelectorAll('.mobile-nav-link').forEach(link => {
       link.addEventListener('click', () => {
-        btn.classList.remove('open');
-        nav.classList.remove('open');
-        btn.setAttribute('aria-expanded', 'false');
-        nav.setAttribute('aria-hidden', 'true');
+        setOpen(false);
       });
     });
 
     document.addEventListener('click', e => {
       if (!btn.contains(e.target) && !nav.contains(e.target)) {
-        btn.classList.remove('open');
-        nav.classList.remove('open');
-        btn.setAttribute('aria-expanded', 'false');
-        nav.setAttribute('aria-hidden', 'true');
+        setOpen(false);
       }
     });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && btn.classList.contains('open')) {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+    window.matchMedia('(min-width: 769px)').addEventListener('change', () => setOpen(false));
   }
 
   return { init };
@@ -1573,21 +1575,37 @@ const faq = (() => {
     const isOpen = item.classList.contains('faq-open');
 
     document.querySelectorAll('.faq-item.faq-open').forEach(i => {
-      i.classList.remove('faq-open');
-      i.querySelector('.faq-q')?.setAttribute('aria-expanded', 'false');
+      setOpen(i, false);
     });
 
     if (!isOpen) {
-      item.classList.add('faq-open');
-      btn.setAttribute('aria-expanded', 'true');
-      setTimeout(() => {
-        answer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 50);
+      setOpen(item, true);
     }
   }
 
+  function setOpen(item, open) {
+    const answer = item.querySelector('.faq-a');
+    item.classList.toggle('faq-open', open);
+    item.querySelector('.faq-q')?.setAttribute('aria-expanded', String(open));
+    if (!answer) return;
+    answer.inert = !open;
+    answer.style.height = open ? `${answer.firstElementChild.scrollHeight}px` : '0px';
+  }
+
   function initFaqHidden() {
-    document.querySelectorAll('.faq-a').forEach(a => { a.removeAttribute('hidden'); });
+    const observer = new ResizeObserver(entries => entries.forEach(({ target }) => {
+      const item = target.closest('.faq-item');
+      if (item.classList.contains('faq-open')) setOpen(item, true);
+    }));
+    document.querySelectorAll('.faq-a').forEach(a => {
+      const content = document.createElement('div');
+      content.className = 'faq-content';
+      content.append(...a.childNodes);
+      a.appendChild(content);
+      a.removeAttribute('hidden');
+      a.inert = true;
+      observer.observe(content);
+    });
   }
 
   function copyIP(btn) {
@@ -1779,11 +1797,10 @@ const layout = (() => {
     if (!root) return;
     let page = window.location.pathname.split('/').pop().split('.')[0] || 'index';
     if (!page || page === '') page = 'index';
-    const activeLink = root.querySelector(`[data-nav="${page}"]`);
-    if (activeLink) {
+    root.querySelectorAll(`[data-nav="${page}"], .mobile-nav-link[href="${page}.html"]`).forEach(activeLink => {
       activeLink.classList.add('is-active');
       activeLink.setAttribute('aria-current', 'page');
-    }
+    });
   }
 
   async function loadPart(root, url, cacheKey, onRender) {
@@ -1896,7 +1913,6 @@ const pwaInstall = {
   faq.init();
   launcher.init();
   mobileMenu.init();
-  pageTransition.init();
   miniRanking.init();
   lightbox.init();
 

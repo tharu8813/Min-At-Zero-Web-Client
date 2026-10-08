@@ -691,15 +691,14 @@
 
       /* ── 카운터 숫자 애니메이션 ── */
       function animateCount(el, target, delay = 0) {
-        setTimeout(() => {
-          let start = 0;
-          const step = Math.ceil(target / 24);
-          const t = setInterval(() => {
-            start = Math.min(start + step, target);
-            el.textContent = start;
-            if (start >= target) clearInterval(t);
-          }, 40);
-        }, delay);
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = target; return; }
+        const start = performance.now() + Math.min(delay, 120);
+        const tick = now => {
+          const t = Math.max(0, Math.min((now - start) / 650, 1));
+          el.textContent = Math.round(target * (1 - Math.pow(1 - t, 3)));
+          if (t < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
       }
 
       /* ── IntersectionObserver ── */
@@ -728,12 +727,6 @@
 
           const root = document.getElementById('controls-root');
 
-          /* 스켈레톤 → 실제 컨텐츠 fade */
-          const skel = document.getElementById('skeleton-container');
-          skel.style.transition = 'opacity 0.35s ease';
-          skel.style.opacity = '0';
-
-          await new Promise(r => setTimeout(r, 350));
           root.innerHTML = '';
 
           /* 통계 */
@@ -756,7 +749,7 @@
 
             /* 행 관찰 — stagger delay */
             el.querySelectorAll('.ctrl-row').forEach((row, ri) => {
-              row.style.transitionDelay = `${ri * 45}ms`;
+              row.style.transitionDelay = `${Math.min(ri, 3) * 30}ms`;
               obs.observe(row);
             });
           });

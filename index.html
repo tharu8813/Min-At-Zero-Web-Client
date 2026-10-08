@@ -5,7 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Min. At. Zero Web Client</title>
-  <meta name="description" content="Min. At. Zero — Minecraft 1.20.1 FPS/PvP 서버. TCZ 기반 전용 클라이언트로 즐기는 FPS 게임 서버.">
+  <meta name="description" content="Min. At. Zero — Minecraft 1.20.1 FPS/PvP 서버. TACZ 기반 전용 클라이언트로 즐기는 FPS 게임 서버.">
+  <meta property="og:title" content="Min. At. Zero — 익숙한 세계, 새로운 전장">
+  <meta property="og:description" content="Minecraft 1.20.1에서 즐기는 TACZ 기반 FPS · PvP. 전용 클라이언트 설치부터 첫 접속까지 한곳에서.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="screenshot/1.png">
   <meta name="theme-color" content="#101513">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="MATZ">
@@ -22,6 +26,7 @@
 </head>
 
 <body class="home-page">
+  <a class="skip-link" href="#page-content">본문으로 건너뛰기</a>
 
   <div class="bg-grid" aria-hidden="true"></div>
   <div class="bg-radial" aria-hidden="true"></div>
@@ -44,7 +49,26 @@
     <!-- ══ HEADER (Dynamic) ══ -->
     <header id="header-root" class="header"></header>
 
-    <p class="site-desc">TACZ 기반 Minecraft 1.20.1 FPS 서버입니다.<br>맵과 무기를 선택하고 빠른 PvP 전투를 즐겨보세요.</p>
+    <section class="home-hero" aria-labelledby="hero-title">
+      <img class="hero-image" src="screenshot/1.png" alt="불빛이 켜진 사암 건물과 엄폐물로 구성된 Min. At. Zero 전장" fetchpriority="high" width="1919" height="1079">
+      <div class="hero-content">
+        <p class="hero-eyebrow"><span aria-hidden="true">＋</span> MINECRAFT, REIMAGINED.</p>
+        <h2 id="hero-title">익숙한 세계,<br><span>새로운 전장.</span></h2>
+        <p class="hero-description">블록으로 만든 세계에서 펼쳐지는 FPS.<br>나만의 무기를 선택하고, 다음 전투를 시작하세요.</p>
+        <div class="hero-actions">
+          <a class="hero-cta" href="#download-card">클라이언트 설치 안내 <span aria-hidden="true">↗</span></a>
+          <a class="hero-text-link" href="#trailer-card"><span class="play-symbol" aria-hidden="true">▷</span> 플레이 영상 보기</a>
+        </div>
+        <p class="hero-requirement">Windows 10/11 · 정품 Minecraft 계정 필요</p>
+      </div>
+      <div class="hero-caption" aria-hidden="true"><span>MIN. AT. ZERO</span><span>IN-GAME CAPTURE / 01</span></div>
+    </section>
+
+    <nav class="explore-links" aria-label="게임 둘러보기">
+      <a href="maps.html"><span class="explore-number" aria-hidden="true">01</span><span><strong>전장 둘러보기</strong><small>다음 전투가 펼쳐질 맵</small></span><span class="explore-arrow" aria-hidden="true">↗</span></a>
+      <a href="wiki.html"><span class="explore-number" aria-hidden="true">02</span><span><strong>게임 위키</strong><small>무기와 규칙, 플레이 가이드</small></span><span class="explore-arrow" aria-hidden="true">↗</span></a>
+      <a href="controls.html"><span class="explore-number" aria-hidden="true">03</span><span><strong>조작법 익히기</strong><small>첫 전투 전 알아둘 기본 조작</small></span><span class="explore-arrow" aria-hidden="true">↗</span></a>
+    </nav>
 
     <div class="mobile-compact-card card" id="mobile-compact-card" role="status" aria-label="모바일 안내">
       <div class="card-top-bar"></div>
@@ -87,13 +111,42 @@
     </div>
 
     <!-- ══ MAIN GRID ══ -->
-    <div class="main-grid">
+    <div class="hub-heading"><h2>전투를 준비하세요.</h2><span>PLAY / EXPLORE / CONNECT</span></div>
+    <main class="main-grid" id="page-content" tabindex="-1" aria-label="플레이 준비와 게임 정보">
 
-      <!-- ◀ LEFT SIDEBAR ▶ -->
-      <aside class="sidebar" aria-label="런처 및 커뮤니티">
+      <div class="card blue-accent" id="download-card">
+          <div class="card-top-bar blue"></div>
+          <div class="card-label blue">처음 오셨나요? 여기서 시작하세요</div>
+          <div class="download-section">
+            <div class="dl-info-block">
+              <div class="dl-title">Min. At. Zero Client</div>
+              <p class="dl-desc">Windows 10/11 64비트와 정품 Minecraft 계정이 필요합니다.<br>클라이언트를 설치한 뒤 계정 관리자에서 로그인하세요.</p>
+              <div class="dl-meta-row">
+                <div class="dl-meta-item">
+                  <span>최신 버전</span>
+                  <span id="dl-version-text">확인 중</span>
+                </div>
+                <div class="dl-meta-dot" aria-hidden="true"></div>
+                <div class="dl-meta-item">
+                  <span id="file-size">용량 확인 필요</span>
+                </div>
+                <div class="dl-meta-dot" aria-hidden="true"></div>
+                <div class="dl-meta-item">Windows 전용</div>
+              </div>
+            </div>
+            <div class="dl-btn-wrap">
+              <a href="https://github.com/tharu8813/Min-At-Zero-Clinet/releases/latest" class="dl-btn" id="download-btn" target="_blank" rel="noopener noreferrer" aria-label="다운로드 페이지 열기">
+                <span class="dl-icon" aria-hidden="true">↓</span>
+                <span class="dl-text">다운로드 페이지 열기</span>
+                <span class="dl-sub" id="dl-sub-ver">GitHub에서 Windows 설치 파일 선택</span>
+              </a>
+            </div>
+          </div>
+          <p class="download-source">공식 Windows 설치 파일 · <a href="https://github.com/tharu8813/Min-At-Zero-Clinet/releases/latest" target="_blank" rel="noopener noreferrer">릴리스 확인</a> · <a href="https://github.com/tharu8813/Min.-At.-Zero-Client-Storage" target="_blank" rel="noopener noreferrer">클라이언트 소스</a></p>
+          <div id="client-patch-notes"></div>
+        </div>
 
-        <!-- 런처 카드 -->
-        <div class="card blue-accent launcher-card" id="launcher-card">
+      <div class="card blue-accent launcher-card" id="launcher-card">
           <div class="card-top-bar blue"></div>
           <div class="card-label blue">설치했다면 게임 시작</div>
           <div class="btn-stack">
@@ -131,34 +184,102 @@
           <p class="hint-text"><a href="#installation-card">실행되지 않나요? 설치·로그인 안내</a></p>
         </div>
 
-        <!-- 커뮤니티 카드 -->
-        <div class="card" id="community-card">
+      <div class="card installation-card" id="installation-card">
           <div class="card-top-bar"></div>
-          <div class="card-label">커뮤니티</div>
-          <button id="site-install-btn" class="site-install-btn" hidden>사이트 바로가기 앱 설치 (게임 별도)</button>
-          <div class="community-links">
-            <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
-              target="_blank" rel="noopener noreferrer" class="comm-btn notion" aria-label="게임 가이드 (Notion)">
-              <span class="comm-icon" aria-hidden="true">📖</span> Guide
-            </a>
-            <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer" class="comm-btn discord"
-              aria-label="디스코드 서버">
-              <span class="comm-icon" aria-hidden="true">💬</span> Discord
-            </a>
+          <div class="card-label">설치 및 첫 접속</div>
+          <details class="mobile-disclosure" open>
+            <summary role="button" aria-expanded="false">
+              <span>5단계 설치 방법</span>
+              <span class="mobile-disclosure-action">펼쳐보기</span>
+            </summary>
+          <ol class="steps-wrap" aria-label="설치 단계">
+            <li class="step-item">
+              <div class="step-num-box" aria-hidden="true">01</div>
+              <div class="step-body">
+                <div class="step-title">클라이언트 다운로드</div>
+                <div class="step-desc">위의 다운로드 버튼으로 Windows 설치 파일(.exe)을 받으세요. GitHub 페이지가 열리면 최신 릴리스의 <strong>Assets</strong>에서 .exe 파일을 선택하세요.
+                </div>
+                <span class="step-tag">Windows 전용</span>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num-box" aria-hidden="true">02</div>
+              <div class="step-body">
+                <div class="step-title">설치 파일 실행</div>
+                <div class="step-desc">다운로드된 <strong>.exe 파일</strong>을 실행합니다. 설치에는 <strong>관리자 권한</strong>이 필요합니다. Windows의 권한 요청을 확인하고 설치 마법사의 안내에 따라 진행하세요.
+                </div>
+                <span class="step-tag">화면 안내대로 진행</span>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num-box" aria-hidden="true">03</div>
+              <div class="step-body">
+                <div class="step-title">설치 완료 확인</div>
+                <div class="step-desc">시작 메뉴에서 <strong>Min. At. Zero. Client</strong>를 확인하세요. 바탕화면 바로가기는 설치 중 해당 옵션을 선택했을 때 생성됩니다.</div>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num-box" aria-hidden="true">04</div>
+              <div class="step-body">
+                <div class="step-title">정품 계정으로 로그인</div>
+                <div class="step-desc">이 페이지의 <strong>계정 관리자</strong> 버튼으로 클라이언트를 열고 <strong>정품 Microsoft / Minecraft
+                    계정</strong>으로 로그인합니다. 정품 계정 없이는 게임 시작이 불가합니다.</div>
+                <span class="step-tag"
+                  style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#fca5a5;">정품 계정
+                  필수</span>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num-box" aria-hidden="true">05</div>
+              <div class="step-body">
+                <div class="step-title">이 페이지에서 게임 시작</div>
+                <div class="step-desc">이 사이트의 <strong>게임 시작</strong>을 누르고 브라우저의 <strong>앱 열기</strong> 요청을 확인하세요. 클라이언트가 업데이트를 확인하며, 첫 실행에는 모드팩 다운로드와 설치로 시간이 걸릴 수 있습니다.</div>
+                <span class="step-tag">사이트 런처 이용</span>
+              </div>
+            </li>
+          </ol>
+          </details>
+        </div>
+
+      <div class="card showcase-card" id="showcase-slider-section">
+          <div class="card-top-bar"></div>
+          <div class="card-label">게임 미리보기</div>
+          <div class="slider-outer" role="region" aria-label="게임 스크린샷 슬라이더">
+            <div class="slider-wrapper" id="showcase-slider">
+              <!-- JS로 동적 생성 -->
+            </div>
+            <div class="slider-controls">
+              <div class="slider-dots" role="tablist" aria-label="슬라이드 선택" id="slider-dots">
+                <!-- JS로 동적 생성 -->
+              </div>
+              <div class="slider-btns">
+                <button class="slider-btn" id="slider-pause" aria-label="자동 재생 일시 정지" aria-pressed="false">Ⅱ</button>
+                <button class="slider-btn" id="slider-prev" aria-label="이전 슬라이드">◀ PREV</button>
+                <button class="slider-btn" id="slider-next" aria-label="다음 슬라이드">▶</button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- 랭킹 미리보기 카드 -->
-        <div class="card" id="ranking-preview-card">
+      <div class="card trailer-card" id="trailer-card">
           <div class="card-top-bar"></div>
-          <div class="card-label">🏆 RANKING</div>
+          <div class="card-label">게임 트레일러</div>
+          <div class="video-wrap">
+            <iframe src="https://www.youtube.com/embed/DCRZdFw4_1A?rel=0&modestbranding=1" title="Min. At. Zero 공식 트레일러"
+              allowfullscreen loading="lazy"></iframe>
+          </div>
+        </div>
+
+      <div class="card" id="ranking-preview-card">
+          <div class="card-top-bar"></div>
+          <div class="card-label">플레이어 랭킹</div>
 
           <!-- 탭 -->
           <div class="mini-rank-tabs" id="mini-rank-tabs" role="tablist">
-            <button class="mini-rank-tab active" data-table="score" role="tab" aria-selected="true">🏅 종합</button>
-            <button class="mini-rank-tab" data-table="all_kill" role="tab" aria-selected="false">⚔️ 킬</button>
-            <button class="mini-rank-tab" data-table="win_count" role="tab" aria-selected="false">🏆 승리</button>
-            <button class="mini-rank-tab" data-table="playTime_H" role="tab" aria-selected="false">⏱️ 시간</button>
+            <button class="mini-rank-tab active" data-table="score" role="tab" aria-selected="true">종합</button>
+            <button class="mini-rank-tab" data-table="all_kill" role="tab" aria-selected="false">킬</button>
+            <button class="mini-rank-tab" data-table="win_count" role="tab" aria-selected="false">승리</button>
+            <button class="mini-rank-tab" data-table="playTime_H" role="tab" aria-selected="false">시간</button>
           </div>
 
           <!-- 랭킹 리스트 -->
@@ -177,9 +298,36 @@
           </a>
         </div>
 
+      <section class="community-updates" aria-label="커뮤니티와 공지">
+        <div class="card" id="community-card">
+          <div class="card-top-bar"></div>
+          <div class="card-label">커뮤니티</div>
+          <button id="site-install-btn" class="site-install-btn" hidden>사이트 바로가기 앱 설치 (게임 별도)</button>
+          <div class="community-links">
+            <a href="https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
+              target="_blank" rel="noopener noreferrer" class="comm-btn notion" aria-label="게임 가이드 (Notion)">
+              <span class="comm-icon" aria-hidden="true">📖</span> Guide
+            </a>
+            <a href="https://discord.gg/xAPPegjYnN" target="_blank" rel="noopener noreferrer" class="comm-btn discord"
+              aria-label="디스코드 서버">
+              <span class="comm-icon" aria-hidden="true">💬</span> Discord
+            </a>
+          </div>
+        </div>
 
-        <!-- 권장 사양 카드 -->
-        <div class="card requirements-card" id="requirements-card">
+        <div class="card" id="notice-card">
+          <div class="card-label">서버 공지</div>
+          <p id="notice-title">공지와 운영 소식을 확인하세요.</p>
+          <p class="hint-text" id="notice-date"></p>
+          <details class="release-details" id="notice-details" hidden>
+            <summary>공지 내용 펼쳐보기</summary>
+            <div class="patch-body" id="notice-body"></div>
+          </details>
+          <a class="patch-link" id="notice-link" href="https://github.com/tharu8813/Min-At-Zero-Web-Client/releases" target="_blank" rel="noopener noreferrer">전체 공지 보기 →</a>
+        </div>
+      </section>
+
+      <div class="card requirements-card" id="requirements-card">
           <div class="card-top-bar"></div>
           <div class="card-label">플레이에 필요한 사양</div>
           <div class="req-table-wrap">
@@ -217,169 +365,26 @@
           </div>
         </div>
 
-      </aside>
-
-      <!-- ◀ MAIN CONTENT ▶ -->
-      <main class="main-content">
-        <!-- 다운로드 카드 -->
-        <div class="card blue-accent" id="download-card">
-          <div class="card-top-bar blue"></div>
-          <div class="card-label blue">처음 오셨나요? 여기서 시작하세요</div>
-          <div class="download-section">
-            <div class="dl-info-block">
-              <div class="dl-title">Min. At. Zero Client</div>
-              <p class="dl-desc">Windows 10/11 64비트와 정품 Minecraft 계정이 필요합니다.<br>클라이언트를 설치한 뒤 계정 관리자에서 로그인하세요.</p>
-              <div class="dl-meta-row">
-                <div class="dl-meta-item">
-                  <span>최신 버전</span>
-                  <span id="dl-version-text">확인 중</span>
-                </div>
-                <div class="dl-meta-dot" aria-hidden="true"></div>
-                <div class="dl-meta-item">
-                  <span id="file-size">용량 확인 필요</span>
-                </div>
-                <div class="dl-meta-dot" aria-hidden="true"></div>
-                <div class="dl-meta-item">Windows 전용</div>
-              </div>
-            </div>
-            <div class="dl-btn-wrap">
-              <a href="https://github.com/tharu8813/Min-At-Zero-Client/releases/latest" class="dl-btn" id="download-btn" target="_blank" rel="noopener noreferrer" aria-label="다운로드 페이지 열기">
-                <span class="dl-icon" aria-hidden="true">⬇️</span>
-                <span class="dl-text">다운로드 페이지 열기</span>
-                <span class="dl-sub" id="dl-sub-ver">GitHub에서 Windows 설치 파일 선택</span>
-              </a>
-            </div>
-          </div>
-          <div id="client-patch-notes"></div>
-        </div>
-
-        <!-- 설치 가이드 -->
-        <div class="card installation-card" id="installation-card">
+      <div class="card" id="faq-section">
           <div class="card-top-bar"></div>
-          <div class="card-label">설치 및 첫 접속</div>
-          <details class="mobile-disclosure" open>
-            <summary role="button" aria-expanded="false">
-              <span>5단계 설치 방법</span>
-              <span class="mobile-disclosure-action">펼쳐보기</span>
-            </summary>
-          <ol class="steps-wrap" aria-label="설치 단계">
-            <li class="step-item">
-              <div class="step-num-box" aria-hidden="true">01</div>
-              <div class="step-body">
-                <div class="step-title">클라이언트 다운로드</div>
-                <div class="step-desc">위의 다운로드 버튼으로 Windows 설치 파일(.exe)을 받으세요. GitHub 페이지가 열리면 최신 릴리스의 <strong>Assets</strong>에서 .exe 파일을 선택하세요.
-                </div>
-                <span class="step-tag">Windows 전용</span>
-              </div>
-            </li>
-            <li class="step-item">
-              <div class="step-num-box" aria-hidden="true">02</div>
-              <div class="step-body">
-                <div class="step-title">설치 파일 실행</div>
-                <div class="step-desc">다운로드된 <strong>.exe 파일</strong>을 실행합니다. 설치 마법사가 시작되면 화면의 안내에 따라
-                  <strong>다음(Next)</strong>을 눌러 진행하세요.
-                </div>
-                <span class="step-tag">화면 안내대로 진행</span>
-              </div>
-            </li>
-            <li class="step-item">
-              <div class="step-num-box" aria-hidden="true">03</div>
-              <div class="step-body">
-                <div class="step-title">설치 완료 확인</div>
-                <div class="step-desc">설치가 완료되면 바탕화면 또는 시작 메뉴에 <strong>Min. At. Zero</strong> 아이콘이 생성됩니다.</div>
-              </div>
-            </li>
-            <li class="step-item">
-              <div class="step-num-box" aria-hidden="true">04</div>
-              <div class="step-body">
-                <div class="step-title">정품 계정으로 로그인</div>
-                <div class="step-desc">이 페이지의 <strong>계정 관리자</strong> 버튼으로 클라이언트를 열고 <strong>정품 Microsoft / Minecraft
-                    계정</strong>으로 로그인합니다. 정품 계정 없이는 게임 시작이 불가합니다.</div>
-                <span class="step-tag"
-                  style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#fca5a5;">정품 계정
-                  필수</span>
-              </div>
-            </li>
-            <li class="step-item">
-              <div class="step-num-box" aria-hidden="true">05</div>
-              <div class="step-body">
-                <div class="step-title">이 페이지에서 게임 시작</div>
-                <div class="step-desc">설치 이후 게임 시작, 계정 관리, 리플레이 폴더 열기 등 모든 기능은 <strong>이 사이트의 런처 버튼</strong>을 통해 이용할 수
-                  있습니다.</div>
-                <span class="step-tag">사이트 런처 이용</span>
-              </div>
-            </li>
-          </ol>
-          </details>
-        </div>
-
-
-
-        <!-- 트레일러 카드 -->
-        <div class="card trailer-card" id="trailer-card">
-          <div class="card-top-bar"></div>
-          <div class="card-label">게임 트레일러</div>
-          <div class="video-wrap">
-            <iframe src="https://www.youtube.com/embed/DCRZdFw4_1A?rel=0&modestbranding=1" title="Min. At. Zero 공식 트레일러"
-              allowfullscreen loading="lazy"></iframe>
-          </div>
-        </div>
-
-        <div class="card" id="notice-card">
-          <div class="card-label">서버 공지</div>
-          <p id="notice-title">공지와 운영 소식을 확인하세요.</p>
-          <p class="hint-text" id="notice-date"></p>
-          <details class="release-details" id="notice-details" hidden>
-            <summary>공지 내용 펼쳐보기</summary>
-            <div class="patch-body" id="notice-body"></div>
-          </details>
-          <a class="patch-link" id="notice-link" href="https://github.com/tharu8813/Min-At-Zero-Web-Client/releases" target="_blank" rel="noopener noreferrer">전체 공지 보기 →</a>
-        </div>
-
-        <!-- 게임 패치 노트 카드 (JS로 노출) -->
-        <div class="card" id="game-patch-notes-card" hidden>
-          <div class="card-top-bar"></div>
-          <div class="card-label">게임 업데이트</div>
-          <div class="patch-header">
-            <div class="patch-title" id="game-patch-title"></div>
-            <div class="patch-date" id="game-patch-date"></div>
-          </div>
-          <details class="release-details"><summary>패치노트 펼쳐보기</summary><div class="patch-body" id="game-patch-body"></div></details>
-          <a class="patch-link" id="game-patch-link" href="#" target="_blank" rel="noopener noreferrer">
-            GitHub에서 보기 →
-          </a>
-        </div>
-
-      </main>
-
-      <!-- ◀ FULL WIDTH ROW ▶ -->
-      <div class="full-row">
-
-        <!-- 쇼케이스 슬라이더 -->
-        <div class="card showcase-card" id="showcase-slider-section">
-          <div class="card-top-bar"></div>
-          <div class="card-label">게임 미리보기</div>
-          <div class="slider-outer" role="region" aria-label="게임 스크린샷 슬라이더">
-            <div class="slider-wrapper" id="showcase-slider">
-              <!-- JS로 동적 생성 -->
-            </div>
-            <div class="slider-controls">
-              <div class="slider-dots" role="tablist" aria-label="슬라이드 선택" id="slider-dots">
-                <!-- JS로 동적 생성 -->
-              </div>
-              <div class="slider-btns">
-                <button class="slider-btn" id="slider-prev" aria-label="이전 슬라이드">◀ PREV</button>
-                <button class="slider-btn" id="slider-next" aria-label="다음 슬라이드">NEXT ▶</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- FAQ -->
-        <div class="card" id="faq-section">
-          <div class="card-top-bar"></div>
-          <div class="card-label">FAQ</div>
+          <div class="card-label">자주 묻는 질문</div>
           <dl class="faq-list">
+
+            <div class="faq-item">
+              <button class="faq-q" data-faq aria-expanded="false">
+                <span class="faq-icon" aria-hidden="true">+</span>
+                게임 시작을 눌러도 아무 반응이 없어요.
+              </button>
+              <dd class="faq-a" hidden>Windows 전용 클라이언트를 먼저 설치하세요. 설치 프로그램이 <strong>matz-client://</strong> 연결을 등록합니다. 브라우저의 앱 열기 요청을 확인하고, 이미 실행 중인 클라이언트가 있다면 종료한 뒤 다시 시도하세요. 연결이 등록되지 않았다면 설치 파일을 다시 실행하세요.</dd>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-q" data-faq aria-expanded="false">
+                <span class="faq-icon" aria-hidden="true">+</span>
+                초기화하면 리플레이도 삭제되나요?
+              </button>
+              <dd class="faq-a" hidden>네. 초기화는 설정과 캐시뿐 아니라 <strong>게임 폴더 전체</strong>를 삭제하며, 그 안의 <strong>replay_recordings</strong> 폴더도 포함됩니다. 게임을 종료하고 <strong>리플레이 폴더</strong> 버튼으로 필요한 파일을 다른 위치에 백업한 뒤 진행하세요.</dd>
+            </div>
 
             <div class="faq-item">
               <button class="faq-q" data-faq aria-expanded="false">
@@ -462,9 +467,22 @@
           </dl>
         </div>
 
-      </div><!-- /full-row -->
 
-    </div><!-- /main-grid -->
+
+      <div class="card" id="game-patch-notes-card" hidden>
+          <div class="card-top-bar"></div>
+          <div class="card-label">게임 업데이트</div>
+          <div class="patch-header">
+            <div class="patch-title" id="game-patch-title"></div>
+            <div class="patch-date" id="game-patch-date"></div>
+          </div>
+          <details class="release-details"><summary>패치노트 펼쳐보기</summary><div class="patch-body" id="game-patch-body"></div></details>
+          <a class="patch-link" id="game-patch-link" href="#" target="_blank" rel="noopener noreferrer">
+            GitHub에서 보기 →
+          </a>
+        </div>
+
+    </main><!-- /main-grid -->
   </div><!-- /wrap -->
 
   <!-- ══ FOOTER (Dynamic) ══ -->

@@ -784,7 +784,7 @@
   <div class="page-fade" id="page-fade"></div>
 
   <!-- 라이트박스 -->
-  <div class="wiki-lightbox" id="wiki-lightbox" role="dialog" aria-modal="true" aria-label="이미지 확대">
+  <div class="wiki-lightbox" id="wiki-lightbox" role="dialog" aria-modal="true" aria-label="이미지 확대" aria-hidden="true" inert>
     <button class="wiki-lightbox-close" id="lightbox-close" aria-label="닫기">✕</button>
     <img class="wiki-lightbox-img" id="lightbox-img" src="" alt="">
     <div class="wiki-lightbox-caption" id="lightbox-caption"></div>
@@ -899,6 +899,7 @@
     let allDocs   = [];   // { id, path, filename, keys, title, depth }
     let treeRoot  = [];   // 트리 노드 배열
     let currentId = null;
+    let docRequest = 0;
 
     /* ─────────────────────────────────────
        파일명 파싱
@@ -1216,8 +1217,17 @@
       /* ── 이미지: 라이트박스 열기 ── */
       container.querySelectorAll('.wiki-media-img, .wiki-body img:not(.wiki-media-img)').forEach(img => {
         img.style.cursor = 'zoom-in';
+        img.tabIndex = 0;
+        img.setAttribute('role', 'button');
+        img.setAttribute('aria-label', `${img.alt || '이미지'} 확대보기`);
         img.addEventListener('click', () => {
           openLightbox(img.src, img.dataset.caption || img.alt || '');
+        });
+        img.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openLightbox(img.src, img.dataset.caption || img.alt || '');
+          }
         });
       });
     }
@@ -1225,7 +1235,9 @@
     /* ─────────────────────────────────────
        라이트박스
     ───────────────────────────────────── */
+    let lightboxTrigger;
     function openLightbox(src, caption) {
+      lightboxTrigger = document.activeElement;
       const lb     = document.getElementById('wiki-lightbox');
       const lbImg  = document.getElementById('lightbox-img');
       const lbCap  = document.getElementById('lightbox-caption');
@@ -1234,18 +1246,20 @@
       lbCap.textContent = caption;
       lbCap.style.display = caption ? '' : 'none';
       lb.classList.add('open');
+      lb.inert = false;
+      lb.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
+      document.getElementById('lightbox-close').focus();
     }
 
     function closeLightbox() {
       const lb = document.getElementById('wiki-lightbox');
+      if (!lb.classList.contains('open')) return;
       lb.classList.remove('open');
+      lb.inert = true;
+      lb.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
-      // src 지우기는 transition 끝난 뒤
-      setTimeout(() => {
-        const lbImg = document.getElementById('lightbox-img');
-        if (!lb.classList.contains('open')) lbImg.src = '';
-      }, 300);
+      lightboxTrigger?.focus({ preventScroll: true });
     }
 
     /* 라이트박스 이벤트 등록 (1회) */
@@ -1255,7 +1269,9 @@
         if (e.target === e.currentTarget) closeLightbox();
       });
       document.addEventListener('keydown', e => {
+        if (!document.getElementById('wiki-lightbox').classList.contains('open')) return;
         if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'Tab') { e.preventDefault(); document.getElementById('lightbox-close').focus(); }
       });
     })();
 
@@ -1341,24 +1357,21 @@
     ───────────────────────────────────── */
     async function loadDoc(id) {
       if (id === currentId) return;
-      currentId = id;
-
       const doc = allDocs.find(d => d.id === id);
       if (!doc) return;
+      currentId = id;
+      const request = ++docRequest;
 
       setActiveNode(id);
 
       /* URL 업데이트 (window.location.hash 중복 제거) */
-      history.pushState({ id }, doc.title, `#${id}`);
+      if (location.hash !== `#${id}`) history.pushState({ id }, doc.title, `#${id}`);
       document.title = `${doc.title} — Min. At. Zero Wiki`;
-
-      /* 페이지 전환 효과 */
-      const fade = document.getElementById('page-fade');
-      fade.classList.add('active');
 
       /* 스켈레톤 표시 */
       const content = document.getElementById('wiki-content');
-      content.innerHTML = `<div class="skel-content">
+      content.setAttribute('aria-busy', 'true');
+      if (!content.querySelector('.wiki-content-wrap')) content.innerHTML = `<div class="skel-content">
         <div class="skel skel-breadcrumb"></div>
         <div class="skel skel-title"></div>
         <div class="skel skel-meta"></div>
@@ -1373,13 +1386,11 @@
         <div class="skel skel-p6"></div>
       </div>`;
 
-      await new Promise(r => setTimeout(r, 200));
-      fade.classList.remove('active');
-
       try {
         const res = await fetch(`./wiki/${doc.path}`, { cache: 'no-cache' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         let md = await res.text();
+        if (request !== docRequest) return;
 
         /* 마크다운 처리 */
         md = processMarkdown(md);
@@ -1397,7 +1408,7 @@
         content.innerHTML = `
           <div class="wiki-content-wrap">
             <nav class="wiki-breadcrumb">${buildBreadcrumb(doc)}</nav>
-            <h1 class="wiki-doc-title">${doc.title}</h1>
+            <h1 class="wiki-doc-title" tabindex="-1">${doc.title}</h1>
             <div class="wiki-doc-meta">
               <span>게임 이용 안내</span>
             </div>
@@ -1422,9 +1433,11 @@
         bindMediaEvents(content);
 
         /* 스크롤 투 탑 */
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        if (window.innerWidth <= 768) content.querySelector('.wiki-doc-title')?.focus({ preventScroll: true });
 
       } catch (err) {
+        if (request !== docRequest) return;
         const retryId = id;
         content.innerHTML = `<div class="wiki-error">
           <div style="font-size:32px;margin-bottom:16px">⚠</div>
@@ -1432,6 +1445,8 @@
           <div style="margin-top:8px;font-size:12px;color:var(--text-dim)">${err.message}</div>
           <button onclick="currentId=null;window.__wiki_load('${retryId}')" style="margin-top:20px;padding:8px 20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text-muted);cursor:pointer;font-family:var(--mono);font-size:12px">다시 시도</button>
         </div>`;
+      } finally {
+        if (request === docRequest) content.setAttribute('aria-busy', 'false');
       }
     }
 
@@ -1548,12 +1563,19 @@
        모바일 사이드바
     ───────────────────────────────────── */
     function setSidebarOpen(isOpen) {
-      document.getElementById('wiki-sidebar').classList.toggle('open', isOpen);
+      const sidebar = document.getElementById('wiki-sidebar');
+      sidebar.classList.toggle('open', isOpen);
+      sidebar.inert = mobileWiki.matches && !isOpen;
+      sidebar.setAttribute('aria-hidden', String(sidebar.inert));
       const btn = document.getElementById('sidebar-toggle-btn');
       btn.setAttribute('aria-expanded', String(isOpen));
       btn.setAttribute('aria-label', isOpen ? '문서 목록 닫기' : '문서 목록 열기');
       btn.querySelector('span').textContent = isOpen ? '목록 닫기' : '문서 목록';
+      if (!isOpen && mobileWiki.matches && sidebar.contains(document.activeElement)) btn.focus();
     }
+    const mobileWiki = window.matchMedia('(max-width: 768px)');
+    mobileWiki.addEventListener('change', () => setSidebarOpen(false));
+    setSidebarOpen(false);
     document.getElementById('sidebar-toggle-btn').addEventListener('click', () => {
       setSidebarOpen(!document.getElementById('wiki-sidebar').classList.contains('open'));
     });

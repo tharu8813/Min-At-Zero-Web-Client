@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matz-web-client-v4';
+const CACHE_NAME = 'matz-web-client-v6';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -16,6 +16,7 @@ const STATIC_ASSETS = [
   './asset/image/icon.png',
   './asset/image/icon.ico',
   './asset/image/96x96.png',
+  './screenshot/1.png',
   './manifest.json'
 ];
 

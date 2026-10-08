@@ -1234,6 +1234,7 @@
 
       /* ── 카운트업 애니메이션 ── */
       function countUp(el, target, isFloat, duration) {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = target; return; }
         const start = performance.now();
         const isNum = !isNaN(parseFloat(target));
         if (!isNum) { el.textContent = target; return; }
@@ -1390,7 +1391,7 @@
           ].filter(Boolean).join(' ');
 
           /* 행 진입 delay */
-          const delay = Math.min(i * 28, 400);
+          const delay = Math.min(i, 3) * 30;
 
           return `<tr class="${rowExtra}" data-player="${safeName}" tabindex="0" aria-label="${safeName} 상세 통계 보기" style="animation-delay:${delay}ms">
             <td class="col-rank">${rankHtml}</td>
