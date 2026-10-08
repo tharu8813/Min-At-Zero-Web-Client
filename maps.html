@@ -621,7 +621,7 @@
   </div>
 
   <!-- Modal -->
-  <div class="map-modal-bg" id="map-modal">
+  <div class="map-modal-bg" id="map-modal" aria-hidden="true" inert>
     <div class="map-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <button class="modal-close" id="modal-close" aria-label="닫기">✕</button>
       <div class="modal-hero">
@@ -660,36 +660,27 @@
 
       /* ── 슬라이더 ── */
       function updateSlider() {
-        modalSlider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        modalSlider.querySelectorAll('.modal-slide').forEach((slide, i) => {
+          slide.classList.toggle('is-active', i === currentSlide);
+          slide.setAttribute('aria-hidden', String(i !== currentSlide));
+        });
         document.querySelectorAll('.slider-dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
       }
 
       /* ── 뷰 전환 애니메이션 ── */
+      let viewTransition;
+      let viewIsList = false;
       function switchView(toList) {
-        const cards = Array.from(container.querySelectorAll('.map-card:not(.skeleton)'));
-
-        /* 1. 나가는 애니메이션 */
-        cards.forEach(c => c.classList.add('view-exit'));
-
-        setTimeout(() => {
-          /* 2. 뷰 클래스 교체 */
-          if (toList) container.classList.add('view-list');
-          else container.classList.remove('view-list');
-
-          /* 3. 들어오는 애니메이션 — 스태거 */
-          cards.forEach((c, i) => {
-            c.classList.remove('view-exit');
-            c.classList.add('view-enter');
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-              c.style.transitionDelay = (i * 35) + 'ms';
-              c.classList.add('view-enter-active');
-              setTimeout(() => {
-                c.classList.remove('view-enter', 'view-enter-active');
-                c.style.transitionDelay = '';
-              }, 400 + i * 35);
-            }));
-          });
-        }, 220);
+        viewIsList = toList;
+        const update = () => {
+          if (toList === viewIsList) container.classList.toggle('view-list', toList);
+        };
+        viewTransition?.skipTransition();
+        if (document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          viewTransition = document.startViewTransition(update);
+        } else {
+          update();
+        }
       }
 
       /* ── 맵 로드 ── */
@@ -735,7 +726,7 @@
             };
             container.appendChild(card);
             /* 스태거 진입 */
-            setTimeout(() => card.classList.add('revealed'), 60 + i * 55);
+            card.classList.add('revealed', 'motion-enter');
           });
         } catch (e) {
           container.innerHTML = `<div style="color:var(--red);padding:40px;text-align:center;">⚠️ 맵 데이터를 불러오지 못했습니다.</div>`;
@@ -770,6 +761,8 @@
         document.getElementById('slider-next').disabled = images.length <= 1;
 
         modal.classList.add('active');
+        modal.inert = false;
+        modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
         updateSlider();
         requestAnimationFrame(() => document.getElementById('modal-close').focus());
@@ -777,6 +770,8 @@
 
       function closeModal() {
         modal.classList.remove('active');
+        modal.inert = true;
+        modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
         if (lastModalTrigger instanceof HTMLElement) lastModalTrigger.focus();
       }
@@ -788,13 +783,19 @@
       document.getElementById('slider-next').onclick = e => { e.stopPropagation(); currentSlide = (currentSlide + 1) % totalSlides; updateSlider(); };
       document.addEventListener('keydown', e => {
         if (!modal.classList.contains('active')) return;
+        if (e.key === 'Tab') {
+          const buttons = [...modal.querySelectorAll('button:not([disabled])')];
+          const first = buttons[0], last = buttons.at(-1);
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+        }
         if (e.key === 'Escape') closeModal();
         if (e.key === 'ArrowLeft') { currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlider(); }
         if (e.key === 'ArrowRight') { currentSlide = (currentSlide + 1) % totalSlides; updateSlider(); }
       });
 
       document.getElementById('btn-grid').onclick = () => {
-        if (container.classList.contains('view-list')) {
+        if (viewIsList) {
           document.getElementById('btn-grid').classList.add('active');
           document.getElementById('btn-list').classList.remove('active');
           document.getElementById('btn-grid').setAttribute('aria-pressed', 'true');
@@ -803,7 +804,7 @@
         }
       };
       document.getElementById('btn-list').onclick = () => {
-        if (!container.classList.contains('view-list')) {
+        if (!viewIsList) {
           document.getElementById('btn-list').classList.add('active');
           document.getElementById('btn-grid').classList.remove('active');
           document.getElementById('btn-list').setAttribute('aria-pressed', 'true');

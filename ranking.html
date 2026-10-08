@@ -1104,8 +1104,9 @@
     <header id="header-root" class="header"></header>
 
     <section class="page-hero">
-      <h2 class="page-title">Player <span>Ranking</span></h2>
+      <h2 class="page-title">플레이어 <span>랭킹</span></h2>
       <p class="page-desc">플레이어 전투 통계와 종합 랭킹을 확인하세요. 닉네임으로 특정 플레이어를 검색할 수 있습니다.</p>
+      <details class="release-details"><summary>종합 점수(CR)는 어떻게 계산되나요?</summary><p class="page-desc">조회된 플레이어의 최고값을 기준으로 KDA 40%, 승률 30%, 플레이 횟수 20%, 플레이 시간 10%를 반영합니다. 다른 플레이어의 기록이 바뀌면 내 점수도 달라질 수 있습니다. KDA는 (킬 + 어시스트) ÷ 데스이며, 데스가 0이면 킬 + 어시스트를 사용합니다.</p></details>
     </section>
 
     <div class="search-wrap" role="search">
@@ -1115,7 +1116,7 @@
           spellcheck="false" aria-label="플레이어 닉네임 검색">
         <button id="search-clear" class="search-clear" aria-label="검색 지우기" title="지우기">×</button>
       </div>
-      <button id="search-btn" class="search-btn" aria-label="검색 실행">SEARCH</button>
+      <button id="search-btn" class="search-btn" aria-label="검색 실행">검색</button>
     </div>
 
     <div id="player-card" class="card player-card" aria-live="polite" aria-label="플레이어 통계">
@@ -1157,7 +1158,7 @@
 
       <div class="lb-tab-bar" id="lb-tab-bar" role="tablist" aria-label="랭킹 카테고리">
         <button class="lb-tab active" data-tab="score" role="tab" aria-selected="true"><span class="tab-icon">🏅</span>
-          COMBAT RATING</button>
+          종합 점수 (CR)</button>
         <button class="lb-tab" data-tab="all_kill" role="tab" aria-selected="false"><span class="tab-icon">⚔️</span>
           킬</button>
         <button class="lb-tab" data-tab="all_death" role="tab" aria-selected="false"><span class="tab-icon">💀</span>
@@ -1203,7 +1204,7 @@
       );
 
       const TAB_CFG = {
-        score: { col: 'COMBAT RATING', fmt: v => (+v).toFixed(1) },
+        score: { col: '종합 점수 (CR)', fmt: v => (+v).toFixed(1) },
         all_kill: { col: '킬', fmt: v => (+v).toLocaleString() },
         all_death: { col: '데스', fmt: v => (+v).toLocaleString() },
         kill_assist_all: { col: '어시스트', fmt: v => (+v).toLocaleString() },
@@ -1233,6 +1234,7 @@
 
       /* ── 카운트업 애니메이션 ── */
       function countUp(el, target, isFloat, duration) {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = target; return; }
         const start = performance.now();
         const isNum = !isNaN(parseFloat(target));
         if (!isNum) { el.textContent = target; return; }
@@ -1367,7 +1369,7 @@
           lbTbody.innerHTML = `<tr><td colspan="3"><div class="lb-empty">
             <span class="lb-empty-icon">📭</span>
             <p class="lb-empty-text">랭킹 데이터가 없습니다</p>
-            <p class="lb-empty-sub">DB에 데이터를 확인해주세요</p>
+            <p class="lb-empty-sub">첫 전투 기록이 집계되면 여기에 표시됩니다.</p>
           </div></td></tr>`;
           return;
         }
@@ -1389,7 +1391,7 @@
           ].filter(Boolean).join(' ');
 
           /* 행 진입 delay */
-          const delay = Math.min(i * 28, 400);
+          const delay = Math.min(i, 3) * 30;
 
           return `<tr class="${rowExtra}" data-player="${safeName}" tabindex="0" aria-label="${safeName} 상세 통계 보기" style="animation-delay:${delay}ms">
             <td class="col-rank">${rankHtml}</td>
@@ -1456,7 +1458,7 @@
         $('player-avatar').src = `https://mc-heads.net/avatar/${encodeURIComponent(p.name)}/100`;
         $('player-avatar').onerror = function () { this.src = FALLBACK_AV; };
         $('player-name').textContent = p.name;
-        $('player-cr').textContent = `COMBAT RATING · ${p.score.toFixed(1)} CR`;
+        $('player-cr').textContent = `종합 점수 (CR) · ${p.score.toFixed(1)} CR`;
         $('player-wr').textContent = `WIN RATE · ${wr}%  (${p.wins}W / ${p.rounds}G)`;
         $('player-rank-badge').textContent = scoreRank > 0 ? '#' + scoreRank : '';
 
@@ -1496,7 +1498,7 @@
           <span class="lb-empty-icon">⚠️</span>
           <p class="lb-empty-text">데이터를 불러오지 못했습니다</p>
           <p class="lb-empty-sub">${escHtml(msg)}</p>
-          <p class="lb-empty-sub" style="margin-top:8px;opacity:0.6">브라우저 콘솔(F12)에서 자세한 오류를 확인하세요</p>
+          <p class="lb-empty-sub" style="margin-top:8px;opacity:0.6">잠시 후 위의 새로고침 버튼으로 다시 시도해 주세요.</p>
           <button onclick="location.reload()" style="margin-top:14px;padding:8px 18px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:8px;color:#22c55e;font-family:monospace;font-size:12px;cursor:pointer;letter-spacing:1px">⟳ 새로고침</button>
         </div></td></tr>`;
       }

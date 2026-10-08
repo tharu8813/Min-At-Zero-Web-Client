@@ -537,7 +537,8 @@
             groups[type].forEach((dev, i) => {
               const card = document.createElement('article');
               card.className = 'card dev-card';
-              card.style.transitionDelay = (i * 70) + 'ms';
+              card.style.animationDelay = (Math.min(i, 3) * 35) + 'ms';
+              card.classList.add('motion-enter');
               card.innerHTML = `
                 <div class="card-top-bar"></div>
                 <div class="dev-avatar-wrap">
