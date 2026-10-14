@@ -32,6 +32,8 @@ for (const file of htmlFiles) {
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
 
+  if (/<<(?:\/?[a-z]|!)/i.test(markup)) report(errors, file, 'stray angle bracket before an HTML tag');
+
   if (!/<html\b[^>]*\blang=["']ko["']/i.test(html)) report(errors, file, 'missing lang="ko"');
   if (!/<meta\b[^>]*charset=["']?utf-8/i.test(html)) report(errors, file, 'missing UTF-8 charset');
   if (!/<meta\b[^>]*name=["']viewport["']/i.test(html)) report(errors, file, 'missing viewport meta');

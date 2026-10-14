@@ -562,8 +562,9 @@
   <div id="scroll-progress" aria-hidden="true"></div>
 
   <div class="wrap">
-    <header id="header-root" class="header"></header>
+    <header id="header-root" class="header" aria-busy="true"><span class="skeleton loading-logo" aria-hidden="true"></span><span class="skeleton loading-brand" aria-hidden="true"></span><span class="skeleton loading-nav" aria-hidden="true"></span></header>
 
+    <main id="page-content">
     <!-- HERO -->
     <section class="page-hero">
       <h2 class="page-title">Controls &amp;<span class="accent"> Keys</span></h2>
@@ -585,7 +586,7 @@
     </section>
 
     <!-- CONTENT -->
-    <div class="controls-wrap" id="controls-root">
+    <div class="controls-wrap" id="controls-root" aria-busy="true">
       <!-- 스켈레톤 초기 렌더 -->
       <div class="skel-section" id="skeleton-container">
         <div class="skel-header">
@@ -613,7 +614,8 @@
       </div>
     </div>
 
-    <footer id="footer-root" class="footer"></footer>
+    </main>
+    <footer id="footer-root" class="footer" aria-busy="true"><div class="wrap loading-lines" aria-hidden="true"><span class="skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div></footer>
   </div>
 
   <script src="asset/script.js"></script>
@@ -691,7 +693,7 @@
 
       /* ── 카운터 숫자 애니메이션 ── */
       function animateCount(el, target, delay = 0) {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = target; return; }
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('motion-off')) { el.textContent = target; return; }
         const start = performance.now() + Math.min(delay, 120);
         const tick = now => {
           const t = Math.max(0, Math.min((now - start) / 650, 1));
@@ -720,12 +722,14 @@
 
       /* ── 메인 로드 ── */
       async function load() {
+        const root = document.getElementById('controls-root');
+        root.setAttribute('aria-busy', 'true');
+        const stats = ['stat-total', 'stat-tacz', 'stat-sections'].map(id => document.getElementById(id));
+        stats.forEach(element => loading.begin(element));
         try {
-          const res = await fetch('./controls/controls.json');
+          const res = await fetch('./controls/controls.json', { signal: AbortSignal.timeout(10_000) });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json(); /* { sections: [...] } */
-
-          const root = document.getElementById('controls-root');
 
           root.innerHTML = '';
 
@@ -766,6 +770,10 @@
             `<div style="color:var(--red);text-align:center;padding:60px;font-family:var(--mono)">
             ⚠ ERROR: ${err.message}
           </div>`;
+          stats.forEach(element => { element.textContent = '—'; });
+        } finally {
+          loading.end(root);
+          stats.forEach(element => loading.end(element));
         }
       }
 

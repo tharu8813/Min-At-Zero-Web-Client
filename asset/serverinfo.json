@@ -10,7 +10,7 @@
     "zero_start": "2024-06-05",
     "prev_start": "2023-06-03",
     "prev_name": "Min. At. 시즌2",
-    "description": "기존 [Timeless and Classics Guns](https://www.curseforge.com/minecraft/mc-mods/timeless-and-classic-guns-tac)(1.16.5) 보다 더욱 좋아진 [Timeless and Classics Zero](https://www.curseforge.com/minecraft/mc-mods/timeless-and-classics-zero)(1.20.1) 모드 기반으로 제작된 마인크래프트 FPS게임 서버입니다. 맵과 무기를 선택하고 여러가지 맵을 선택해 유저들과 싸워보세요!",
+    "description": "[Timeless and Classics Zero (TACZ)](https://www.curseforge.com/minecraft/mc-mods/timeless-and-classics-zero)를 기반으로 만든 Minecraft 1.20.1 FPS 서버입니다. 무기를 세팅하고 원하는 맵을 선택해 다른 플레이어와 전투를 즐기세요. 필요한 모드팩은 전용 클라이언트가 설치합니다.",
     "discord": "https://discord.gg/xAPPegjYnN",
     "github": "https://github.com/tharu8813",
     "notion": "https://minecraft-server-tharu81.notion.site/Min-At-Zero-758676e240fb41299a940ad486d9a016"
@@ -76,7 +76,7 @@
   ],
   "client": {
     "program": {
-      "name": "프로그램형 클라이언트",
+      "name": "Windows 게임 클라이언트",
       "ide": "Visual Studio 2022",
       "language": "C# (WinForm)",
       "runtime": ".NET 10.0",
@@ -97,9 +97,9 @@
       ]
     },
     "web": {
-      "name": "웹페이지형 클라이언트",
+      "name": "플레이어 웹사이트",
       "hosting": "GitHub Pages",
-      "description": "별도 설치 없이 웹 브라우저에서 접근할 수 있는 클라이언트입니다. 서버 정보, 랭킹, 맵, 위키, 조작법 등 게임 관련 모든 정보를 제공합니다.",
+      "description": "게임 시작 연결과 서버 정보, 랭킹, 맵, 위키, 조작법을 제공하는 웹사이트입니다. 게임 플레이에는 Windows 전용 클라이언트 설치가 필요합니다.",
       "tech": ["HTML5", "CSS3", "Vanilla JS", "GitHub Pages"],
       "features": [
         "서버 실시간 상태 확인",
