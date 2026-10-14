@@ -390,15 +390,16 @@
   <div class="bg-lines" aria-hidden="true"></div>
 
   <div class="wrap">
-    <header id="header-root" class="header"></header>
+    <header id="header-root" class="header" aria-busy="true"><span class="skeleton loading-logo" aria-hidden="true"></span><span class="skeleton loading-brand" aria-hidden="true"></span><span class="skeleton loading-nav" aria-hidden="true"></span></header>
 
+    <main id="page-content">
     <section class="page-hero">
       <h2 class="page-title">Project <span>Team</span></h2>
       <p class="page-desc">Min. At. Zero 서버를 기획하고 전장을 설계하며, 완벽한 플레이 환경을 위해 노력하는 기여자들을 소개합니다.<br>만약 아래 정보에 오류가 있거나, 본인이 기여자임에도 누락된 경우 <a href="https://discord.gg/xAPPegjYnN" style="color: var(--green); text-decoration: underline;">디스코드</a>로 알려주세요!
       </p>
     </section>
 
-    <div id="dev-content">
+    <div id="dev-content" aria-busy="true">
       <!-- 스켈레톤 -->
       <div class="dev-section section-visible">
         <div class="section-header">
@@ -413,7 +414,8 @@
       </div>
     </div>
 
-    <footer id="footer-root" class="footer"></footer>
+    </main>
+    <footer id="footer-root" class="footer" aria-busy="true"><div class="wrap loading-lines" aria-hidden="true"><span class="skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div></footer>
   </div>
 
   <script src="asset/script.js"></script>
@@ -508,8 +510,9 @@
       }, { threshold: 0.08 });
 
       async function loadDevelopers() {
+        content.setAttribute('aria-busy', 'true');
         try {
-          const res = await fetch('./developer/developer.json');
+          const res = await fetch('./developer/developer.json', { signal: AbortSignal.timeout(10_000) });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
 
@@ -537,8 +540,6 @@
             groups[type].forEach((dev, i) => {
               const card = document.createElement('article');
               card.className = 'card dev-card';
-              card.style.animationDelay = (Math.min(i, 3) * 35) + 'ms';
-              card.classList.add('motion-enter');
               card.innerHTML = `
                 <div class="card-top-bar"></div>
                 <div class="dev-avatar-wrap">
@@ -562,6 +563,8 @@
           });
         } catch (e) {
           content.innerHTML = `<div style="color:var(--red);text-align:center;padding:40px;">⚠️ ERROR: ${e.message}</div>`;
+        } finally {
+          loading.end(content);
         }
       }
 

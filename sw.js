@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matz-web-client-v6';
+const CACHE_NAME = 'matz-web-client-v11';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,9 @@ const STATIC_ASSETS = [
   './controls.html',
   './asset/style.css',
   './asset/theme.css',
+  './asset/hub.css',
+  './asset/ranking.css',
+  './asset/maps.css',
   './asset/script.js',
   './asset/header.html',
   './asset/footer.html',

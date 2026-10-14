@@ -15,634 +15,72 @@
   <link rel="stylesheet" href="asset/style.css">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="asset/image/icon.png">
-  <style>
-    .page-hero {
-      padding: 44px 0 32px;
-    }
-
-    .page-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: clamp(32px, 8vw, 52px);
-      font-weight: 700;
-      color: var(--text-primary);
-      line-height: 1.1;
-      opacity: 0;
-      animation: fadeUp 0.7s 0.12s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-    }
-
-    .page-title span {
-      color: var(--blue);
-    }
-
-    .page-desc {
-      font-size: 15px;
-      color: var(--text-muted);
-      max-width: 600px;
-      line-height: 1.75;
-      margin-top: 10px;
-      opacity: 0;
-      animation: fadeUp 0.7s 0.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-    }
-
-    /* ── CONTROLS BAR ── */
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .controls-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 30px;
-      gap: 20px;
-      flex-wrap: wrap;
-      animation: fadeInDown 0.6s both;
-    }
-
-    .view-switcher {
-      display: flex;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 4px;
-      gap: 4px;
-    }
-
-    .view-btn {
-      width: 38px;
-      height: 38px;
-      border: none;
-      background: none;
-      color: var(--text-dim);
-      cursor: pointer;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.25s;
-    }
-
-    .view-btn.active {
-      background: var(--blue);
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-    }
-
-    .view-btn:not(.active):hover {
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-primary);
-    }
-
-    /* ── MAPS GRID ── */
-    .maps-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 24px;
-      margin-top: 20px;
-    }
-
-    /* ── VIEW TRANSITION ── */
-    /* 카드를 개별적으로 fade+scale 처리 */
-    .map-card {
-      padding: 0;
-      cursor: pointer;
-      border-radius: 20px;
-      overflow: hidden;
-      position: relative;
-      background: var(--bg-card);
-      /* 기본 진입 상태 */
-      opacity: 0;
-      transform: translateY(24px) scale(0.97);
-      transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-        transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-        box-shadow 0.3s, border-color 0.3s;
-    }
-
-    .map-card.revealed {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-
-    /* 뷰 전환 — 나가는 애니메이션 */
-    .map-card.view-exit {
-      opacity: 0 !important;
-      transform: translateY(10px) scale(0.96) !important;
-      transition: opacity 0.2s ease, transform 0.2s ease !important;
-      pointer-events: none;
-    }
-
-    /* 뷰 전환 — 들어오는 애니메이션 */
-    .map-card.view-enter {
-      opacity: 0;
-      transform: translateY(16px) scale(0.97);
-      transition: none !important;
-    }
-
-    .map-card.view-enter-active {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      transition: opacity 0.35s cubic-bezier(0.23, 1, 0.32, 1),
-        transform 0.35s cubic-bezier(0.23, 1, 0.32, 1) !important;
-    }
-
-    .map-thumb-wrap {
-      width: 100%;
-      aspect-ratio: 16/9;
-      overflow: hidden;
-      background: #000;
-      position: relative;
-    }
-
-    .map-thumb {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.4s ease;
-      display: block;
-      opacity: 0;
-    }
-
-    .map-thumb.loaded {
-      opacity: 1;
-    }
-
-    .map-thumb-placeholder {
-      width: 100%;
-      height: 100%;
-      display: grid;
-      place-items: center;
-      color: var(--text-dim);
-      background: rgba(255, 255, 255, 0.025);
-      font-size: 12px;
-    }
-
-    /* ── 이미지 스켈레톤 애니메이션 ── */
-    @keyframes skeletonShimmer {
-      0% {
-        background-position: -200% 0;
-      }
-
-      100% {
-        background-position: 200% 0;
-      }
-    }
-
-    .img-skeleton {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg,
-          rgba(255, 255, 255, 0.03) 25%,
-          rgba(255, 255, 255, 0.09) 50%,
-          rgba(255, 255, 255, 0.03) 75%);
-      background-size: 200% 100%;
-      animation: skeletonShimmer 1.6s ease-in-out infinite;
-      transition: opacity 0.4s ease;
-      pointer-events: none;
-      z-index: 1;
-      border-radius: inherit;
-    }
-
-    .img-skeleton.hidden {
-      opacity: 0;
-    }
-
-    .map-card:hover .map-thumb {
-      transform: scale(1.08);
-    }
-
-    /* 카드 썸네일 오버레이 */
-    .map-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(4, 8, 14, 0.85) 0%, transparent 55%);
-      opacity: 0;
-      transition: opacity 0.3s;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      padding-bottom: 18px;
-    }
-
-    .map-card:hover .map-overlay {
-      opacity: 1;
-    }
-
-    .map-hint {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 2px;
-      color: #fff;
-    }
-
-    /* 카드 상단 shimmer on hover */
-    .map-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -80%;
-      width: 50%;
-      height: 100%;
-      background: linear-gradient(105deg, transparent 15%, rgba(255, 255, 255, 0.06) 50%, transparent 85%);
-      pointer-events: none;
-      transition: none;
-    }
-
-    .map-card:hover::after {
-      animation: cardShimmer 0.6s ease forwards;
-    }
-
-    @keyframes cardShimmer {
-      to {
-        left: 130%;
-      }
-    }
-
-    .map-info {
-      padding: 20px 22px 22px;
-    }
-
-    .map-card-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-    }
-
-    .map-card-by {
-      font-size: 12px;
-      color: var(--text-dim);
-      font-family: var(--mono);
-      margin-bottom: 10px;
-    }
-
-    .tags-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .tag-badge {
-      font-family: var(--mono);
-      font-size: 10px;
-      padding: 3px 9px;
-      border-radius: 5px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .tag-mode {
-      border-color: var(--blue-border);
-      color: #93c5fd;
-      background: var(--blue-glow);
-    }
-
-    .tag-distance {
-      border-color: var(--green-border);
-      color: var(--green);
-      background: var(--green-glow);
-    }
-
-    /* ── LIST VIEW ── */
-    .maps-grid.view-list {
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    .maps-grid.view-list .map-card {
-      display: flex;
-      align-items: stretch;
-      height: 160px;
-      border-radius: 14px;
-    }
-
-    .maps-grid.view-list .map-thumb-wrap {
-      width: 280px;
-      aspect-ratio: unset;
-      flex-shrink: 0;
-      border-radius: 0;
-    }
-
-    .maps-grid.view-list .map-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding-left: 28px;
-    }
-
-    @media(max-width: 600px) {
-      .maps-grid.view-list .map-card {
-        height: auto;
-        flex-direction: column;
-      }
-
-      .maps-grid.view-list .map-thumb-wrap {
-        width: 100%;
-        aspect-ratio: 16/9;
-      }
-    }
-
-    /* ── MODAL ── */
-    .map-modal-bg {
-      position: fixed;
-      inset: 0;
-      background: rgba(4, 8, 14, 0.92);
-      z-index: 100000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(16px);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.35s, visibility 0.35s;
-      padding: 20px;
-    }
-
-    .map-modal-bg.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .map-modal {
-      background: var(--bg-card);
-      border: 1px solid var(--blue-border);
-      border-radius: 24px;
-      width: 100%;
-      max-width: 860px;
-      max-height: 92vh;
-      overflow-y: auto;
-      position: relative;
-      transform: scale(0.92) translateY(24px);
-      transition: transform 0.45s cubic-bezier(0.23, 1, 0.32, 1);
-      scrollbar-width: thin;
-      scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
-    }
-
-    .map-modal-bg.active .map-modal {
-      transform: scale(1) translateY(0);
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 18px;
-      right: 18px;
-      width: 38px;
-      height: 38px;
-      background: rgba(0, 0, 0, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #fff;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 100;
-      font-size: 17px;
-      transition: background 0.2s, transform 0.2s;
-    }
-
-    .modal-close:hover {
-      background: rgba(239, 68, 68, 0.3);
-      transform: rotate(90deg);
-    }
-
-    .modal-hero {
-      width: 100%;
-      aspect-ratio: 16/9;
-      background: #000;
-      position: relative;
-      overflow: hidden;
-      border-radius: 24px 24px 0 0;
-    }
-
-    .modal-slider-wrapper {
-      display: flex;
-      width: 100%;
-      height: 100%;
-      transition: transform 0.45s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-
-    .modal-slide {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      flex-shrink: 0;
-    }
-
-    .modal-slide img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      opacity: 0;
-      transition: opacity 0.4s ease;
-    }
-
-    .modal-slide img.loaded {
-      opacity: 1;
-    }
-
-    .modal-slide .img-skeleton {
-      border-radius: 0;
-    }
-
-    .slider-btn {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 42px;
-      height: 42px;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #fff;
-      border-radius: 50%;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 5;
-      font-size: 14px;
-      transition: background 0.2s, transform 0.2s;
-    }
-
-    .modal-hero:hover .slider-btn {
-      display: flex;
-    }
-
-    .slider-btn:hover {
-      background: rgba(59, 130, 246, 0.5);
-      transform: translateY(-50%) scale(1.1);
-    }
-
-    .slider-dots {
-      position: absolute;
-      bottom: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 7px;
-    }
-
-    .slider-dot {
-      width: 6px;
-      height: 6px;
-      padding: 0;
-      border: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.35);
-      transition: all 0.3s;
-      cursor: pointer;
-    }
-
-    .slider-dot.active {
-      background: var(--blue);
-      width: 22px;
-      border-radius: 3px;
-      box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
-    }
-
-    .modal-body {
-      padding: 28px 32px 32px;
-    }
-
-    .modal-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-    }
-
-    .modal-by {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--text-dim);
-      letter-spacing: 1px;
-    }
-
-    .modal-meta-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 14px;
-      margin: 22px 0;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 18px 0;
-    }
-
-    .meta-item {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .meta-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-    }
-
-    .meta-value {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--blue);
-    }
-
-    .modal-desc {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.85;
-      white-space: pre-line;
-    }
-  </style>
   <link rel="stylesheet" href="asset/theme.css">
+  <link rel="stylesheet" href="asset/maps.css">
 </head>
 
-<body>
+<body class="maps-page">
+  <a class="skip-link" href="#page-content">본문으로 건너뛰기</a>
   <div class="bg-grid" aria-hidden="true"></div>
   <div class="bg-radial" aria-hidden="true"></div>
   <div id="scroll-progress" aria-hidden="true"></div>
 
   <div class="wrap">
-    <header id="header-root" class="header"></header>
+    <header id="header-root" class="header" aria-busy="true"><span class="skeleton loading-logo" aria-hidden="true"></span><span class="skeleton loading-brand" aria-hidden="true"></span><span class="skeleton loading-nav" aria-hidden="true"></span></header>
 
-    <section class="page-hero">
-      <h2 class="page-title">Battle <span>Maps</span></h2>
-      <p class="page-desc">전용
-        클라이언트에서 즐길 수 있는 커스텀 전장 목록입니다.</p>
-      <div class="controls-bar">
-        <p style="font-family:var(--mono); font-size:12px; color:var(--text-dim); letter-spacing:1px;">
-          TOTAL <span id="map-count" style="color:var(--blue); font-weight:700;">0</span> MAPS
-        </p>
-        <div class="view-switcher">
-          <button class="view-btn active" id="btn-grid" type="button" title="그리드 뷰" aria-label="그리드 뷰" aria-pressed="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-          </button>
-          <button class="view-btn" id="btn-list" type="button" title="리스트 뷰" aria-label="리스트 뷰" aria-pressed="false">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="8" y1="6" x2="21" y2="6"></line>
-              <line x1="8" y1="12" x2="21" y2="12"></line>
-              <line x1="8" y1="18" x2="21" y2="18"></line>
-              <line x1="3" y1="6" x2="3.01" y2="6"></line>
-              <line x1="3" y1="12" x2="3.01" y2="12"></line>
-              <line x1="3" y1="18" x2="3.01" y2="18"></line>
-            </svg>
-          </button>
+    <main id="page-content" tabindex="-1">
+      <section class="page-hero" aria-labelledby="maps-title">
+        <div>
+          <p class="map-kicker">MIN. AT. ZERO / BATTLE MAPS</p>
+          <h2 class="page-title" id="maps-title">다음 전장을 <span>둘러보세요.</span></h2>
+          <p class="page-desc">전장마다 다른 풍경과 교전 환경을 미리 살펴보세요.</p>
         </div>
-      </div>
-    </section>
-
-    <div class="maps-grid" id="maps-container">
-      <div class="card map-card skeleton" style="height:340px;border:none;opacity:.5"></div>
-      <div class="card map-card skeleton" style="height:340px;border:none;opacity:.3"></div>
-      <div class="card map-card skeleton" style="height:340px;border:none;opacity:.15"></div>
-    </div>
-
-    <footer id="footer-root" class="footer"></footer>
+        <p class="map-total">등록된 전장 <strong id="map-count" class="skeleton-text">—</strong>개</p>
+      </section>
+      <section class="map-controls" aria-label="맵 검색과 필터">
+        <div class="controls-bar">
+          <div class="map-field">
+            <label for="map-search">맵 찾기</label>
+            <div class="map-search-wrap"><input class="map-search" id="map-search" type="search" placeholder="맵 이름 또는 제작자" data-map-control disabled><button class="map-clear" id="map-clear" aria-label="맵 검색 지우기" data-map-control hidden>×</button></div>
+          </div>
+          <div class="map-field"><label for="map-distance">교전 거리</label><select class="map-distance" id="map-distance" data-map-control disabled><option value="">모든 거리</option><option value="근거리">근거리</option><option value="중거리">중거리</option><option value="장거리">장거리</option></select></div>
+          <div><span class="view-label">보기 방식</span><div class="view-switcher" role="group" aria-label="맵 보기 방식">
+            <button class="view-btn active" id="btn-grid" type="button" aria-label="그리드 뷰" aria-pressed="true" data-map-control disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>갤러리</button>
+            <button class="view-btn" id="btn-list" type="button" aria-label="리스트 뷰" aria-pressed="false" data-map-control disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>목록</button>
+          </div></div>
+        </div>
+        <div class="map-filter-bar"><div class="map-modes" role="group" aria-label="게임 모드">
+          <button class="map-mode" data-mode="" aria-pressed="true" data-map-control disabled>전체 전장</button>
+          <button class="map-mode" data-mode="팀 데스매치" aria-pressed="false" data-map-control disabled>팀 데스매치</button>
+          <button class="map-mode" data-mode="개인 데스매치" aria-pressed="false" data-map-control disabled>개인 데스매치</button>
+        </div><p class="map-result skeleton-text" id="map-result" role="status">맵 목록</p></div>
+      </section>
+      <section aria-label="전장 목록">
+        <div class="maps-grid" id="maps-container" aria-busy="true"><div class="card map-card skeleton" aria-hidden="true"><span class="map-thumb-wrap skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div><div class="card map-card skeleton" aria-hidden="true"><span class="map-thumb-wrap skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div><div class="card map-card skeleton" aria-hidden="true"><span class="map-thumb-wrap skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div></div>
+        <div class="map-empty" id="map-empty" hidden><h3 id="map-empty-title">조건에 맞는 맵이 없습니다.</h3><p id="map-empty-description">다른 검색어를 입력하거나 필터를 바꿔 보세요.</p><button class="map-reset" id="map-reset" data-map-control>필터 초기화</button></div>
+        <button class="map-retry" id="map-retry" hidden>맵 정보 다시 불러오기</button>
+      </section>
+      <p class="map-note">실제 플레이는 전용 클라이언트에서 진행됩니다. <a href="serverinfo.html#installation-card">설치와 접속 안내 →</a></p>
+    </main>
+    <footer id="footer-root" class="footer" aria-busy="true"><div class="wrap loading-lines" aria-hidden="true"><span class="skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div></footer>
   </div>
 
-  <!-- Modal -->
   <div class="map-modal-bg" id="map-modal" aria-hidden="true" inert>
     <div class="map-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <button class="modal-close" id="modal-close" aria-label="닫기">✕</button>
+      <button class="modal-close" id="modal-close" aria-label="맵 상세 닫기">×</button>
       <div class="modal-hero">
         <div class="modal-slider-wrapper" id="modal-slider"></div>
-        <button class="slider-btn" id="slider-prev" type="button" aria-label="이전 이미지" style="left:14px">◀</button>
-        <button class="slider-btn" id="slider-next" type="button" aria-label="다음 이미지" style="right:14px">▶</button>
-        <div class="slider-dots" id="slider-dots"></div>
+        <div class="modal-gallery-controls"><span class="modal-image-count" id="modal-image-count" aria-live="polite"></span><div class="slider-dots" id="slider-dots" role="group" aria-label="맵 이미지 선택"></div><button class="slider-btn" id="slider-prev" type="button" aria-label="이전 이미지">←</button><button class="slider-btn" id="slider-next" type="button" aria-label="다음 이미지">→</button></div>
       </div>
       <div class="modal-body">
-        <h2 class="modal-title" id="modal-title"></h2>
-        <p class="modal-by" id="modal-by-label"></p>
-        <div class="modal-meta-grid">
-          <div class="meta-item"><span class="meta-label">Game Mode</span><span class="meta-value"
-              id="modal-mode"></span></div>
-          <div class="meta-item"><span class="meta-label">Combat Distance</span><span class="meta-value"
-              id="modal-distance"></span></div>
-          <div class="meta-item"><span class="meta-label">Map Size</span><span class="meta-value"
-              id="modal-size"></span></div>
-          <div class="meta-item"><span class="meta-label">Release Date</span><span class="meta-value"
-              id="modal-date"></span></div>
-        </div>
+        <p class="map-kicker">MAP DETAILS / 전장 정보</p>
+        <h2 class="modal-title" id="modal-title"></h2><p class="modal-by" id="modal-by-label"></p>
+        <dl class="modal-meta-grid">
+          <div><dt class="meta-label">게임 모드</dt><dd class="meta-value" id="modal-mode"></dd></div>
+          <div><dt class="meta-label">교전 거리</dt><dd class="meta-value" id="modal-distance"></dd></div>
+          <div><dt class="meta-label">맵 크기</dt><dd class="meta-value" id="modal-size"></dd></div>
+          <div><dt class="meta-label">등록일</dt><dd class="meta-value" id="modal-date"></dd></div>
+        </dl>
         <p class="modal-desc" id="modal-desc"></p>
       </div>
     </div>
@@ -651,12 +89,104 @@
   <script src="asset/script.js"></script>
   <script>
     (function () {
-      const container = document.getElementById('maps-container');
-      const modal = document.getElementById('map-modal');
-      const modalSlider = document.getElementById('modal-slider');
-      const sliderDots = document.getElementById('slider-dots');
-      let currentSlide = 0, totalSlides = 0;
+      const $ = id => document.getElementById(id);
+      const container = $('maps-container');
+      const modal = $('map-modal');
+      const modalSlider = $('modal-slider');
+      const sliderDots = $('slider-dots');
+      const search = $('map-search');
+      const distance = $('map-distance');
+      const empty = $('map-empty');
+      const retry = $('map-retry');
+      const skeletons = container.innerHTML;
+      const controls = [...document.querySelectorAll('[data-map-control]')];
+      const esc = value => utils.sanitizeText(value);
+      let maps = [], mapEntries = [], selectedMode = '', fetching = false;
+      let currentSlide = 0, totalSlides = 0, imageCount = 0;
       let lastModalTrigger = null;
+
+      function normalizeMap(map) {
+        return { ...map,
+          by: String(map.by ?? '출처 정보 없음'),
+          value: String(map.value ?? '상세 설명이 등록되지 않았습니다.'),
+          CombatDistance: String(map.CombatDistance ?? '거리 정보 없음'),
+          createData: String(map.createData ?? '알 수 없음'),
+          mode: String(map.gamemode ?? '').replace('게인', '개인').replace('데스메치', '데스매치'),
+          size: String(map.mapSize ?? '알 수 없음').replace(/\s*[xX×]\s*/g, ' × '),
+          image: Array.isArray(map.image) ? map.image.filter(src => typeof src === 'string' && /^map\/[\w/-]+\.(png|jpe?g|webp)$/i.test(src)) : [],
+        };
+      }
+
+      function matchesMap(map, query, mode, range) {
+        return (!mode || map.mode === mode)
+          && (!range || map.CombatDistance.split(',').map(value => value.trim()).includes(range))
+          && `${map.title} ${map.by}`.toLowerCase().includes(query.trim().toLowerCase());
+      }
+
+      function mediaMarkup(src, title, className, lazy = false) {
+        return `<div class="img-skeleton" aria-hidden="true"></div>
+          <img class="${className}" src="${esc(src)}" alt="${esc(title)}" loading="${lazy ? 'lazy' : 'eager'}" decoding="async"
+            onload="this.classList.add('loaded');this.previousElementSibling.classList.add('hidden')"
+            onerror="this.onerror=null;this.hidden=true;this.previousElementSibling.classList.add('hidden');this.nextElementSibling.hidden=false">
+          <div class="map-thumb-placeholder" hidden><span aria-hidden="true">MAP / —</span>이미지를 불러오지 못했습니다.</div>`;
+      }
+
+      function applyFilters() {
+        let shown = 0;
+        mapEntries.forEach(({ map, card }) => {
+          const visible = matchesMap(map, search.value, selectedMode, distance.value);
+          card.hidden = !visible;
+          if (visible) {
+            shown++;
+            card.classList.remove('motion-pending');
+            card.classList.remove('motion-enter');
+          }
+        });
+        $('map-result').textContent = `${shown}개 전장 · 전체 ${maps.length}개`;
+        $('map-clear').hidden = !search.value;
+        empty.hidden = shown > 0;
+        $('map-empty-title').textContent = maps.length ? '조건에 맞는 맵이 없습니다.' : '등록된 맵이 없습니다.';
+        $('map-empty-description').textContent = maps.length ? '다른 검색어를 입력하거나 필터를 바꿔 보세요.' : '새로운 전장이 등록되면 이곳에서 확인할 수 있습니다.';
+        $('map-reset').hidden = !maps.length;
+      }
+
+      function resetFilters() {
+        search.value = '';
+        distance.value = '';
+        selectedMode = '';
+        document.querySelectorAll('.map-mode').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === '')));
+        applyFilters();
+      }
+
+      function renderMaps() {
+        container.innerHTML = '';
+        mapEntries = maps.map((map, i) => {
+          const card = document.createElement('article');
+          card.className = 'card map-card revealed';
+          card.setAttribute('role', 'button');
+          card.setAttribute('tabindex', '0');
+          card.setAttribute('aria-label', `${map.title} 맵 상세 정보 보기`);
+          card.setAttribute('aria-describedby', `map-summary-${i}`);
+          card.innerHTML = `
+            <div class="map-thumb-wrap">
+              ${map.image.length ? mediaMarkup(map.image[0], map.title, 'map-thumb', i > 1) : '<div class="map-thumb-placeholder"><span aria-hidden="true">MAP / —</span>미리보기 이미지가 없습니다.</div>'}
+              <span class="map-image-label">${map.image.length ? `<b>${map.image.length}</b>장의 미리보기` : '등록된 이미지 없음'}</span><span class="map-image-link" aria-hidden="true">↗</span>
+            </div>
+            <div class="map-info">
+              <div class="map-title-row"><h3 class="map-card-title">${esc(map.title)}</h3><span class="map-mode-label">${esc(map.mode || '모드 정보 없음')}</span></div>
+              <p class="map-card-by">제작·출처 ${esc(map.by)}</p>
+              <p class="map-card-desc" id="map-summary-${i}">${esc(map.value)}</p>
+              <dl class="map-card-meta"><div><dt>교전 거리</dt><dd>${esc(map.CombatDistance)}</dd></div><div><dt>맵 크기</dt><dd>${esc(map.size)}</dd></div></dl>
+            </div>`;
+          card.onclick = () => openModal(map, card);
+          card.onkeydown = event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openModal(map, card); }
+          };
+          container.appendChild(card);
+          return { map, card };
+        });
+        applyFilters();
+      }
 
       /* ── 슬라이더 ── */
       function updateSlider() {
@@ -664,7 +194,11 @@
           slide.classList.toggle('is-active', i === currentSlide);
           slide.setAttribute('aria-hidden', String(i !== currentSlide));
         });
-        document.querySelectorAll('.slider-dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+        sliderDots.querySelectorAll('.slider-dot').forEach((dot, i) => {
+          dot.classList.toggle('active', i === currentSlide);
+          dot.setAttribute('aria-current', String(i === currentSlide));
+        });
+        $('modal-image-count').textContent = imageCount ? `${currentSlide + 1} / ${imageCount}` : '미리보기 없음';
       }
 
       /* ── 뷰 전환 애니메이션 ── */
@@ -673,99 +207,92 @@
       function switchView(toList) {
         viewIsList = toList;
         const update = () => {
-          if (toList === viewIsList) container.classList.toggle('view-list', toList);
+          if (toList !== viewIsList) return;
+          container.querySelectorAll('.map-card').forEach(card => {
+            card.classList.remove('motion-pending');
+            card.classList.remove('motion-enter');
+          });
+          container.classList.toggle('view-list', toList);
         };
         viewTransition?.skipTransition();
-        if (document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !document.documentElement.classList.contains('motion-off')) {
+          document.documentElement.classList.add('map-view-transition');
           viewTransition = document.startViewTransition(update);
+          viewTransition.ready.catch(error => { if (error.name !== 'AbortError') console.error(error); });
+          const transition = viewTransition;
+          transition.finished.then(() => {
+            if (viewTransition === transition) document.documentElement.classList.remove('map-view-transition');
+          });
         } else {
+          document.documentElement.classList.remove('map-view-transition');
           update();
         }
       }
 
+
       /* ── 맵 로드 ── */
       async function loadMaps() {
+        if (fetching) return;
+        fetching = true;
+        controls.forEach(control => { control.disabled = true; });
+        retry.hidden = true;
+        empty.hidden = true;
+        loading.begin(container, skeletons);
+        loading.begin($('map-count'));
+        loading.begin($('map-result'));
+        let loaded = false;
         try {
-          const res = await fetch('./map/map.json');
-          const data = (await res.json()).reverse();
-          document.getElementById('map-count').textContent = data.length;
-          container.innerHTML = '';
-          const buster = `?v=${Date.now()}`;
-
-          data.forEach((map, i) => {
-            const images = Array.isArray(map.image) ? map.image.filter(Boolean) : [];
-            const normalizedMap = { ...map, image: images };
-            const card = document.createElement('article');
-            card.className = 'card map-card';
-            card.setAttribute('role', 'button');
-            card.setAttribute('tabindex', '0');
-            card.setAttribute('aria-label', `${map.title} 맵 상세 정보 보기`);
-            card.innerHTML = `
-              <div class="card-top-bar blue"></div>
-              <div class="map-thumb-wrap">
-                ${images.length ? `<div class="img-skeleton"></div>
-                <img class="map-thumb" src="${images[0]}${buster}" alt="${map.title}" loading="lazy" onload="this.classList.add('loaded');this.previousElementSibling.classList.add('hidden')">`
-                  : '<div class="map-thumb-placeholder">이미지 준비 중</div>'}
-                <div class="map-overlay"><span class="map-hint">🔍 VIEW DETAILS</span></div>
-              </div>
-              <div class="map-info">
-                <h3 class="map-card-title">${map.title}</h3>
-                <div class="map-card-by">By ${map.by}</div>
-                <div class="tags-row">
-                  <span class="tag-badge tag-mode">${map.gamemode}</span>
-                  <span class="tag-badge tag-distance">${map.CombatDistance}</span>
-                  <span class="tag-badge">${map.mapSize}</span>
-                </div>
-              </div>`;
-            card.onclick = () => openModal(normalizedMap, buster);
-            card.onkeydown = event => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                openModal(normalizedMap, buster);
-              }
-            };
-            container.appendChild(card);
-            /* 스태거 진입 */
-            card.classList.add('revealed', 'motion-enter');
-          });
-        } catch (e) {
-          container.innerHTML = `<div style="color:var(--red);padding:40px;text-align:center;">⚠️ 맵 데이터를 불러오지 못했습니다.</div>`;
+          const res = await fetch('./map/map.json', { signal: AbortSignal.timeout(10_000) });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (!Array.isArray(data)) throw new Error('Invalid map data');
+          maps = [...data].reverse().filter(map => map && typeof map.title === 'string' && map.title.trim()).map(normalizeMap);
+          $('map-count').textContent = maps.length;
+          renderMaps();
+          loaded = true;
+        } catch (error) {
+          maps = []; mapEntries = [];
+          container.innerHTML = '<div class="map-empty" role="alert"><h3>맵 정보를 불러오지 못했습니다.</h3><p>잠시 후 다시 시도해 주세요.</p></div>';
+          $('map-count').textContent = '—';
+          $('map-result').textContent = '불러오기 실패';
+          retry.hidden = false;
+        } finally {
+          fetching = false;
+          loading.end(container);
+          loading.end($('map-count'));
+          loading.end($('map-result'));
+          controls.forEach(control => { control.disabled = !loaded; });
         }
       }
 
       /* ── 모달 열기 ── */
-      function openModal(map, buster) {
-        lastModalTrigger = document.activeElement;
-        const images = map.image;
+      function openModal(map, trigger) {
+        lastModalTrigger = trigger;
         currentSlide = 0;
-        totalSlides = Math.max(images.length, 1);
-        modalSlider.innerHTML = images.length ? images.map(src =>
-          `<div class="modal-slide">
-            <div class="img-skeleton"></div>
-            <img src="${src}${buster}" alt="${map.title}" onload="this.classList.add('loaded');this.previousElementSibling.classList.add('hidden')">
-          </div>`
-        ).join('') : '<div class="modal-slide"><div class="map-thumb-placeholder">이미지 준비 중</div></div>';
-        sliderDots.innerHTML = images.map((_, i) =>
-          `<button type="button" class="slider-dot${i === 0 ? ' active' : ''}" data-i="${i}" aria-label="${i + 1}번째 이미지 보기"></button>`).join('');
-        sliderDots.querySelectorAll('.slider-dot').forEach(d =>
-          d.addEventListener('click', e => { e.stopPropagation(); currentSlide = +d.dataset.i; updateSlider(); }));
-
-        document.getElementById('modal-title').textContent = map.title;
-        document.getElementById('modal-by-label').textContent = 'By ' + map.by;
-        document.getElementById('modal-mode').textContent = map.gamemode;
-        document.getElementById('modal-distance').textContent = map.CombatDistance;
-        document.getElementById('modal-size').textContent = map.mapSize;
-        document.getElementById('modal-date').textContent = map.createData;
-        document.getElementById('modal-desc').textContent = map.value;
-        document.getElementById('slider-prev').disabled = images.length <= 1;
-        document.getElementById('slider-next').disabled = images.length <= 1;
-
+        imageCount = map.image.length;
+        totalSlides = Math.max(imageCount, 1);
+        modalSlider.innerHTML = imageCount ? map.image.map(src => `<div class="modal-slide">${mediaMarkup(src, map.title, 'modal-image')}</div>`).join('')
+          : '<div class="modal-slide"><div class="map-thumb-placeholder"><span aria-hidden="true">MAP / —</span>미리보기 이미지가 없습니다.</div></div>';
+        sliderDots.innerHTML = map.image.map((_, i) => `<button type="button" class="slider-dot" data-i="${i}" aria-label="${i + 1}번째 이미지 보기">${i + 1}</button>`).join('');
+        sliderDots.querySelectorAll('.slider-dot').forEach(dot => {
+          dot.onclick = () => { currentSlide = Number(dot.dataset.i); updateSlider(); };
+        });
+        $('modal-title').textContent = map.title;
+        $('modal-by-label').textContent = '제작·출처 ' + map.by;
+        $('modal-mode').textContent = map.mode || '모드 정보 없음';
+        $('modal-distance').textContent = map.CombatDistance;
+        $('modal-size').textContent = map.size;
+        $('modal-date').textContent = map.createData;
+        $('modal-desc').textContent = map.value;
+        $('slider-prev').disabled = imageCount <= 1;
+        $('slider-next').disabled = imageCount <= 1;
+        ['header-root', 'page-content', 'footer-root'].forEach(id => { $(id).inert = true; });
         modal.classList.add('active');
         modal.inert = false;
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
         updateSlider();
-        requestAnimationFrame(() => document.getElementById('modal-close').focus());
+        requestAnimationFrame(() => $('modal-close').focus());
       }
 
       function closeModal() {
@@ -773,47 +300,56 @@
         modal.inert = true;
         modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+        ['header-root', 'page-content', 'footer-root'].forEach(id => { $(id).inert = false; });
         if (lastModalTrigger instanceof HTMLElement) lastModalTrigger.focus();
       }
 
       /* ── 이벤트 ── */
-      document.getElementById('modal-close').onclick = closeModal;
-      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-      document.getElementById('slider-prev').onclick = e => { e.stopPropagation(); currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlider(); };
-      document.getElementById('slider-next').onclick = e => { e.stopPropagation(); currentSlide = (currentSlide + 1) % totalSlides; updateSlider(); };
-      document.addEventListener('keydown', e => {
+      search.addEventListener('input', applyFilters);
+      distance.addEventListener('change', applyFilters);
+      $('map-clear').onclick = () => { search.value = ''; applyFilters(); search.focus(); };
+      $('map-reset').onclick = resetFilters;
+      retry.onclick = loadMaps;
+      document.querySelectorAll('.map-mode').forEach(button => {
+        button.onclick = () => {
+          selectedMode = button.dataset.mode;
+          document.querySelectorAll('.map-mode').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+          applyFilters();
+        };
+      });
+      $('modal-close').onclick = closeModal;
+      modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
+      $('slider-prev').onclick = () => { currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlider(); };
+      $('slider-next').onclick = () => { currentSlide = (currentSlide + 1) % totalSlides; updateSlider(); };
+      document.addEventListener('keydown', event => {
         if (!modal.classList.contains('active')) return;
-        if (e.key === 'Tab') {
+        if (event.key === 'Tab') {
           const buttons = [...modal.querySelectorAll('button:not([disabled])')];
           const first = buttons[0], last = buttons.at(-1);
-          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
-          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
         }
-        if (e.key === 'Escape') closeModal();
-        if (e.key === 'ArrowLeft') { currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlider(); }
-        if (e.key === 'ArrowRight') { currentSlide = (currentSlide + 1) % totalSlides; updateSlider(); }
+        if (event.key === 'Escape') closeModal();
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+          event.preventDefault();
+          currentSlide = (currentSlide + (event.key === 'ArrowLeft' ? -1 : 1) + totalSlides) % totalSlides;
+          updateSlider();
+        }
       });
-
-      document.getElementById('btn-grid').onclick = () => {
-        if (viewIsList) {
-          document.getElementById('btn-grid').classList.add('active');
-          document.getElementById('btn-list').classList.remove('active');
-          document.getElementById('btn-grid').setAttribute('aria-pressed', 'true');
-          document.getElementById('btn-list').setAttribute('aria-pressed', 'false');
-          switchView(false);
-        }
+      $('btn-grid').onclick = () => {
+        if (!viewIsList) return;
+        $('btn-grid').classList.add('active'); $('btn-list').classList.remove('active');
+        $('btn-grid').setAttribute('aria-pressed', 'true'); $('btn-list').setAttribute('aria-pressed', 'false');
+        switchView(false);
       };
-      document.getElementById('btn-list').onclick = () => {
-        if (!viewIsList) {
-          document.getElementById('btn-list').classList.add('active');
-          document.getElementById('btn-grid').classList.remove('active');
-          document.getElementById('btn-list').setAttribute('aria-pressed', 'true');
-          document.getElementById('btn-grid').setAttribute('aria-pressed', 'false');
-          switchView(true);
-        }
+      $('btn-list').onclick = () => {
+        if (viewIsList) return;
+        $('btn-list').classList.add('active'); $('btn-grid').classList.remove('active');
+        $('btn-list').setAttribute('aria-pressed', 'true'); $('btn-grid').setAttribute('aria-pressed', 'false');
+        switchView(true);
       };
-
-      document.addEventListener('DOMContentLoaded', loadMaps);
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadMaps);
+      else loadMaps();
     })();
   </script>
 </body>

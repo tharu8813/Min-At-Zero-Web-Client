@@ -372,6 +372,73 @@ const api = {
 /* ════════════════════════════════════════════
    UI
 ════════════════════════════════════════════ */
+const loading = {
+  lines: '<div class="loading-lines" aria-hidden="true"><span class="skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div>',
+  rows(count = 3) {
+    return '<div class="loading-row skeleton" aria-hidden="true"></div>'.repeat(count);
+  },
+  begin(element, markup) {
+    if (!element) return;
+    element.setAttribute('aria-busy', 'true');
+    if (markup !== undefined) element.innerHTML = markup;
+    else element.classList.add('skeleton-text');
+  },
+  end(element) {
+    if (!element) return;
+    element.setAttribute('aria-busy', 'false');
+    element.classList.remove('skeleton-text');
+  },
+};
+
+/* Media inserted by any page shares the same skeleton and failure cleanup. */
+const mediaLoading = (() => {
+  const watched = new WeakSet();
+  function pending(media, force = false) {
+    const hasSource = media.getAttribute('src') || media.querySelector('source[src]');
+    if (!hasSource) return;
+    const ready = media.tagName === 'IMG' ? media.complete : media.readyState >= 1;
+    if (!force && media.tagName !== 'IFRAME' && ready) { settle(media); return; }
+    media.classList.add('media-pending');
+    media.setAttribute('aria-busy', 'true');
+    if (media.tagName === 'IFRAME') media.parentElement.classList.add('frame-pending');
+  }
+  function settle(media) {
+    media.classList.remove('media-pending');
+    media.setAttribute('aria-busy', 'false');
+    if (media.tagName === 'IMG') media.classList.toggle('media-error', media.complete && !media.naturalWidth);
+    if (media.tagName === 'IFRAME') media.parentElement.classList.remove('frame-pending');
+    media.parentElement?.querySelector('.img-skeleton')?.classList.add('hidden');
+  }
+  function watch(media) {
+    if (watched.has(media)) return;
+    watched.add(media);
+    media.addEventListener('load', () => settle(media));
+    media.addEventListener('error', () => settle(media));
+    media.querySelectorAll('source').forEach(source => source.addEventListener('error', () => settle(media)));
+    media.addEventListener('loadeddata', () => settle(media));
+    media.addEventListener('loadedmetadata', () => settle(media));
+    media.addEventListener('canplay', () => settle(media));
+    media.addEventListener('waiting', () => pending(media, true));
+    media.addEventListener('playing', () => settle(media));
+    pending(media);
+  }
+  function scan(root) {
+    if (root.matches?.('img, video, iframe')) watch(root);
+    root.querySelectorAll?.('img, video, iframe').forEach(watch);
+  }
+  function init() {
+    scan(document);
+    new MutationObserver(records => records.forEach(record => {
+      if (record.type === 'attributes') pending(record.target);
+      else record.addedNodes.forEach(scan);
+    })).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+  }
+  return { init, pending, settle };
+})();
+
+/* ════════════════════════════════════════════
+   RELEASE CONTENT
+════════════════════════════════════════════ */
 const ui = {
   updateClientInfo(data) {
     const tag = data?.tag_name ?? '1.0.0';
@@ -436,7 +503,7 @@ const ui = {
 
   countUpText(el, online, max, duration = 800) {
     if (!el) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = `${online} / ${max}`; return; }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('motion-off')) { el.textContent = `${online} / ${max}`; return; }
     const start = Date.now();
     const tick = () => {
       const t = Math.min((Date.now() - start) / duration, 1);
@@ -459,7 +526,7 @@ const serverStatus = (() => {
     const txt = utils.$('server-status-text');
     const players = utils.$('server-players');
 
-    [txt, players].forEach(el => el?.classList.remove('skeleton-text'));
+    [txt, players].forEach(el => loading.begin(el));
 
     try {
       const ctrl = new AbortController();
@@ -507,6 +574,8 @@ const serverStatus = (() => {
       } else {
         utils.animateText(txt, '확인 불가');
       }
+    } finally {
+      [txt, players].forEach(el => loading.end(el));
     }
   }
 
@@ -551,6 +620,11 @@ const slider = (() => {
         img.src = `https://placehold.co/1200x675/04080e/22c55e?text=Showcase+${i}`;
       };
       img.addEventListener('load', () => { if (isInit && current === i - 1) goTo(current); });
+      img.addEventListener('error', () => {
+        if (current !== i - 1) return;
+        loading.end(wrapper);
+        wrapper.classList.add('media-load-error');
+      });
       img.src = `screenshot/${i}.png`;
       img.alt = `스크린샷 ${i}`;
       img.loading = i === 1 ? 'eager' : 'lazy';
@@ -615,6 +689,7 @@ const slider = (() => {
       resetAuto();
     });
     document.addEventListener('visibilitychange', resetAuto);
+    document.addEventListener('motionchange', resetAuto);
     reducedMotion.addEventListener('change', resetAuto);
 
     isInit = true;
@@ -639,8 +714,9 @@ const slider = (() => {
       const selected = images[current];
       selected.loading = 'eager';
       images[(current + 1) % total].loading = 'eager';
-      // Keep the previous image visible until the selected asset has loaded.
-      if (!selected.complete || !selected.naturalWidth) return;
+      wrapper.classList.remove('media-load-error');
+      if (!selected.complete || !selected.naturalWidth) { wrapper.setAttribute('aria-busy', 'true'); return; }
+      loading.end(wrapper);
       wrapper.querySelectorAll('img').forEach((img, i) => {
         img.classList.toggle('is-active', i === current);
         img.tabIndex = i === current ? 0 : -1;
@@ -662,7 +738,7 @@ const slider = (() => {
   function resetAuto() {
     if (autoTimer) clearInterval(autoTimer);
     const outer = utils.$('showcase-slider')?.closest('.slider-outer');
-    if (paused || reducedMotion.matches || document.hidden || outer?.matches(':hover, :focus-within') || utils.$('lightbox-overlay')?.classList.contains('active')) return;
+    if (paused || reducedMotion.matches || document.documentElement.classList.contains('motion-off') || document.hidden || outer?.matches(':hover, :focus-within') || utils.$('lightbox-overlay')?.classList.contains('active')) return;
     autoTimer = setInterval(() => goTo(current + 1), CONFIG.SLIDER_AUTO_MS);
   }
 
@@ -964,18 +1040,75 @@ const cardTilt = (() => {
    SCROLL REVEAL
 ════════════════════════════════════════════ */
 const scrollReveal = (() => {
+  const selector = '.card:not(.skeleton), .hub-section, .guide-section, .community-band, .explore-links > a, .play-panel, .server-facts, .dev-section, .lb-section';
   function init() {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let disabled = false;
+    try { disabled = localStorage.getItem('matz-motion') === 'off'; } catch {}
+    let enabled = !reducedMotion.matches && !disabled;
+    const seen = new WeakSet();
+    const reveal = element => {
+      element.classList.remove('motion-pending');
+      element.classList.add('revealed');
+      if (enabled) element.classList.add('motion-enter');
+    };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
-        entry.target.classList.add('revealed');
-        if (!reducedMotion.matches) entry.target.classList.add('motion-enter');
+        if (entry.target.classList.contains('motion-pending')) reveal(entry.target);
         observer.unobserve(entry.target);
       });
-    }, { threshold: 0.08 });
+    }, { threshold: 0.06 });
 
-    document.querySelectorAll('.card').forEach(c => observer.observe(c));
+    function scan(root) {
+      const elements = root.matches?.(selector) ? [root] : [];
+      elements.push(...(root.querySelectorAll?.(selector) || []));
+      elements.forEach(element => {
+        if (seen.has(element) || element.closest('[aria-busy="true"]')) return;
+        seen.add(element);
+        element.style.setProperty('--reveal-delay', `${Math.min([...element.parentElement.children].indexOf(element), 4) * 70}ms`);
+        if (!enabled) { reveal(element); return; }
+        if (element.getBoundingClientRect().top > innerHeight) {
+          element.classList.add('motion-pending');
+          observer.observe(element);
+        } else {
+          element.classList.add('revealed');
+          element.classList.add('motion-settle');
+        }
+      });
+    }
+
+    const button = utils.$('motion-toggle');
+    function sync() {
+      enabled = !reducedMotion.matches && !disabled;
+      document.documentElement.classList.toggle('motion-off', !enabled);
+      if (!enabled) document.querySelectorAll('.motion-pending').forEach(reveal);
+      if (button) {
+        button.textContent = enabled ? '모션 끄기' : '모션 켜기';
+        button.setAttribute('aria-pressed', String(enabled));
+        button.disabled = reducedMotion.matches;
+        if (reducedMotion.matches) button.textContent = '기기 설정: 모션 줄임';
+      }
+      document.dispatchEvent(new Event('motionchange'));
+    }
+    button?.addEventListener('click', () => {
+      disabled = !disabled;
+      try { localStorage.setItem('matz-motion', disabled ? 'off' : 'on'); } catch {}
+      sync();
+    });
+    reducedMotion.addEventListener('change', sync);
+    sync();
+    scan(document);
+    new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(scan)))
+      .observe(document.body, { childList: true, subtree: true });
+    document.addEventListener('focusin', event => {
+      const pending = event.target.closest('.motion-pending');
+      if (pending) reveal(pending);
+    });
+    const pause = () => document.documentElement.classList.toggle('motion-paused', document.hidden);
+    document.addEventListener('visibilitychange', pause);
+    pause();
+
   }
 
   return { init };
@@ -1429,17 +1562,10 @@ const miniRanking = (() => {
     const request = ++renderRequest;
     listEl.setAttribute('aria-busy', 'true');
 
-    if (!listEl.querySelector('.mini-rank-row')) listEl.innerHTML = Array(5).fill('<div class="skeleton-mini-row skeleton"></div>').join('');
-
-    const loadingTimeout = setTimeout(() => {
-      if (request === renderRequest && listEl.querySelector('.skeleton')) {
-        listEl.innerHTML = `<div class="mini-rank-loading" style="color:var(--text-dim);padding:20px 0">⏳ 불러오는 중...</div>`;
-      }
-    }, 8000);
+    loading.begin(listEl, loading.rows(5));
 
     try {
       const rows = await fetchTop(table);
-      clearTimeout(loadingTimeout);
       if (request !== renderRequest) return;
 
       const cfg = TAB_CONFIG[table];
@@ -1476,8 +1602,7 @@ const miniRanking = (() => {
       listEl.innerHTML = `<div class="mini-rank-loading" style="color:#fca5a5">⚠️ 불러오기 실패</div>`;
       console.error('Mini ranking error:', err);
     } finally {
-      clearTimeout(loadingTimeout);
-      if (request === renderRequest) listEl.setAttribute('aria-busy', 'false');
+      if (request === renderRequest) loading.end(listEl);
     }
   }
 
@@ -1658,11 +1783,14 @@ const launcher = (() => {
     }
 
     const original = textEl.textContent;
-    textEl.textContent = msg;
+    loading.begin(textEl);
+    btn.setAttribute('aria-label', msg.replace('⏳ ', ''));
     btn.disabled = true;
 
     const id = setTimeout(() => {
       textEl.textContent = original;
+      loading.end(textEl);
+      btn.removeAttribute('aria-label');
       btn.disabled = false;
       timers.delete(btn);
     }, duration);
@@ -1763,8 +1891,8 @@ const download = (() => {
    LAYOUT LOADER
 ════════════════════════════════════════════ */
 const layout = (() => {
-  const HEADER_CACHE_KEY = 'maz_layout_header_html_v3';
-  const FOOTER_CACHE_KEY = 'maz_layout_footer_html_v2';
+  const HEADER_CACHE_KEY = 'maz_layout_header_html_v4';
+  const FOOTER_CACHE_KEY = 'maz_layout_footer_html_v4';
 
   function getCached(key) {
     try {
@@ -1809,14 +1937,19 @@ const layout = (() => {
     const cached = getCached(cacheKey);
     if (cached) {
       onRender(root, cached);
+      loading.end(root);
+    } else {
+      loading.begin(root, root.id === 'header-root'
+        ? '<span class="skeleton loading-logo" aria-hidden="true"></span><span class="skeleton loading-brand" aria-hidden="true"></span><span class="skeleton loading-nav" aria-hidden="true"></span>'
+        : loading.lines);
     }
 
     try {
-      const res = await fetch(url);
-      if (!res.ok) return;
+      const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+      if (!res.ok) throw new Error('layout unavailable');
 
       const html = await res.text();
-      if (!html) return;
+      if (!html) throw new Error('empty layout');
 
       if (html !== cached) {
         onRender(root, html);
@@ -1824,6 +1957,9 @@ const layout = (() => {
       }
     } catch (e) {
       console.error(`${cacheKey} load error:`, e);
+      if (!cached) root.innerHTML = '<p class="layout-error">메뉴를 불러오지 못했습니다. <a href="index.html">홈</a> · <a href="serverinfo.html">서버 안내</a></p>';
+    } finally {
+      loading.end(root);
     }
   }
 
@@ -1858,8 +1994,16 @@ const layout = (() => {
 /* 홈에서 필요할 때 펼쳐 읽는 공지 */
 async function loadNotice() {
   if (!utils.$('notice-card')) return;
+  loading.begin(utils.$('notice-title'));
+  loading.begin(utils.$('notice-date'));
   const release = await api.fetchRelease('notice');
-  if (!release) return;
+  loading.end(utils.$('notice-title'));
+  loading.end(utils.$('notice-date'));
+  if (!release) {
+    utils.setText('notice-title', '공지 목록에서 운영 소식을 확인하세요.');
+    utils.setText('notice-date', '최신 공지를 불러오지 못했습니다.');
+    return;
+  }
   utils.setText('notice-title', release.name || '최신 서버 공지');
   utils.setText('notice-date', utils.fmtDate(release.published_at));
   utils.$('notice-body').innerHTML = utils.fmtMd(release.body || '');
@@ -1901,6 +2045,14 @@ const pwaInstall = {
    INIT
 ════════════════════════════════════════════ */
 (async () => {
+  try { document.documentElement.classList.toggle('motion-off', localStorage.getItem('matz-motion') === 'off'); } catch {}
+  window.addEventListener('pagereveal', event => {
+    if (!event.viewTransition) return;
+    event.viewTransition.ready.catch(error => { if (error.name !== 'AbortError') console.error(error); });
+    document.documentElement.classList.add('scene-navigation');
+    if (document.documentElement.classList.contains('motion-off')) event.viewTransition.skipTransition();
+  });
+  mediaLoading.init();
   // 레이아웃 먼저 로드
   await layout.load();
 
@@ -1956,10 +2108,21 @@ const pwaInstall = {
 
   const isHomePage = !!utils.$('download-btn');
   if (isHomePage) {
+    const clientFields = ['dl-version-text', 'file-size'].map(id => utils.$(id));
+    clientFields.forEach(element => loading.begin(element));
+    const patchNotes = utils.$('client-patch-notes');
+    loading.begin(patchNotes, loading.rows(1));
+    const gameCard = utils.$('game-patch-notes-card');
+    gameCard.hidden = false;
+    gameCard.setAttribute('aria-busy', 'true');
+    ['game-patch-title', 'game-patch-date'].forEach(id => loading.begin(utils.$(id)));
     const [clientData, gameData] = await Promise.all([
       api.fetchRelease('client'),
       api.fetchRelease('game'),
     ]);
+    patchNotes.innerHTML = '';
+    loading.end(patchNotes);
+    clientFields.forEach(element => loading.end(element));
 
     if (clientData) {
       ui.updateClientInfo(clientData);
@@ -1979,6 +2142,9 @@ const pwaInstall = {
       ui.updateGameInfo(gameData);
 
     }
+    if (!gameData?.body) gameCard.hidden = true;
+    loading.end(gameCard);
+    ['game-patch-title', 'game-patch-date'].forEach(id => loading.end(utils.$(id)));
 
 
   }

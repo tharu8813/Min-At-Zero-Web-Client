@@ -792,7 +792,7 @@
 
   <!-- 헤더 -->
   <div class="wrap wiki-header-wrap">
-    <header id="header-root" class="header"></header>
+    <header id="header-root" class="header" aria-busy="true"><span class="skeleton loading-logo" aria-hidden="true"></span><span class="skeleton loading-brand" aria-hidden="true"></span><span class="skeleton loading-nav" aria-hidden="true"></span></header>
   </div>
 
   <!-- 위키 레이아웃 -->
@@ -816,7 +816,7 @@
         <p id="wiki-search-empty" role="status" hidden>검색 결과가 없습니다. 다른 제목으로 검색해 주세요.</p>
 
         <!-- 트리 렌더 영역 -->
-        <div id="wiki-tree">
+        <div id="wiki-tree" aria-busy="true">
           <!-- 스켈레톤 -->
           <div id="tree-skeleton">
             <div class="skel-tree-item">
@@ -878,7 +878,7 @@
   </button>
 
   <!-- 푸터 -->
-  <footer id="footer-root" class="footer"></footer>
+  <footer id="footer-root" class="footer" aria-busy="true"><div class="wrap loading-lines" aria-hidden="true"><span class="skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div></footer>
 
   <script src="asset/script.js"></script>
   <script>
@@ -1370,8 +1370,7 @@
 
       /* 스켈레톤 표시 */
       const content = document.getElementById('wiki-content');
-      content.setAttribute('aria-busy', 'true');
-      if (!content.querySelector('.wiki-content-wrap')) content.innerHTML = `<div class="skel-content">
+      loading.begin(content, `<div class="skel-content" aria-hidden="true">
         <div class="skel skel-breadcrumb"></div>
         <div class="skel skel-title"></div>
         <div class="skel skel-meta"></div>
@@ -1384,10 +1383,10 @@
         <div class="skel skel-p4"></div>
         <div class="skel skel-p5"></div>
         <div class="skel skel-p6"></div>
-      </div>`;
+      </div>`);
 
       try {
-        const res = await fetch(`./wiki/${doc.path}`, { cache: 'no-cache' });
+        const res = await fetch(`./wiki/${doc.path}`, { cache: 'no-cache', signal: AbortSignal.timeout(10_000) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         let md = await res.text();
         if (request !== docRequest) return;
@@ -1446,7 +1445,7 @@
           <button onclick="currentId=null;window.__wiki_load('${retryId}')" style="margin-top:20px;padding:8px 20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text-muted);cursor:pointer;font-family:var(--mono);font-size:12px">다시 시도</button>
         </div>`;
       } finally {
-        if (request === docRequest) content.setAttribute('aria-busy', 'false');
+        if (request === docRequest) loading.end(content);
       }
     }
 
@@ -1501,8 +1500,13 @@
        초기화
     ───────────────────────────────────── */
     async function init() {
+      const tree = document.getElementById('wiki-tree');
+      tree.setAttribute('aria-busy', 'true');
+      const stats = ['stat-docs', 'stat-cats'].map(id => document.getElementById(id));
+      stats.forEach(element => loading.begin(element));
+      document.getElementById('wiki-welcome-stats').style.display = 'flex';
       try {
-        const res  = await fetch(INDEX_URL, { cache: 'no-cache' });
+        const res  = await fetch(INDEX_URL, { cache: 'no-cache', signal: AbortSignal.timeout(10_000) });
         if (!res.ok) throw new Error(`index.json을 찾을 수 없습니다 (${res.status})`);
         const data = await res.json();
 
@@ -1556,6 +1560,9 @@
           `<div style="padding:16px;font-family:var(--mono);font-size:11px;color:var(--red)">
             ⚠ ${err.message}
           </div>`;
+      } finally {
+        loading.end(tree);
+        stats.forEach(element => loading.end(element));
       }
     }
 
